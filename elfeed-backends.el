@@ -54,114 +54,104 @@ may not like to set it manually."
 
 ;;; Override elfeed origin functions
 
-(defadvice elfeed-update (around elfeed-backends-update)
+(defun elfeed-backends-update ()
   "Override elfeed-update to make elfeed-backends works."
   (interactive)
   (elfeed-log 'info "Elfeed update: %s"
               (format-time-string "%B %e %Y %H:%M:%S %Z"))
   (let ((elfeed--inhibit-update-init-hooks t))
     (cond
-     ((eq elfeed-feed-source 'ocnews) (elfeed-ocnews-update))
-     ((eq elfeed-feed-source 'local)
+     ((eq elfeed-backends-source 'ocnews) (elfeed-backends-ocnews-update))
+     ((eq elfeed-backends-source 'local)
       (mapc #'elfeed-update-feed (elfeed--shuffle (elfeed-feed-list))))))
   (run-hooks 'elfeed-update-init-hooks)
   (elfeed-db-save))
 
-;;TODO: remove
-;; (defun elfeed-tag-1 (entry &rest tags)
-;;   "Add TAGS to ENTRY. In fact it's the origin `elfeed-tag'."
-;;   (let ((current (elfeed-entry-tags entry)))
-;;     (setf (elfeed-entry-tags entry)
-;;           (elfeed-normalize-tags (append tags current)))))
-
-;; (defun elfeed-untag-1 (entry &rest tags)
-;;   "Remove TAGS from ENTRY. In fact it's the origin `elfeed-untag'."
-;;   (setf (elfeed-entry-tags entry)
-;;         (cl-loop for tag in (elfeed-entry-tags entry)
-;;                  unless (memq tag tags) collect tag)))
-
-(defadvice elfeed-tag (before elfeed-backends-tag (entry &rest tags))
+(defun elfeed-backends-tag (entry &rest tags)
   "Override `elfeed-tag' to sync unread/starred states to remote server if necessary."
   (unless elfeed-backends-ignore-tag-action
     (let* ((current (elfeed-entry-tags entry))
            (add-unread (memq 'unread tags))
-           (add-star (memq elfeed-ocnews-star-tag tags))
+           (add-star (memq elfeed-backends-ocnews-star-tag tags))
            (unread-modified (and add-unread (not (memq 'unread current))))
            (star-modified (and add-star
-                               (not (memq elfeed-ocnews-star-tag current)))))
-      (when (elfeed-ocnews-is-ocnews-entry entry)
+                               (not (memq elfeed-backends-ocnews-star-tag current)))))
+      (when (elfeed-backends-ocnews-is-ocnews-entry entry)
         (when unread-modified
-          (elfeed-ocnews-mark-unread entry))
+          (elfeed-backends-ocnews-mark-unread entry))
         (when star-modified
-          (elfeed-ocnews-mark-star entry))))))
+          (elfeed-backends-ocnews-mark-star entry))))))
 
-(defadvice elfeed-untag (before elfeed-backends-untag (entry &rest tags))
+(defun elfeed-backends-untag (entry &rest tags)
   "Override `elfeed-untag' to sync unread/starred states to remote server if necessary."
   (unless elfeed-backends-ignore-tag-action
     (let* ((current (elfeed-entry-tags entry))
            (remove-unread (memq 'unread tags))
-           (remove-star (memq elfeed-ocnews-star-tag tags))
+           (remove-star (memq elfeed-backends-ocnews-star-tag tags))
            (unread-modified (and remove-unread (memq 'unread current)))
            (star-modified (and remove-star
-                               (memq elfeed-ocnews-star-tag current))))
-      (when (elfeed-ocnews-is-ocnews-entry entry)
+                               (memq elfeed-backends-ocnews-star-tag current))))
+      (when (elfeed-backends-ocnews-is-ocnews-entry entry)
         (when unread-modified
-          (elfeed-ocnews-mark-read entry))
+          (elfeed-backends-ocnews-mark-read entry))
         (when star-modified
-          (elfeed-ocnews-mark-unstar entry)))
-    (apply 'elfeed-untag-1 entry tags))))
+          (elfeed-backends-ocnews-mark-unstar entry))))))
 
-(defadvice elfeed-search-fetch (around elfeed-backends-search-fetch (prefix))
+(defun elfeed-backends-search-fetch (orig-func &rest args)
   "Override `elfeed-search-fetch'. Skip elfeed-search-fetch-visible operation
 for elfeed-backends."
-  (if (eq elfeed-feed-source 'local)
-      ad-do-it
+  (if (eq elfeed-backends-source 'local)
+      (apply orig-func args)
     (elfeed-update)))
 
-(defadvice elfeed-search-yank (around elfeed-backends-search-yank)
+(defun elfeed-backends-search-yank (orig-func &rest args)
   "Overrid `elfeed-search-yank'. Sync multiple entries tags to
 backends server in one operation"
-  (let ((elfeed-backends-ignore-tag-action t))
-    (elfeed-ocnews-sync-tag-multi (elfeed-search-selected) 'unread 'remove)
-    ad-do-it))
+  (let ((elfeed-backends-ignore-tag-action t)
+        (tag (car args)))
+    (elfeed-backends-ocnews-sync-tag-multi (elfeed-search-selected) 'unread 'remove)
+    (apply orig-func args)))
 
-(defadvice elfeed-search-tag-all (around elfeed-backends-search-tag-all (tag))
+(defun elfeed-backends-search-tag-all (orig-func &rest args)
   "Overrid `elfeed-search-tag-all'. Sync multiple entries tags to
 backends server in one operation"
-  (let ((elfeed-backends-ignore-tag-action t))
-    (elfeed-ocnews-sync-tag-multi (elfeed-search-selected) tag 'add)
-    ad-do-it))
+  (let ((elfeed-backends-ignore-tag-action t)
+        (tag (car args)))
+    (elfeed-backends-ocnews-sync-tag-multi (elfeed-search-selected) tag 'add)
+    (apply orig-func args)))
 
-(defadvice elfeed-search-untag-all (around elfeed-backends-search-untag-all (tag))
+(defun elfeed-backends-search-untag-all (orig-func &rest args)
   "Overrid `elfeed-search-untag-all'. Sync multiple entries tags to
 backends server in one operation"
-  (let ((elfeed-backends-ignore-tag-action t))
-    (elfeed-ocnews-sync-tag-multi (elfeed-search-selected) tag 'remove)
-    ad-do-it))
+  (let ((elfeed-backends-ignore-tag-action t)
+        (tag (car args)))
+    (elfeed-backends-ocnews-sync-tag-multi (elfeed-search-selected) tag 'remove)
+    (apply orig-func args)))
 
-(defadvice elfeed-search-toggle-all (around elfeed-backends-search-toggle-all (tag))
+(defun elfeed-backends-search-toggle-all (orig-func &rest args)
   "Overrid `elfeed-search-toggle-all'. Sync multiple entries tags to
 backends server in one operation"
-  (let ((elfeed-backends-ignore-tag-action t))
-    (elfeed-ocnews-sync-tag-multi (elfeed-search-selected) tag 'toggle)
-    ad-do-it))
+  (let ((elfeed-backends-ignore-tag-action t)
+        (tag (car args)))
+    (elfeed-backends-ocnews-sync-tag-multi (elfeed-search-selected) tag 'toggle)
+    (apply orig-func args)))
 
 ;;;###autoload
 (defun elfeed-backends-enable ()
-  "Enable elfeed-backends."
+  "Enable hooks and advices for elfeed-backends."
   (interactive)
-  (advice-add 'elfeed-update :around #'elfeed-backends-update)
+  (advice-add 'elfeed-update :override #'elfeed-backends-update)
   (advice-add 'elfeed-tag :before #'elfeed-backends-tag)
   (advice-add 'elfeed-untag :before #'elfeed-backends-untag)
   (advice-add 'elfeed-search-fetch :around #'elfeed-backends-search-fetch)
   (advice-add 'elfeed-search-yank :around #'elfeed-backends-search-yank)
   (advice-add 'elfeed-search-tag-all :around #'elfeed-backends-search-tag-all)
   (advice-add 'elfeed-search-untag-all :around #'elfeed-backends-search-untag-all)
-  (advice-add 'elfeed-search-toggle-all :around #'elfeed-backends-search-toggle-all)
-  )
+  (advice-add 'elfeed-search-toggle-all :around #'elfeed-backends-search-toggle-all))
 
+;;;###autoload
 (defun elfeed-backends-disable ()
-  "Disable elfeed-backends."
+  "Disable hooks and advices elfeed-backends."
   (interactive)
   (advice-remove 'elfeed-update #'elfeed-backends-update)
   (advice-remove 'elfeed-tag #'elfeed-backends-tag)

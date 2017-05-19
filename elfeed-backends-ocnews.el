@@ -6,8 +6,11 @@
 (require 'elfeed-db)
 (require 'elfeed-lib)
 
-                                        ;TODO:
-;; define used variables and functions from elfeed
+;; define used variables and functions from elfeed-backends.el
+(defvar elfeed-backends-ignore-tag-action)
+(declare-function elfeed-backends-is-status-error 'elfeed-backends (status use-curl))
+
+;; define used variables and functions from elfeed.el
 (defvar elfeed-use-curl)
 (defvar elfeed-user-agent)
 (defvar elfeed-initial-tags)
