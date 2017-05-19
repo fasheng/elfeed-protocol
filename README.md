@@ -1,6 +1,6 @@
 elfeed-backends
 ==============
-[![MELPA](http://melpa.org/packages/elfeed-org-badge.svg)](http://melpa.org/#/elfeed-org)
+TODO [![MELPA](http://melpa.org/packages/elfeed-backends-badge.svg)](http://melpa.org/#/elfeed-backends)
 
 Provide extra backends to make self-hosting RSS readers works
 with [elfeed](https://github.com/skeeto/elfeed),
@@ -10,6 +10,7 @@ including
 [NewsBlur(TODO)](https://newsblur.com/) and even more.
 
 # Installation through MELPA
+TODO
 
     ;; Install through package manager
     M-x package-install <ENTER>
@@ -18,6 +19,7 @@ including
 # Initialization
 Setup elfeed-backends, then switch to search view and and press G to update entries:
 
+        (elfeed-backends-enable)
         (setq elfeed-backends-source 'ocnews)
         (setq elfeed-backends-ocnews-url "http://127.0.0.1:8080")
         (setq elfeed-backends-ocnews-username "user")
@@ -27,7 +29,7 @@ Setup elfeed-backends, then switch to search view and and press G to update entr
         (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
 
 # Have a Try
-If you never use such slef-hosting RSS readers, why not deploy one in 5 minutes. For
+If you never use such slef-hosting RSS readers, why not deploy one in 10 minutes. For
 example Nextcloud:
 
 1.  Fetch Nextcloud image and run it
@@ -46,6 +48,8 @@ example Nextcloud:
     other
     [Nextcloud News clients](https://github.com/owncloud/News-Android-App),
     both will works OK
+
+# Problems TODO
 
 # License
 
