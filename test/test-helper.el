@@ -1,10 +1,5 @@
-;;; elfeed-backends-tests.el --- tests for elfeed -*- lexical-binding: t; -*-
-
-;; emacs -batch -Q -L .. -L . -l elfeed-backends-tests.el -f ert-run-tests-batch
-
-(require 'ert)
-(require 'elfeed)
-(require 'elfeed-backends-ocnews-tests)
+(load-file "elfeed-backends-ocnews.el")
+(load-file "elfeed-backends.el")
 
 ;;; copy from elfeed/tests/elfeed-db-tests.el
 (defmacro with-elfeed-test (&rest body)
@@ -23,7 +18,3 @@
      (unwind-protect
          (progn ,@body)
        (delete-directory temp-dir :recursive))))
-
-(provide 'elfeed-backends-tests)
-
-;;; elfeed-backends-tests.el ends here

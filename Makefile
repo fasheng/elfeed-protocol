@@ -1,20 +1,19 @@
-.POSIX:
-EMACS   = emacs
-BATCH   = $(EMACS) -batch -Q -L . -L tests
-VERSION = 2.1.1
+EMACS ?= emacs
+CASK ?= cask
+CASKEMACS = $(CASK) exec $(EMACS)
 
-EL   = elfeed-backends.el elfeed-backends-ocnews.el
-TEST = tests/elfeed-tests.el tests/elfeed-ocnews-tests.el
+.PHONY: install build test clean
+all: install build test clean
 
-compile: $(EL:.el=.elc) $(TEST:.el=.elc)
+# install dependencies
+install:
+	EMACS=${EMACS} $(CASK) install
 
-test: $(EL:.el=.elc) $(TEST:.el=.elc)
-	$(BATCH) -l tests/elfeed-backends-tests.elc -f ert-run-tests-batch
+build:
+	EMACS=${EMACS} $(CASK) build
+
+test:
+	EMACS=${EMACS} $(CASK) exec ert-runner
 
 clean:
-	rm -f $(EL:.el=.elc) $(TEST:.el=.elc)
-
-.SUFFIXES: .el .elc
-
-.el.elc:
-	$(BATCH) -f batch-byte-compile $<
+	EMACS=${EMACS} $(CASK) clean-elc

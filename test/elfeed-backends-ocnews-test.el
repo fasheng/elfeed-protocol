@@ -1,9 +1,6 @@
-;;; elfeed-backends-ocnews-tests.el --- ocnews tests -*- lexical-binding: t; -*-
-
 (require 'cl-lib)
 (require 'ert)
 (require 'elfeed)
-(require 'elfeed-backends)
 
 (defvar elfeed-backends-ocnews-test-feeds-json
   "{
@@ -128,7 +125,3 @@
            (should (string=
                     (elfeed-entry-title entry2)
                    "Entry 2"))))))))
-
-(provide 'elfeed-backends-ocnews-tests)
-
-;;; elfeed-backends-ocnews-tests.el ends here
