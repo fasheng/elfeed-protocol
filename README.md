@@ -28,6 +28,8 @@ Setup elfeed-backends, then switch to search view and and press G to update entr
         (elfeed-set-timeout 36000)
         (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
 
+# Backends TODO
+
 # Have a Try
 If you never use such slef-hosting RSS readers, why not deploy one in 10 minutes. For
 example Nextcloud:
@@ -50,6 +52,7 @@ example Nextcloud:
     both will works OK
 
 # Problems TODO
+<!-- Sometimes if the downloaded entires -->
 
 # License
 

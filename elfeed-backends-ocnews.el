@@ -1,26 +1,9 @@
 ;;; elfeed-backends-ocnews.el --- owncloud news api for elfeed -*- lexical-binding: t; -*-
 
+(require 'cl-lib)
 (require 'json)
 (require 'url)
-(require 'elfeed-curl)
-(require 'elfeed-db)
-(require 'elfeed-lib)
-
-;; define used variables and functions from elfeed-backends.el
-(defvar elfeed-backends-ignore-tag-action)
-(declare-function elfeed-backends-is-status-error 'elfeed-backends (status use-curl))
-
-;; define used variables and functions from elfeed.el
-(defvar elfeed-use-curl)
-(defvar elfeed-user-agent)
-(defvar elfeed-initial-tags)
-(defvar elfeed-new-entry-parse-hook)
-(defvar elfeed--inhibit-update-init-hooks)
-(defvar elfeed-update-init-hooks)
-(declare-function elfeed-feed-autotags 'elfeed (url-or-feed))
-(declare-function elfeed-generate-id 'elfeed (&optional content))
-(declare-function elfeed-handle-http-error 'elfeed (url status))
-(declare-function elfeed-handle-parse-error 'elfeed (url error))
+(require 'elfeed)
 
 (defcustom elfeed-backends-ocnews-url "https://127.0.0.1:443"
   "ownCloud server address."
@@ -79,7 +62,7 @@ request. DATA is in string format, if not nil will send PUT request."
   `(let*  ((use-curl elfeed-use-curl) ; capture current value in closure
            (headers (elfeed-backends-ocnews--init-headers ,data))
            (cb (lambda (status)
-                 (if (elfeed-backends-is-status-error status use-curl)
+                 (if (elfeed-is-status-error status use-curl)
                      (let ((print-escape-newlines t))
                        (elfeed-handle-http-error
                         ,url
@@ -234,11 +217,10 @@ http://server/items?type=3&batchSize=-1, and import the entries by calling
                                                          :feed-id feed-id)))))
                          ;; force override unread and star tags without repeat sync operation
                          (when original
-                           (let ((elfeed-backends-ignore-tag-action t))
-                             (if unread (elfeed-tag original 'unread)
-                               (elfeed-untag original 'unread))
-                             (if starred (elfeed-tag original elfeed-backends-ocnews-star-tag)
-                               (elfeed-untag original elfeed-backends-ocnews-star-tag))))
+                           (if unread (elfeed-tag-1 original 'unread)
+                             (elfeed-untag-1 original 'unread))
+                           (if starred (elfeed-tag-1 original elfeed-backends-ocnews-star-tag)
+                               (elfeed-untag-1 original elfeed-backends-ocnews-star-tag)))
                          ;; get the last modified time
                          (when (> last-modified max-last-modified)
                            (setq max-last-modified last-modified))
@@ -420,6 +402,7 @@ entriy list object, TAG is the action tag, for example unread and
     (cond
      ((eq tag 'unread) (elfeed-backends-ocnews-mark-read-multi entries))
      ((eq tag elfeed-backends-ocnews-star-tag) (elfeed-backends-ocnews-mark-unstar-multi entries))))
+   ;;TODO: remove
    ((eq action 'toggle)
     (cond
      ((eq tag 'unread)
