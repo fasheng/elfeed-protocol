@@ -392,7 +392,7 @@ states. This may take a long time, ensure `elfeed-curl-timeout' is big enough."
 (defun elfeed-backends-ocnews-sync-tag-multi (entries tag action)
   "Notify multiple ownCloud news entries to be unread. ENTRIES is the elfeed
 entriy list object, TAG is the action tag, for example unread and
-`elfeed-backends-ocnews-star-tag', ACTION could be add, remove or toggle."
+`elfeed-backends-ocnews-star-tag', ACTION could be add or remove."
   (cond
    ((eq action 'add)
     (cond
@@ -401,28 +401,7 @@ entriy list object, TAG is the action tag, for example unread and
    ((eq action 'remove)
     (cond
      ((eq tag 'unread) (elfeed-backends-ocnews-mark-read-multi entries))
-     ((eq tag elfeed-backends-ocnews-star-tag) (elfeed-backends-ocnews-mark-unstar-multi entries))))
-   ;;TODO: remove
-   ((eq action 'toggle)
-    (cond
-     ((eq tag 'unread)
-      (let* ((entries-read (cl-loop for entry in entries
-                                    when (elfeed-tagged-p tag entry)
-                                    collect entry))
-             (entries-unread (cl-loop for entry in entries
-                                      unless (elfeed-tagged-p tag entry)
-                                      collect entry)))
-        (elfeed-backends-ocnews-mark-read-multi entries-read)
-        (elfeed-backends-ocnews-mark-unread-multi entries-unread)))
-     ((eq tag elfeed-backends-ocnews-star-tag)
-      (let* ((entries-unstar (cl-loop for entry in entries
-                                      when (elfeed-tagged-p tag entry)
-                                      collect entry))
-             (entries-star (cl-loop for entry in entries
-                                    unless (elfeed-tagged-p tag entry)
-                                    collect entry)))
-        (elfeed-backends-ocnews-mark-star-multi entries-star)
-        (elfeed-backends-ocnews-mark-unstar-multi entries-unstar)))))))
+     ((eq tag elfeed-backends-ocnews-star-tag) (elfeed-backends-ocnews-mark-unstar-multi entries))))))
 
 (provide 'elfeed-backends-ocnews)
 
