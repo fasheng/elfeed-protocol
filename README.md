@@ -19,15 +19,24 @@ TODO
 # Initialization
 Setup elfeed-backends, then switch to search view and and press G to update entries:
 
-        (elfeed-backends-enable 'ocnews)
-        (setq elfeed-backends-ocnews-url "http://127.0.0.1:8080")
-        (setq elfeed-backends-ocnews-username "user")
-        (setq elfeed-backends-ocnews-password "password")
+        ;; recommend curl
         (setq elfeed-use-curl t)
         (elfeed-set-timeout 36000)
         (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
 
-# Backends TODO
+        ;; setup for owncloud news backend
+        (elfeed-backends-enable 'ocnews)
+        (setq elfeed-backends-ocnews-url "http://127.0.0.1:8080")
+        (setq elfeed-backends-ocnews-username "user")
+        (setq elfeed-backends-ocnews-password "password")
+
+# Backend Details
+## ownCloud News
+1. Fetch all articles with the lastest modified time
+1. Support sync unread and starred tags, the starred tag name defined
+   in `elfeed-backends-ocnews-star-tag` which default value is
+   `star`. For example, if user add `star` tag to one article, the
+   stat will be sync to server, too
 
 # Have a Try
 If you never use such slef-hosting RSS readers, why not deploy one in 10 minutes. For
@@ -50,8 +59,22 @@ example Nextcloud:
     [Nextcloud News clients](https://github.com/owncloud/News-Android-App),
     both will works OK
 
-# Problems TODO
-<!-- Sometimes if the downloaded entires -->
+# Problems
+1. Sometimes emacs may be blocked if the parsing downloaded articles
+   is too large, for example >50MB. This is caused by the known emacs
+   bug that CPU will be in high usage if a text line is too
+   long. There three methods to workaround this:
+   1. Method 1, setup the server side do not download one-line data
+      e.g. wrapped JSON if possible
+   2. Method 2, run emacs which cpulimit to prevent the use of CPU to
+      affect other programs
+
+          cpulimit -l 80 emacs
+
+   3. Method 3, limit the download article size or reset the lastest
+      modified time to skip some data:
+
+          (elfeed-backends-ocnews--set-last-modified (- (time-to-seconds) (* 1 3600)))
 
 # License
 
