@@ -19,8 +19,7 @@ TODO
 # Initialization
 Setup elfeed-backends, then switch to search view and and press G to update entries:
 
-        (elfeed-backends-enable)
-        (setq elfeed-backends-source 'ocnews)
+        (elfeed-backends-enable 'ocnews)
         (setq elfeed-backends-ocnews-url "http://127.0.0.1:8080")
         (setq elfeed-backends-ocnews-username "user")
         (setq elfeed-backends-ocnews-password "password")
