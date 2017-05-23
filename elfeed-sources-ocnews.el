@@ -5,6 +5,12 @@
 (require 'url)
 (require 'elfeed)
 
+(defvar elfeed-sources-ocnews-methods
+  '(:update-all 'elfeed-sources-ocnews-update-all
+    :update-feed 'elfeed-sources-ocnews-update-feed
+    :pre-tag 'elfeed-sources-ocnews-pre-tag
+    :pre-untag 'elfeed-sources-ocnews-pre-untag))
+
 (defcustom elfeed-sources-ocnews-url "https://127.0.0.1:443"
   "ownCloud server address."
   :group 'elfeed
@@ -33,8 +39,9 @@ remove the tag, then the starred state in ownCloud will be synced, too."
 (defconst elfeed-sources-ocnews-api-feeds (concat elfeed-sources-ocnews-api-base "/feeds"))
 (defconst elfeed-sources-ocnews-api-init-unread (concat elfeed-sources-ocnews-api-base "/items?type=3&getRead=false&batchSize=-1"))
 (defconst elfeed-sources-ocnews-api-init-starred (concat elfeed-sources-ocnews-api-base "/items?type=2&batchSize=-1"))
-(defconst elfeed-sources-ocnews-api-update (concat elfeed-sources-ocnews-api-base "/items/updated?type=3&lastModified=%s"))
-(defconst elfeed-sources-ocnews-api-update-all (concat elfeed-sources-ocnews-api-base "/items?type=3&batchSize=-1"))
+(defconst elfeed-sources-ocnews-api-update-all (concat elfeed-sources-ocnews-api-base "/items/updated?type=3&lastModified=%s"))
+(defconst elfeed-sources-ocnews-api-update-feed (concat elfeed-sources-ocnews-api-base "/items?type=0&id=%s&getRead=false"))
+(defconst elfeed-sources-ocnews-api-update-force-all (concat elfeed-sources-ocnews-api-base "/items?type=3&batchSize=-1"))
 (defconst elfeed-sources-ocnews-api-read (concat elfeed-sources-ocnews-api-base "/items/%s/read"))
 (defconst elfeed-sources-ocnews-api-unread (concat elfeed-sources-ocnews-api-base "/items/%s/unread"))
 (defconst elfeed-sources-ocnews-api-star (concat elfeed-sources-ocnews-api-base "/items/%s/%s/star"))
@@ -103,7 +110,7 @@ request. DATA is in string format, if not nil will send PUT request."
                      (elfeed-feed-title feed-db) title))))
   elfeed-sources-ocnews-feeds)
 
-(defun elfeed-sources-ocnews--update-feeds ()
+(defun elfeed-sources-ocnews--update-feed-list ()
   "Update ownCloud News's feed list."
   (elfeed-sources-ocnews-with-fetch
     (concat elfeed-sources-ocnews-url elfeed-sources-ocnews-api-feeds)
@@ -120,6 +127,18 @@ request. DATA is in string format, if not nil will send PUT request."
                (url (cdr (assoc 'url feed))))
           (when (eq id feed-id)
             (throw 'found url)))))))
+
+(defun elfeed-sources-ocnews--get-feed-id (feed-url)
+  "Get feed ID through the url."
+  (catch 'found
+    (let* ((feeds (cdr (assoc 'feeds elfeed-sources-ocnews-feeds)))
+           (length (length feeds)))
+      (dotimes (i length)
+        (let* ((feed (elt feeds i))
+               (id (cdr (assoc 'id feed)))
+               (url (cdr (assoc 'url feed))))
+          (when (string= url feed-url)
+            (throw 'found id)))))))
 
 (defun elfeed-sources-ocnews--get-last-modified ()
   "Get last entry modified time which is the seconds since 1970-01-01 00:00:00
@@ -235,34 +254,42 @@ http://server/items?type=3&batchSize=-1, and import the entries by calling
                     (- (time-to-seconds) begin-time))
         entries)
     (progn
-      (elfeed-log 'error "Warning: elfeed-sources-ocnews-feeds is nil, please call elfeed-sources-ocnews--update-feeds first")
+      (elfeed-log 'error "Warning: elfeed-sources-ocnews-feeds is nil, please call elfeed-sources-ocnews--update-feed-list first")
       nil)))
 
-(defun elfeed-sources-ocnews--do-update (action)
-  "Real updating operations. ACTION could be init, update-all, or a
-timestamp. For init, will fetch unread and starred entries. For update-all, will
-fetch all entries without checking their states. And for a timestamp means only
-update entries since the special time."
-  (let* ((url-update-all (concat elfeed-sources-ocnews-url
-                                 elfeed-sources-ocnews-api-update-all))
+(defun elfeed-sources-ocnews--do-update (action &optional arg)
+  "Real updating operations. ACTION could be init, update-feed,
+update-force-all, or a timestamp. For init, will fetch unread and starred
+entries. For update-feed, will fetch unread entries for special feed, the ARG is
+the feed id. For update-force-all, will fetch all entries without checking their
+states. And for a timestamp means only update entries since the special time,
+the ARG is the time-stamp."
+  (let* ((url-update-force-all (concat elfeed-sources-ocnews-url
+                                       elfeed-sources-ocnews-api-update-force-all))
          (url-init-unread (concat elfeed-sources-ocnews-url
                                   elfeed-sources-ocnews-api-init-unread))
          (url-init-starred (concat elfeed-sources-ocnews-url
                                    elfeed-sources-ocnews-api-init-starred))
+         (mark-last-modified t)
          url)
     (cond
      ;; initial sync, fetch unread entries
      ((eq action 'init) (setq url url-init-unread))
+     ;; update entries for special feed
+     ((eq action 'update-feed)
+      (setq mark-last-modified nil)
+      (setq url (concat elfeed-sources-ocnews-url
+                        (format elfeed-sources-ocnews-api-update-feed arg))))
      ;; update all entries
-     ((eq action 'update-all) (setq url url-update-all))
-     ;; update since last modified, action is the timestamp
-     (action
-      (setq url (concat elfeed-sources-ocnews-url (format elfeed-sources-ocnews-api-update
-                                                  action)))))
+     ((eq action 'update-force-all) (setq url url-update-force-all))
+     ;; update since last modified, action is the time-stamp
+     ((eq action 'timestamp)
+      (setq url (concat elfeed-sources-ocnews-url
+                        (format elfeed-sources-ocnews-api-update-all arg)))))
     (unless elfeed--inhibit-update-init-hooks
       (run-hooks 'elfeed-update-init-hooks))
     (elfeed-sources-ocnews-with-fetch url nil
-      (elfeed-sources-ocnews--parse-entries t)
+      (elfeed-sources-ocnews--parse-entries mark-last-modified)
       (run-hook-with-args 'elfeed-update-hooks url))
     (when (eq action 'init)
       ;; initial sync, fetch starred entries
@@ -272,8 +299,8 @@ update entries since the special time."
         (elfeed-sources-ocnews--parse-entries)
         (run-hook-with-args 'elfeed-update-hooks url-init-starred)))))
 
-(defun elfeed-sources-ocnews-update ()
-  "Update the entries in ownCloud News, if first time run, will initial sync, or
+(defun elfeed-sources-ocnews-update-all ()
+  "Update entries in ownCloud News, if first time run, will initial sync, or
 will fetch the updated entries."
   (interactive)
   (let* ((last-modified (elfeed-sources-ocnews--get-last-modified)))
@@ -281,11 +308,18 @@ will fetch the updated entries."
      (concat elfeed-sources-ocnews-url elfeed-sources-ocnews-api-feeds) nil
      (elfeed-sources-ocnews--parse-feeds)
      (if last-modified
-         (elfeed-sources-ocnews--do-update last-modified)
+         (elfeed-sources-ocnews--do-update 'timestamp last-modified)
        (elfeed-sources-ocnews--do-update 'init)))))
 
+(defun elfeed-sources-ocnews-update-feed (feed-url)
+  "Update entries under special feed in ownCloud News."
+  (interactive)
+  (let* ((feed-id (elfeed-sources-ocnews--get-feed-id feed-url)))
+    (when feed-id
+      (elfeed-sources-ocnews--do-update 'update-feed feed-id))))
+
 (defun elfeed-sources-ocnews-update-since (&optional timestamp)
-  "Update the entries since special TIMESTAMP, the TIMESTAMP is the seconds since
+  "Update entries since special TIMESTAMP, the TIMESTAMP is the seconds since
 1970-01-01 00:00:00 UTC, the default TIMESTAMP point to 24 hours ago."
   (interactive)
   (unless timestamp
@@ -293,7 +327,7 @@ will fetch the updated entries."
   (elfeed-sources-ocnews-with-fetch
    (concat elfeed-sources-ocnews-url elfeed-sources-ocnews-api-feeds) nil
    (elfeed-sources-ocnews--parse-feeds)
-   (elfeed-sources-ocnews--do-update timestamp)))
+   (elfeed-sources-ocnews--do-update 'timestamp timestamp)))
 
 (defun elfeed-sources-ocnews-reinit ()
   "Retry initial sync, fetch all unread and starred entries from ownCloud
@@ -304,14 +338,14 @@ News. This may take a long time, ensure `elfeed-curl-timeout' is big enough."
    (elfeed-sources-ocnews--parse-feeds)
    (elfeed-sources-ocnews--do-update 'init)))
 
-(defun elfeed-sources-ocnews-update-all ()
+(defun elfeed-sources-ocnews-update-force-all ()
   "Force fetch all the entries from ownCloud News without checking their
 states. This may take a long time, ensure `elfeed-curl-timeout' is big enough."
   (interactive)
   (elfeed-sources-ocnews-with-fetch
    (concat elfeed-sources-ocnews-url elfeed-sources-ocnews-api-feeds) nil
    (elfeed-sources-ocnews--parse-feeds)
-   (elfeed-sources-ocnews--do-update 'update-all)))
+   (elfeed-sources-ocnews--do-update 'update-force-all)))
 
 (defun elfeed-sources-ocnews-mark-read (entry)
   "Notify special ownCloud News entry as read."
@@ -402,6 +436,23 @@ entriy list object, TAG is the action tag, for example unread and
     (cond
      ((eq tag 'unread) (elfeed-sources-ocnews-mark-read-multi entries))
      ((eq tag elfeed-sources-ocnews-star-tag) (elfeed-sources-ocnews-mark-unstar-multi entries))))))
+
+(defun elfeed-sources-ocnews-pre-tag (entries &rest tags)
+  "Sync unread/starred stats before tags added."
+  (dolist (tag tags)
+    (let* ((entries-modified (cl-loop for entry in entries
+                                      unless (elfeed-tagged-p tag entry)
+                                      collect entry)))
+      (elfeed-sources-ocnews-sync-tag-multi entries-modified tag 'add))))
+
+(defun elfeed-sources-ocnews-pre-untag (entries &rest tags)
+  "Sync unread/starred stats before tags removed."
+  (dolist (tag tags)
+    (let* ((entries-modified (cl-loop for entry in entries
+                                      when (elfeed-tagged-p tag entry)
+                                      collect entry)))
+      (elfeed-sources-ocnews-sync-tag-multi entries-modified tag 'remove))))
+
 
 (provide 'elfeed-sources-ocnews)
 

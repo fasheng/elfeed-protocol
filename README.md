@@ -25,7 +25,8 @@ Setup elfeed-sources, then switch to search view and and press G to update entri
         (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
 
         ;; setup owncloud news source
-        (elfeed-sources-enable 'ocnews)
+        (require 'elfeed-sources)
+        (setq elfeed-methods elfeed-sources-ocnews-methods)
         (setq elfeed-sources-ocnews-url "http://127.0.0.1:8080")
         (setq elfeed-sources-ocnews-username "user")
         (setq elfeed-sources-ocnews-password "password")
