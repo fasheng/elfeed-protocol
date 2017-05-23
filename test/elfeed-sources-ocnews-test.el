@@ -2,7 +2,7 @@
 (require 'ert)
 (require 'elfeed)
 
-(defvar elfeed-backends-ocnews-test-feeds-json
+(defvar elfeed-sources-ocnews-test-feeds-json
   "{
   \"starredCount\": 1,
   \"feeds\": [
@@ -38,7 +38,7 @@
   \"newestItemId\": 2
 }")
 
-(defvar elfeed-backends-ocnews-test-entries-json
+(defvar elfeed-sources-ocnews-test-entries-json
   "{
   \"items\": [
     {
@@ -82,15 +82,15 @@
   ]
 }")
 
-(ert-deftest elfeed-backends-ocnews-feed-list ()
+(ert-deftest elfeed-sources-ocnews-feed-list ()
   (with-temp-buffer
-    (insert elfeed-backends-ocnews-test-feeds-json)
+    (insert elfeed-sources-ocnews-test-feeds-json)
     (goto-char (point-min))
     (with-elfeed-test
-     (let* ((elfeed-backends-ocnews-feeds (elfeed-backends-ocnews--parse-feeds))
-            (feed1-url (elfeed-backends-ocnews--get-feed-url 1))
+     (let* ((elfeed-sources-ocnews-feeds (elfeed-sources-ocnews--parse-feeds))
+            (feed1-url (elfeed-sources-ocnews--get-feed-url 1))
             (feed1 (elfeed-db-get-feed feed1-url))
-            (feed2-url (elfeed-backends-ocnews--get-feed-url 2))
+            (feed2-url (elfeed-sources-ocnews--get-feed-url 2))
             (feed2 (elfeed-db-get-feed feed2-url)))
        (should (string=
                 feed1-url
@@ -105,20 +105,20 @@
                 (elfeed-feed-title feed2)
                 "Feed 2"))))))
 
-(ert-deftest elfeed-backends-ocnews-entry-list ()
+(ert-deftest elfeed-sources-ocnews-entry-list ()
   (with-temp-buffer
-    (insert elfeed-backends-ocnews-test-feeds-json)
+    (insert elfeed-sources-ocnews-test-feeds-json)
     (goto-char (point-min))
     (with-elfeed-test
-     (let* ((elfeed-backends-ocnews-feeds (elfeed-backends-ocnews--parse-feeds)))
+     (let* ((elfeed-sources-ocnews-feeds (elfeed-sources-ocnews--parse-feeds)))
        (with-temp-buffer
-         (insert elfeed-backends-ocnews-test-entries-json)
+         (insert elfeed-sources-ocnews-test-entries-json)
          (goto-char (point-min))
-         (let* ((entries (elfeed-backends-ocnews--parse-entries))
+         (let* ((entries (elfeed-sources-ocnews--parse-entries))
                 (entry1 (elt entries 0))
                 (entry2 (elt entries 1)))
-           (should (elfeed-backends-ocnews-is-ocnews-entry entry1))
-           (should (elfeed-backends-ocnews-is-ocnews-entry entry2))
+           (should (elfeed-sources-ocnews-is-ocnews-entry entry1))
+           (should (elfeed-sources-ocnews-is-ocnews-entry entry2))
            (should (string=
                     (elfeed-entry-title entry1)
                     "Entry 1"))

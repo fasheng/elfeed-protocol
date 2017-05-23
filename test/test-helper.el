@@ -1,5 +1,5 @@
-(load-file "elfeed-backends-ocnews.el")
-(load-file "elfeed-backends.el")
+(load-file "elfeed-sources-ocnews.el")
+(load-file "elfeed-sources.el")
 
 ;;; copy from elfeed/tests/elfeed-db-tests.el
 (defmacro with-elfeed-test (&rest body)
