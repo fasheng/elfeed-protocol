@@ -250,8 +250,8 @@ http://server/items?type=3&batchSize=-1, and import the entries by calling
         (when (and mark-last-modified (> max-last-modified 0))
           (elfeed-sources-ocnews--set-last-modified max-last-modified))
         (elfeed-db-add entries)
-        (elfeed-log 'debug "elfeed-sources-ocnews: parse entries finished with %ss"
-                    (- (time-to-seconds) begin-time))
+        (elfeed-log 'debug "elfeed-sources-ocnews: parse %s entries finished with %ss"
+                    (length entries) (- (time-to-seconds) begin-time))
         entries)
     (progn
       (elfeed-log 'error "Warning: elfeed-sources-ocnews-feeds is nil, please call elfeed-sources-ocnews--update-feed-list first")
