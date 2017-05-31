@@ -5,12 +5,6 @@
 (require 'url)
 (require 'elfeed)
 
-(defvar elfeed-sources-ocnews-methods
-  '(:update-all 'elfeed-sources-ocnews-update-all
-    :update-feed 'elfeed-sources-ocnews-update-feed
-    :pre-tag 'elfeed-sources-ocnews-pre-tag
-    :pre-untag 'elfeed-sources-ocnews-pre-untag))
-
 (defcustom elfeed-sources-ocnews-url "https://127.0.0.1:443"
   "ownCloud server address."
   :group 'elfeed
