@@ -19,17 +19,17 @@ TODO
 # Initialization
 Setup elfeed-sources, then switch to search view and and press G to update entries:
 
-        ;; curl recommend
-        (setq elfeed-use-curl t)
-        (elfeed-set-timeout 36000)
-        (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
+    ;; curl recommend
+    (setq elfeed-use-curl t)
+    (elfeed-set-timeout 36000)
+    (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
 
-        ;; setup owncloud news as source
-        (setq elfeed-sources-type 'ocnews)
-        (setq elfeed-sources-ocnews-url "http://127.0.0.1:8080")
-        (setq elfeed-sources-ocnews-username "user")
-        (setq elfeed-sources-ocnews-password "password")
-        (elfeed-sources-enable)
+    ;; setup owncloud news as source
+    (setq elfeed-sources-type 'ocnews)
+    (setq elfeed-sources-ocnews-url "http://127.0.0.1:8080")
+    (setq elfeed-sources-ocnews-username "user")
+    (setq elfeed-sources-ocnews-password "password")
+    (elfeed-sources-enable)
 
 # Source Details
 ## ownCloud News

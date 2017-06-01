@@ -43,25 +43,17 @@
   :group 'elfeed-sources
   :type '(choice (const ocnews)))
 
-(defun elfeed-sources-on-tag-add (entries &rest tags)
+(defun elfeed-sources-on-tag-add (entries tags)
   "Dispatch for tags added."
-  (dolist (tag tags)
-    (let* ((entries-modified (cl-loop for entry in entries
-                                      unless (elfeed-tagged-p tag entry)
-                                      collect entry)))
-      (cond
-       ((eq elfeed-sources-type 'ocnews)
-        (elfeed-sources-ocnews-sync-tag-multi entries-modified tag 'add))))))
+  (cond
+   ((eq elfeed-sources-type 'ocnews)
+    (apply #'elfeed-sources-ocnews-pre-tag entries tags))))
 
-(defun elfeed-sources-on-tag-remove (entries &rest tags)
+(defun elfeed-sources-on-tag-remove (entries tags)
   "Dispatch for tags removed."
-  (dolist (tag tags)
-    (let* ((entries-modified (cl-loop for entry in entries
-                                      when (elfeed-tagged-p tag entry)
-                                      collect entry)))
-      (cond
-       ((eq elfeed-sources-type 'ocnews)
-        (elfeed-sources-ocnews-sync-tag-multi entries-modified tag 'remove))))))
+  (cond
+   ((eq elfeed-sources-type 'ocnews)
+    (apply #'elfeed-sources-ocnews-pre-untag entries tags))))
 
 (defun elfeed-sources-update-advice ()
   "Advice for `elfeed-update' to make elfeed-sources works."
