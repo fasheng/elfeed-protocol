@@ -60,6 +60,10 @@ example Nextcloud:
     [Nextcloud News clients](https://github.com/owncloud/News-Android-App),
     both will works OK
 
+# Run Tests
+
+Install `cask` package firstly, and then `make install; make test`
+
 # Problems
 1. Sometimes emacs may be blocked if the parsing downloaded articles
    is too large, for example >50MB. This is caused by the known emacs
