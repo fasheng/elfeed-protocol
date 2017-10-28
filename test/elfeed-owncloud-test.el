@@ -2,7 +2,7 @@
 (require 'ert)
 (require 'elfeed)
 
-(defvar elfeed-protocol-owncloud-test-feeds-json
+(defvar elfeed-owncloud-test-feeds-json
   "{
   \"starredCount\": 1,
   \"feeds\": [
@@ -38,7 +38,7 @@
   \"newestItemId\": 2
 }")
 
-(defvar elfeed-protocol-owncloud-test-entries-json
+(defvar elfeed-owncloud-test-entries-json
   "{
   \"items\": [
     {
@@ -82,15 +82,15 @@
   ]
 }")
 
-(ert-deftest elfeed-protocol-owncloud-feed-list ()
+(ert-deftest elfeed-owncloud-feed-list ()
   (with-temp-buffer
-    (insert elfeed-protocol-owncloud-test-feeds-json)
+    (insert elfeed-owncloud-test-feeds-json)
     (goto-char (point-min))
     (with-elfeed-test
-     (let* ((elfeed-protocol-owncloud-feeds (elfeed-protocol-owncloud--parse-feeds))
-            (feed1-url (elfeed-protocol-owncloud--get-feed-url 1))
+     (let* ((elfeed-owncloud-feeds (elfeed-owncloud--parse-feeds))
+            (feed1-url (elfeed-owncloud--get-feed-url 1))
             (feed1 (elfeed-db-get-feed feed1-url))
-            (feed2-url (elfeed-protocol-owncloud--get-feed-url 2))
+            (feed2-url (elfeed-owncloud--get-feed-url 2))
             (feed2 (elfeed-db-get-feed feed2-url)))
        (should (string=
                 feed1-url
@@ -105,20 +105,20 @@
                 (elfeed-feed-title feed2)
                 "Feed 2"))))))
 
-(ert-deftest elfeed-protocol-owncloud-entry-list ()
+(ert-deftest elfeed-owncloud-entry-list ()
   (with-temp-buffer
-    (insert elfeed-protocol-owncloud-test-feeds-json)
+    (insert elfeed-owncloud-test-feeds-json)
     (goto-char (point-min))
     (with-elfeed-test
-     (let* ((elfeed-protocol-owncloud-feeds (elfeed-protocol-owncloud--parse-feeds)))
+     (let* ((elfeed-owncloud-feeds (elfeed-owncloud--parse-feeds)))
        (with-temp-buffer
-         (insert elfeed-protocol-owncloud-test-entries-json)
+         (insert elfeed-owncloud-test-entries-json)
          (goto-char (point-min))
-         (let* ((entries (elfeed-protocol-owncloud--parse-entries))
+         (let* ((entries (elfeed-owncloud--parse-entries))
                 (entry1 (elt entries 0))
                 (entry2 (elt entries 1)))
-           (should (elfeed-protocol-owncloud-is-owncloud-entry entry1))
-           (should (elfeed-protocol-owncloud-is-owncloud-entry entry2))
+           (should (elfeed-owncloud-is-owncloud-entry entry1))
+           (should (elfeed-owncloud-is-owncloud-entry entry2))
            (should (string=
                     (elfeed-entry-title entry1)
                     "Entry 1"))

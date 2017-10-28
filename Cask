@@ -1,9 +1,9 @@
 (source gnu)
 (source melpa)
 
-(package-file "elfeed-protocol.el")
+(package-file "elfeed-protocols.el")
 
-(files "elfeed-protocol*.el")
+(files "elfeed-*.el")
 
 (depends-on "elfeed")
 

@@ -22,74 +22,75 @@
 ;;
 ;;   ;; setup owncloud news as source
 ;;   (require 'elfeed-protocol)
-;;   (setq elfeed-protocol-type 'owncloud)
-;;   (setq elfeed-protocol-owncloud-url "http://127.0.0.1:8080")
-;;   (setq elfeed-protocol-owncloud-username "user")
-;;   (setq elfeed-protocol-owncloud-password "password")
-;;   (elfeed-protocol-enable)
+;;   (setq elfeed-protocols-type 'owncloud)
+;;   (setq elfeed-owncloud-url "http://127.0.0.1:8080")
+;;   (setq elfeed-owncloud-username "user")
+;;   (setq elfeed-owncloud-password "password")
+;;   (elfeed-protocols-enable)
 
 ;;; Code:
 
 (require 'cl-lib)
 (require 'elfeed)
-(require 'elfeed-protocol-owncloud)
+(require 'elfeed-owncloud)
 
-(defgroup elfeed-protocol ()
+(defgroup elfeed-protocols ()
   "Provide extra protocol for elfeed."
   :group 'comm)
 
-(defcustom elfeed-protocol-type 'owncloud
+;; TODO
+(defcustom elfeed-protocols-type 'owncloud
   "elfeed extra source type, could be owncloud. owncloud means the ownCloud News source."
-  :group 'elfeed-protocol
+  :group 'elfeed-protocols
   :type '(choice (const owncloud)))
 
-(defun elfeed-protocol-on-tag-add (entries tags)
+(defun elfeed-protocols-on-tag-add (entries tags)
   "Dispatch for tags added."
   (cond
-   ((eq elfeed-protocol-type 'owncloud)
-    (apply #'elfeed-protocol-owncloud-pre-tag entries tags))))
+   ((eq elfeed-protocols-type 'owncloud)
+    (apply #'elfeed-owncloud-pre-tag entries tags))))
 
-(defun elfeed-protocol-on-tag-remove (entries tags)
+(defun elfeed-protocols-on-tag-remove (entries tags)
   "Dispatch for tags removed."
   (cond
-   ((eq elfeed-protocol-type 'owncloud)
-    (apply #'elfeed-protocol-owncloud-pre-untag entries tags))))
+   ((eq elfeed-protocols-type 'owncloud)
+    (apply #'elfeed-owncloud-pre-untag entries tags))))
 
-(defun elfeed-protocol-update-advice ()
+(defun elfeed-protocols-update-advice ()
   "Advice for `elfeed-update' to make elfeed-protocol works."
   (interactive)
   (elfeed-log 'info "Elfeed update: %s"
               (format-time-string "%B %e %Y %H:%M:%S %Z"))
   (let ((elfeed--inhibit-update-init-hooks t))
     (cond
-     ((eq elfeed-protocol-type 'owncloud) (elfeed-protocol-owncloud-update-all))))
+     ((eq elfeed-protocols-type 'owncloud) (elfeed-owncloud-update-all))))
   (run-hooks 'elfeed-update-init-hooks)
   (elfeed-db-save))
 
-(defun elfeed-protocol-update-feed-advice (url)
+(defun elfeed-protocols-update-feed-advice (url)
   "Advice for `elfeed-update-feed' to make elfeed-protocol works."
   (interactive)
   (cond
-   ((eq elfeed-protocol-type 'owncloud) (elfeed-protocol-owncloud-update-feed url)))
+   ((eq elfeed-protocols-type 'owncloud) (elfeed-owncloud-update-feed url)))
   (run-hook-with-args 'elfeed-update-hooks url))
 
 ;;;###autoload
-(defun elfeed-protocol-enable ()
+(defun elfeed-protocols-enable ()
   "Enable hooks and advices for elfeed-protocol."
   (interactive)
-  (advice-add 'elfeed-update :override #'elfeed-protocol-update-advice)
-  (advice-add 'elfeed-update-feed :override #'elfeed-protocol-update-feed-advice)
-  (add-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
-  (add-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove))
+  (advice-add 'elfeed-update :override #'elfeed-protocols-update-advice)
+  (advice-add 'elfeed-update-feed :override #'elfeed-protocols-update-feed-advice)
+  (add-hook 'elfeed-tag-hooks 'elfeed-protocols-on-tag-add)
+  (add-hook 'elfeed-untag-hooks 'elfeed-protocols-on-tag-remove))
 
 ;;;###autoload
-(defun elfeed-protocol-disable ()
+(defun elfeed-protocols-disable ()
   "Disable hooks and advices elfeed-protocol."
   (interactive)
-  (advice-remove 'elfeed-update #'elfeed-protocol-update-advice)
-  (advice-remove 'elfeed-update-feed #'elfeed-protocol-update-feed-advice)
-  (remove-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
-  (remove-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove))
+  (advice-remove 'elfeed-update #'elfeed-protocols-update-advice)
+  (advice-remove 'elfeed-update-feed #'elfeed-protocols-update-feed-advice)
+  (remove-hook 'elfeed-tag-hooks 'elfeed-protocols-on-tag-add)
+  (remove-hook 'elfeed-untag-hooks 'elfeed-protocols-on-tag-remove))
 
 (provide 'elfeed-protocol)
 
