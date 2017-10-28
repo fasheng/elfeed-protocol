@@ -1,4 +1,4 @@
-(load-file "elfeed-sources-ocnews.el")
+(load-file "elfeed-sources-owncloud.el")
 (load-file "elfeed-sources.el")
 
 ;;; copy from elfeed/tests/elfeed-db-tests.el

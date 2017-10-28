@@ -2,7 +2,7 @@
 (require 'ert)
 (require 'elfeed)
 
-(defvar elfeed-sources-ocnews-test-feeds-json
+(defvar elfeed-sources-owncloud-test-feeds-json
   "{
   \"starredCount\": 1,
   \"feeds\": [
@@ -38,7 +38,7 @@
   \"newestItemId\": 2
 }")
 
-(defvar elfeed-sources-ocnews-test-entries-json
+(defvar elfeed-sources-owncloud-test-entries-json
   "{
   \"items\": [
     {
@@ -82,15 +82,15 @@
   ]
 }")
 
-(ert-deftest elfeed-sources-ocnews-feed-list ()
+(ert-deftest elfeed-sources-owncloud-feed-list ()
   (with-temp-buffer
-    (insert elfeed-sources-ocnews-test-feeds-json)
+    (insert elfeed-sources-owncloud-test-feeds-json)
     (goto-char (point-min))
     (with-elfeed-test
-     (let* ((elfeed-sources-ocnews-feeds (elfeed-sources-ocnews--parse-feeds))
-            (feed1-url (elfeed-sources-ocnews--get-feed-url 1))
+     (let* ((elfeed-sources-owncloud-feeds (elfeed-sources-owncloud--parse-feeds))
+            (feed1-url (elfeed-sources-owncloud--get-feed-url 1))
             (feed1 (elfeed-db-get-feed feed1-url))
-            (feed2-url (elfeed-sources-ocnews--get-feed-url 2))
+            (feed2-url (elfeed-sources-owncloud--get-feed-url 2))
             (feed2 (elfeed-db-get-feed feed2-url)))
        (should (string=
                 feed1-url
@@ -105,20 +105,20 @@
                 (elfeed-feed-title feed2)
                 "Feed 2"))))))
 
-(ert-deftest elfeed-sources-ocnews-entry-list ()
+(ert-deftest elfeed-sources-owncloud-entry-list ()
   (with-temp-buffer
-    (insert elfeed-sources-ocnews-test-feeds-json)
+    (insert elfeed-sources-owncloud-test-feeds-json)
     (goto-char (point-min))
     (with-elfeed-test
-     (let* ((elfeed-sources-ocnews-feeds (elfeed-sources-ocnews--parse-feeds)))
+     (let* ((elfeed-sources-owncloud-feeds (elfeed-sources-owncloud--parse-feeds)))
        (with-temp-buffer
-         (insert elfeed-sources-ocnews-test-entries-json)
+         (insert elfeed-sources-owncloud-test-entries-json)
          (goto-char (point-min))
-         (let* ((entries (elfeed-sources-ocnews--parse-entries))
+         (let* ((entries (elfeed-sources-owncloud--parse-entries))
                 (entry1 (elt entries 0))
                 (entry2 (elt entries 1)))
-           (should (elfeed-sources-ocnews-is-ocnews-entry entry1))
-           (should (elfeed-sources-ocnews-is-ocnews-entry entry2))
+           (should (elfeed-sources-owncloud-is-owncloud-entry entry1))
+           (should (elfeed-sources-owncloud-is-owncloud-entry entry2))
            (should (string=
                     (elfeed-entry-title entry1)
                     "Entry 1"))

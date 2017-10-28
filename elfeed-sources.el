@@ -22,38 +22,38 @@
 ;;
 ;;   ;; setup owncloud news as source
 ;;   (require 'elfeed-sources)
-;;   (setq elfeed-sources-type 'ocnews)
-;;   (setq elfeed-sources-ocnews-url "http://127.0.0.1:8080")
-;;   (setq elfeed-sources-ocnews-username "user")
-;;   (setq elfeed-sources-ocnews-password "password")
+;;   (setq elfeed-sources-type 'owncloud)
+;;   (setq elfeed-sources-owncloud-url "http://127.0.0.1:8080")
+;;   (setq elfeed-sources-owncloud-username "user")
+;;   (setq elfeed-sources-owncloud-password "password")
 ;;   (elfeed-sources-enable)
 
 ;;; Code:
 
 (require 'cl-lib)
 (require 'elfeed)
-(require 'elfeed-sources-ocnews)
+(require 'elfeed-sources-owncloud)
 
 (defgroup elfeed-sources ()
   "Provide extra sources for elfeed."
   :group 'comm)
 
-(defcustom elfeed-sources-type 'ocnews
-  "elfeed extra source type, could be ocnews. ocnews means the ownCloud News source."
+(defcustom elfeed-sources-type 'owncloud
+  "elfeed extra source type, could be owncloud. owncloud means the ownCloud News source."
   :group 'elfeed-sources
-  :type '(choice (const ocnews)))
+  :type '(choice (const owncloud)))
 
 (defun elfeed-sources-on-tag-add (entries tags)
   "Dispatch for tags added."
   (cond
-   ((eq elfeed-sources-type 'ocnews)
-    (apply #'elfeed-sources-ocnews-pre-tag entries tags))))
+   ((eq elfeed-sources-type 'owncloud)
+    (apply #'elfeed-sources-owncloud-pre-tag entries tags))))
 
 (defun elfeed-sources-on-tag-remove (entries tags)
   "Dispatch for tags removed."
   (cond
-   ((eq elfeed-sources-type 'ocnews)
-    (apply #'elfeed-sources-ocnews-pre-untag entries tags))))
+   ((eq elfeed-sources-type 'owncloud)
+    (apply #'elfeed-sources-owncloud-pre-untag entries tags))))
 
 (defun elfeed-sources-update-advice ()
   "Advice for `elfeed-update' to make elfeed-sources works."
@@ -62,7 +62,7 @@
               (format-time-string "%B %e %Y %H:%M:%S %Z"))
   (let ((elfeed--inhibit-update-init-hooks t))
     (cond
-     ((eq elfeed-sources-type 'ocnews) (elfeed-sources-ocnews-update-all))))
+     ((eq elfeed-sources-type 'owncloud) (elfeed-sources-owncloud-update-all))))
   (run-hooks 'elfeed-update-init-hooks)
   (elfeed-db-save))
 
@@ -70,7 +70,7 @@
   "Advice for `elfeed-update-feed' to make elfeed-sources works."
   (interactive)
   (cond
-   ((eq elfeed-sources-type 'ocnews) (elfeed-sources-ocnews-update-feed url)))
+   ((eq elfeed-sources-type 'owncloud) (elfeed-sources-owncloud-update-feed url)))
   (run-hook-with-args 'elfeed-update-hooks url))
 
 ;;;###autoload
@@ -87,7 +87,7 @@
   "Disable hooks and advices elfeed-sources."
   (interactive)
   (advice-remove 'elfeed-update #'elfeed-sources-update-advice)
-  (advice-remove 'elfeed-update-feed :override #'elfeed-sources-update-feed-advice)
+  (advice-remove 'elfeed-update-feed #'elfeed-sources-update-feed-advice)
   (remove-hook 'elfeed-tag-hooks 'elfeed-sources-on-tag-add)
   (remove-hook 'elfeed-untag-hooks 'elfeed-sources-on-tag-remove))
 

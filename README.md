@@ -25,17 +25,17 @@ Setup elfeed-sources, then switch to search view and and press G to update entri
     (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
 
     ;; setup owncloud news as source
-    (setq elfeed-sources-type 'ocnews)
-    (setq elfeed-sources-ocnews-url "http://127.0.0.1:8080")
-    (setq elfeed-sources-ocnews-username "user")
-    (setq elfeed-sources-ocnews-password "password")
+    (setq elfeed-sources-type 'owncloud)
+    (setq elfeed-sources-owncloud-url "http://127.0.0.1:8080")
+    (setq elfeed-sources-owncloud-username "user")
+    (setq elfeed-sources-owncloud-password "password")
     (elfeed-sources-enable)
 
 # Source Details
 ## ownCloud News
 1. Fetch all articles with the lastest modified time
 1. Support sync unread and starred tags, the starred tag name defined
-   in `elfeed-sources-ocnews-star-tag` which default value is
+   in `elfeed-sources-owncloud-star-tag` which default value is
    `star`. For example, if user add `star` tag to one article, the
    stat will be sync to server, too
 
@@ -75,7 +75,7 @@ example Nextcloud:
    3. Method 3, limit the download article size or reset the lastest
       modified time to skip some data:
 
-          (elfeed-sources-ocnews--set-last-modified (- (time-to-seconds) (* 1 3600)))
+          (elfeed-sources-owncloud--set-last-modified (- (time-to-seconds) (* 1 3600)))
 
 # License
 
