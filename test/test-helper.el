@@ -1,5 +1,5 @@
-(load-file "elfeed-sources-owncloud.el")
-(load-file "elfeed-sources.el")
+(load-file "elfeed-protocol-owncloud.el")
+(load-file "elfeed-protocol.el")
 
 ;;; copy from elfeed/tests/elfeed-db-tests.el
 (defmacro with-elfeed-test (&rest body)

@@ -1,8 +1,8 @@
-elfeed-sources
+elfeed-protocol
 ==============
-TODO [![MELPA](http://melpa.org/packages/elfeed-sources-badge.svg)](http://melpa.org/#/elfeed-sources)
+TODO [![MELPA](http://melpa.org/packages/elfeed-protocol-badge.svg)](http://melpa.org/#/elfeed-protocol)
 
-Provide extra sources to make self-hosting RSS readers works
+Provide extra protocol to make self-hosting RSS readers works
 with [elfeed](https://github.com/skeeto/elfeed),
 including
 [Nextcloud/ownCloud News](https://nextcloud.com/),
@@ -14,10 +14,11 @@ TODO
 
     ;; Install through package manager
     M-x package-install <ENTER>
-    elfeed-sources <ENTER>
+    elfeed-protocol <ENTER>
 
 # Initialization
-Setup elfeed-sources, then switch to search view and and press G to update entries:
+Setup elfeed-protocol, then switch to search view and and press G to update entries:
+TODO
 
     ;; curl recommend
     (setq elfeed-use-curl t)
@@ -25,17 +26,17 @@ Setup elfeed-sources, then switch to search view and and press G to update entri
     (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
 
     ;; setup owncloud news as source
-    (setq elfeed-sources-type 'owncloud)
-    (setq elfeed-sources-owncloud-url "http://127.0.0.1:8080")
-    (setq elfeed-sources-owncloud-username "user")
-    (setq elfeed-sources-owncloud-password "password")
-    (elfeed-sources-enable)
+    (setq elfeed-protocol-type 'owncloud)
+    (setq elfeed-protocol-owncloud-url "http://127.0.0.1:8080")
+    (setq elfeed-protocol-owncloud-username "user")
+    (setq elfeed-protocol-owncloud-password "password")
+    (elfeed-protocol-enable)
 
 # Source Details
 ## ownCloud News
 1. Fetch all articles with the lastest modified time
 1. Support sync unread and starred tags, the starred tag name defined
-   in `elfeed-sources-owncloud-star-tag` which default value is
+   in `elfeed-protocol-owncloud-star-tag` which default value is
    `star`. For example, if user add `star` tag to one article, the
    stat will be sync to server, too
 
@@ -55,7 +56,7 @@ example Nextcloud:
     3.  Press left top popup menu and switch to "News" app, then
         subscribe some feeds
 
-3.  Setup elfeed-sources or
+3.  Setup elfeed-protocol or
     other
     [Nextcloud News clients](https://github.com/owncloud/News-Android-App),
     both will works OK
@@ -79,7 +80,7 @@ Install `cask` package firstly, and then `make install; make test`
    3. Method 3, limit the download article size or reset the lastest
       modified time to skip some data:
 
-          (elfeed-sources-owncloud--set-last-modified (- (time-to-seconds) (* 1 3600)))
+          (elfeed-protocol-owncloud--set-last-modified (- (time-to-seconds) (* 1 3600)))
 
 # License
 
