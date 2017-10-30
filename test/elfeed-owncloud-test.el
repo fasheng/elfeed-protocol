@@ -53,7 +53,7 @@
       \"enclosureMime\": null,
       \"enclosureLink\": null,
       \"feedId\": 1,
-      \"unread\": true,
+      \"unread\": false,
       \"starred\": false,
       \"lastModified\": 1493260874,
       \"rtl\": false,
@@ -71,7 +71,7 @@
       \"body\": \"<p>body 2...</p>\",
       \"enclosureMime\": \"video/webm\",
       \"enclosureLink\": \"http://www.example/test.webm\",
-      \"feedId\": 1,
+      \"feedId\": 2,
       \"unread\": true,
       \"starred\": true,
       \"lastModified\": 1493260874,
@@ -87,11 +87,18 @@
     (insert elfeed-owncloud-test-feeds-json)
     (goto-char (point-min))
     (with-elfeed-test
-     (let* ((elfeed-owncloud-feeds (elfeed-owncloud--parse-feeds))
-            (feed1-url (elfeed-owncloud--get-feed-url 1))
-            (feed1 (elfeed-db-get-feed feed1-url))
-            (feed2-url (elfeed-owncloud--get-feed-url 2))
-            (feed2 (elfeed-db-get-feed feed2-url)))
+     (let* ((url "https://user:pass@myhost.com:443")
+            (proto-url (concat "owncloud+" url))
+            (proto-id (elfeed-protocol-owncloud-id url))
+            (elfeed-feeds (list proto-url))
+            (elfeed-owncloud-feeds (elfeed-owncloud--parse-feeds url))
+            (feed1-url (elfeed-owncloud--get-feed-url url 1))
+            (feed1 (elfeed-db-get-feed
+                    (elfeed-protocol-format-entry-feed-id proto-id feed1-url)))
+            (feed2-url (elfeed-owncloud--get-feed-url url 2))
+            (feed2 (elfeed-db-get-feed
+                    (elfeed-protocol-format-entry-feed-id proto-id feed2-url)))
+            )
        (should (string=
                 feed1-url
                 "http://www.example.com/feed/"))
@@ -99,29 +106,51 @@
                 feed2-url
                 "http://www.example2.com/rss.jsp"))
        (should (string=
+                (elfeed-feed-url feed1)
+                (elfeed-protocol-format-entry-feed-id proto-id "http://www.example.com/feed/")))
+       (should (string=
+                (elfeed-feed-url feed2)
+                (elfeed-protocol-format-entry-feed-id proto-id "http://www.example2.com/rss.jsp")))
+       (should (string=
                 (elfeed-feed-title feed1)
                 "Feed 1"))
        (should (string=
                 (elfeed-feed-title feed2)
-                "Feed 2"))))))
+                "Feed 2"))
+       ))))
 
 (ert-deftest elfeed-owncloud-entry-list ()
   (with-temp-buffer
     (insert elfeed-owncloud-test-feeds-json)
     (goto-char (point-min))
     (with-elfeed-test
-     (let* ((elfeed-owncloud-feeds (elfeed-owncloud--parse-feeds)))
+     (let* ((url "https://user:pass@myhost.com:443")
+            (proto-url (concat "owncloud+" url))
+            (proto-id (elfeed-protocol-owncloud-id url))
+            (elfeed-feeds (list (list proto-url :autotags
+                                      '(("http://www.example.com/feed/" tag1)
+                                        ("http://www.example2.com/rss.jsp" tag2)))))
+            (elfeed-owncloud-feeds (elfeed-owncloud--parse-feeds url)))
        (with-temp-buffer
          (insert elfeed-owncloud-test-entries-json)
          (goto-char (point-min))
-         (let* ((entries (elfeed-owncloud--parse-entries))
+         (let* (
+                (entries (elfeed-owncloud--parse-entries url))
                 (entry1 (elt entries 0))
-                (entry2 (elt entries 1)))
-           (should (elfeed-owncloud-is-owncloud-entry entry1))
-           (should (elfeed-owncloud-is-owncloud-entry entry2))
+                (entry2 (elt entries 1))
+                )
+           (should (elfeed-owncloud-entry-p entry1))
+           (should (elfeed-owncloud-entry-p entry2))
            (should (string=
                     (elfeed-entry-title entry1)
                     "Entry 1"))
            (should (string=
                     (elfeed-entry-title entry2)
-                   "Entry 2"))))))))
+                   "Entry 2"))
+           (should (equal
+                    (elfeed-entry-tags entry1)
+                    '(tag1)))
+           (should (equal
+                    (elfeed-entry-tags entry2)
+                    '(star tag2 unread)))
+           ))))))
