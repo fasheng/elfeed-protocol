@@ -18,21 +18,34 @@ TODO
 
 # Initialization
 Setup elfeed-protocol, then switch to search view and and press G to update entries:
-TODO
 
     ;; curl recommend
     (setq elfeed-use-curl t)
     (elfeed-set-timeout 36000)
     (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
 
-    ;; setup owncloud news as source
-    (setq elfeed-protocol-type 'owncloud)
-    (setq elfeed-protocol-owncloud-url "http://127.0.0.1:8080")
-    (setq elfeed-protocol-owncloud-username "user")
-    (setq elfeed-protocol-owncloud-password "password")
+    ;; setup extra protocol feeds
+    (require 'elfeed-protocol)
+    (setq elfeed-feeds (list
+                        "owncloud+https://user1:pass1@myhost.com"
+                        (list "owncloud+https://user2@myhost.com"
+                              :password "password/with|special@characters:"
+                              :autotags '(("example.com" comic))
+                              )))
     (elfeed-protocol-enable)
 
-# Source Details
+To make `elfeed-org` tag rules works together with `elfeed-protocol`, just add a
+after advice for `elfeed`:
+
+    (defadvice elfeed (after configure-elfeed-feeds activate)
+      "Make elfeed-org autotags rules works with elfeed-protocol."
+      (setq elfeed-protocol-tags elfeed-feeds)
+      (setq elfeed-feeds (list
+                          (list "owncloud+https://user:pass@myhost.com"
+                              :autotags elfeed-protocol-tags
+                              ))))
+
+# Support Protocol Details
 ## ownCloud News
 1. Fetch all articles with the lastest modified time
 1. Support sync unread and starred tags, the starred tag name defined
@@ -80,7 +93,7 @@ Install `cask` package firstly, and then `make install; make test`
    3. Method 3, limit the download article size or reset the lastest
       modified time to skip some data:
 
-          (elfeed-protocol-owncloud--set-last-modified (- (time-to-seconds) (* 1 3600)))
+          (elfeed-owncloud--set-last-modified (- (time-to-seconds) (* 1 3600)))
 
 # License
 
