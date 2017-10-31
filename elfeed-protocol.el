@@ -153,24 +153,6 @@ dispatched by different protocols."
                         url proto-entries tags)))
              entry-groups)))
 
-;; (defun elfeed-protocol-update-advice ()
-;;   "Advice for `elfeed-update' to make elfeed-protocol works."
-;;   (interactive)
-;;   (elfeed-log 'info "Elfeed update: %s"
-;;               (format-time-string "%B %e %Y %H:%M:%S %Z"))
-;;   (let ((elfeed--inhibit-update-init-hooks t))
-;;     (cond
-;;      ((eq elfeed-protocol-type 'owncloud) (elfeed-owncloud-update-all))))
-;;   (run-hooks 'elfeed-update-init-hooks)
-;;   (elfeed-db-save))
-
-;; (defun elfeed-protocol-update-feed-advice (url)
-;;   "Advice for `elfeed-update-feed' to make elfeed-protocol works."
-;;   (interactive)
-;;   (cond
-;;    ((eq elfeed-protocol-type 'owncloud) (elfeed-owncloud-update-feed url)))
-;;   (run-hook-with-args 'elfeed-update-hooks url))
-
 ;;;###autoload
 (defun elfeed-protocol-enable ()
   "Enable hooks and advices for elfeed-protocol."
