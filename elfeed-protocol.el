@@ -157,6 +157,7 @@ dispatched by different protocols."
 (defun elfeed-protocol-enable ()
   "Enable hooks and advices for elfeed-protocol."
   (interactive)
+  (elfeed-protocol-register "owncloud" 'elfeed-protocol-owncloud-update)
   (add-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
   (add-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove))
 
@@ -164,6 +165,7 @@ dispatched by different protocols."
 (defun elfeed-protocol-disable ()
   "Disable hooks and advices elfeed-protocol."
   (interactive)
+  (elfeed-protocol-unregister "owncloud")
   (remove-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
   (remove-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove))
 
