@@ -45,13 +45,13 @@ after advice for `elfeed`:
                               :autotags elfeed-protocol-tags
                               ))))
 
-# Support Protocol Details
+# Support Protocols
 ## ownCloud News
 1. Fetch all articles with the lastest modified time
 1. Support sync unread and starred tags, the starred tag name defined
-   in `elfeed-protocol-owncloud-star-tag` which default value is
-   `star`. For example, if user add `star` tag to one article, the
-   stat will be sync to server, too
+   in `elfeed-owncloud-star-tag` which default value is `star`. For
+   example, if user add `star` tag to one article, the star stat will
+   be sync to server, too
 
 # Have a Try
 If you never use such slef-hosting RSS readers, why not deploy one in 10 minutes. For
@@ -90,10 +90,16 @@ Install `cask` package firstly, and then `make install; make test`
 
           cpulimit -l 80 emacs
 
-   3. Method 3, limit the download article size or reset the lastest
-      modified time to skip some data:
+   3. Method 3, limit the download size and update articles with
+      offset instead the modified time, this could run multiple times
+      to keep up to date, for ownCloud:
 
-          (elfeed-owncloud--set-last-modified (- (time-to-seconds) (* 1 3600)))
+          (setq elfeed-owncloud-maxsize 1000)
+          M-x elfeed-owncloud-update-offset
+
+   4. Method 4, reset the last modified time to skip some data, for ownCloud:
+
+          M-x elfeed-owncloud-update-skip
 
 # License
 

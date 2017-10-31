@@ -25,7 +25,7 @@ remove the tag, then the starred state in ownCloud will be synced, too."
 (defconst elfeed-owncloud-api-init-starred (concat elfeed-owncloud-api-base "/items?type=2&getRead=true&batchSize=%s"))
 (defconst elfeed-owncloud-api-update (concat elfeed-owncloud-api-base "/items/updated?type=3&lastModified=%s"))
 (defconst elfeed-owncloud-api-update-feed (concat elfeed-owncloud-api-base "/items?type=0&id=%s&getRead=false&batchSize=%s"))
-(defconst elfeed-owncloud-api-update-offset (concat elfeed-owncloud-api-base "/items?type=3&offset=%s&batchSize=%s"))
+(defconst elfeed-owncloud-api-update-offset (concat elfeed-owncloud-api-base "/items?type=3&offset=%s&getRead=true&batchSize=%s&oldestFirst=true"))
 (defconst elfeed-owncloud-api-read (concat elfeed-owncloud-api-base "/items/%s/read"))
 (defconst elfeed-owncloud-api-unread (concat elfeed-owncloud-api-base "/items/%s/unread"))
 (defconst elfeed-owncloud-api-star (concat elfeed-owncloud-api-base "/items/%s/%s/star"))
@@ -328,30 +328,33 @@ ARG is the time-stamp."
         (elfeed-owncloud--parse-entries url nil callback)
         (run-hook-with-args 'elfeed-update-hooks url-init-starred)))))
 
-(defun elfeed-owncloud-update-since (url &optional timestamp)
-  "Update entries since special TIMESTAMP, the TIMESTAMP is the seconds since
-1970-01-01 00:00:00 UTC, the default TIMESTAMP point to 24 hours ago."
-  (interactive)
-  (unless timestamp
-    (setq timestamp (- (time-to-seconds) (* 24 3600))))
-  (elfeed-owncloud-with-fetch
-   (concat url elfeed-owncloud-api-feeds) nil
-   (elfeed-owncloud--parse-feeds url)
-   (elfeed-owncloud--do-update url 'timestamp timestamp)))
-
 (defun elfeed-owncloud-reinit (url)
   "Retry initial sync, fetch all unread and starred entries from ownCloud
 News. This may take a long time, ensure `elfeed-curl-timeout' is big enough."
-  (interactive)
+  (interactive (list (elfeed-protocol-url
+                      (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
   (elfeed-owncloud-with-fetch
    (concat url elfeed-owncloud-api-feeds) nil
    (elfeed-owncloud--parse-feeds url)
    (elfeed-owncloud--do-update url 'init)))
 
+(defun elfeed-owncloud-update-skip (url &optional timestamp)
+  "Update entries since special TIMESTAMP, the TIMESTAMP is the seconds since
+1970-01-01 00:00:00 UTC, the default TIMESTAMP point to 1 hours ago."
+  (interactive (list (elfeed-protocol-url
+                      (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
+  (unless timestamp
+    (setq timestamp (- (time-to-seconds) (* 1 3600))))
+  (elfeed-owncloud-with-fetch
+   (concat url elfeed-owncloud-api-feeds) nil
+   (elfeed-owncloud--parse-feeds url)
+   (elfeed-owncloud--do-update url 'timestamp timestamp)))
+
 (defun elfeed-owncloud-update-offset (url &optional offset)
   "Fetch all the entries after the OFFSET id from ownCloud News. If OFFSET not
 provide, will update since the last entry id."
-  (interactive)
+  (interactive (list (elfeed-protocol-url
+                      (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
   (elfeed-owncloud-with-fetch
    (concat url elfeed-owncloud-api-feeds) nil
    (elfeed-owncloud--parse-feeds url)
@@ -475,7 +478,8 @@ entriy list object, TAG is the action tag, for example unread and
 authentication info is always required, for example
 \"https://user:pass@myhost.com\". If first time run, it will initial sync for
 target URL, or will only fetch the updated entries since last modified."
-  (interactive)
+  (interactive (list (elfeed-protocol-url
+                      (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
   (let* ((host-url (elfeed-protocol-host-url url))
          (feed-url (elfeed-protocol-feed-url url)))
     (if feed-url (elfeed-owncloud-update-feed host-url feed-url callback)

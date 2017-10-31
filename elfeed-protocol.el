@@ -124,6 +124,10 @@ overrode by `:autotags' item in protocol properties."
                              entry-groups))))
     entry-groups))
 
+(defun elfeed-protocol-feed-list ()
+  (cl-loop for url in (elfeed--shuffle (elfeed-feed-list))
+           when (elfeed-protocol-feed-p url) collect url))
+
 (defun elfeed-protocol-on-tag-add (entries tags)
   "Dispatch for tags added. Will split entries to groups and
 dispatched by different protocols."
