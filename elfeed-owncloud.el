@@ -179,7 +179,7 @@ UTC."
   "Check if specific ENTRY is fetched from ownCloud News. Return t if
 is, or return nil."
   (let* ((proto-id (elfeed-protocol-entry-protocol-id entry))
-         (proto-type (elfeed-protocol-type proto-id)))
+         (proto-type (when proto-id (elfeed-protocol-type proto-id))))
     (string= proto-type "owncloud")))
 
 (defun elfeed-owncloud--parse-entries (url &optional mark-last-modified callback)

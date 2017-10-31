@@ -119,9 +119,10 @@ overrode by `:autotags' item in protocol properties."
     (cl-loop for entry in entries
              do (progn
                   (let ((proto-id (elfeed-protocol-entry-protocol-id entry)))
-                    (puthash proto-id (append
-                                       (gethash proto-id entry-groups) (list entry))
-                             entry-groups))))
+                    (when proto-id
+                      (puthash proto-id (append
+                                         (gethash proto-id entry-groups) (list entry))
+                               entry-groups)))))
     entry-groups))
 
 (defun elfeed-protocol-feed-list ()
@@ -132,24 +133,24 @@ overrode by `:autotags' item in protocol properties."
   "Dispatch for tags added. Will split entries to groups and
 dispatched by different protocols."
   (let* ((entry-groups (elfeed-protocol-build-entry-groups entries)))
-    (maphash (lambda (proto-id _v)
+    (maphash (lambda (proto-id proto-entries)
                (let* ((proto-type (elfeed-protocol-type proto-id))
                       (proto-url (elfeed-protocol-id-to-url proto-id))
                       (url (elfeed-protocol-url proto-url)))
                  (apply (intern (concat "elfeed-protocol-" proto-type "-pre-tag"))
-                        url entries tags)))
+                        url proto-entries tags)))
              entry-groups)))
 
 (defun elfeed-protocol-on-tag-remove (entries tags)
   "Dispatch for tags removed. Will split entries to groups and
 dispatched by different protocols."
   (let* ((entry-groups (elfeed-protocol-build-entry-groups entries)))
-    (maphash (lambda (proto-id _v)
+    (maphash (lambda (proto-id proto-entries)
                (let* ((proto-type (elfeed-protocol-type proto-id))
                       (proto-url (elfeed-protocol-id-to-url proto-id))
                       (url (elfeed-protocol-url proto-url)))
                  (apply (intern (concat "elfeed-protocol-" proto-type "-pre-untag"))
-                        url entries tags)))
+                        url proto-entries tags)))
              entry-groups)))
 
 ;; (defun elfeed-protocol-update-advice ()
