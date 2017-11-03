@@ -1,19 +1,55 @@
 ;;; elfeed-owncloud.el --- owncloud news api for elfeed -*- lexical-binding: t; -*-
 
+;; Author: Xu Fasheng <fasheng.xu@gmail.com>
+;; URL: https://github.com/fasheng/elfeed-owncloud
+;; Version: 0.3.2
+;; Package-Version: 20170501.1349
+;; Package-Requires : ((elfeed "2.1.1") (cl-lib "0.5"))
+;; Keywords: elfeed
+
+;;; Commentary:
+
+;; elfeed-owncloud provide ownCloud News protocol for elfeed. See the
+;; README for full documentation.
+;;
+;; Usage:
+;;
+;;   ;; curl recommend
+;;   (setq elfeed-use-curl t)
+;;   (elfeed-set-timeout 36000)
+;;   (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
+;;
+;;   ;; setup extra protocol feeds
+;;   (require 'elfeed-owncloud)
+;;   (setq elfeed-feeds (list
+;;                       "owncloud+https://user1:pass1@myhost.com"
+;;                       (list "owncloud+https://user2@myhost.com"
+;;                             :password "password/with|special@characters:"
+;;                             :autotags '(("example.com" comic))
+;;                             )))
+;;   (elfeed-owncloud-enable)
+
+;;; Code:
+
 (require 'cl-lib)
 (require 'json)
 (require 'url)
 (require 'elfeed)
+(require 'elfeed-owncloud-lib)
+
+(defgroup elfeed-owncloud ()
+  "Provide ownCloud News protocol for elfeed."
+  :group 'comm)
 
 (defcustom elfeed-owncloud-maxsize 1000
   "Maximize entries size for each request."
-  :group 'elfeed-protocol
+  :group 'elfeed-owncloud
   :type 'integer)
 
 (defcustom elfeed-owncloud-star-tag 'star
   "Default star tag for ownCloud News entry. If one entry set or
 remove the tag, then the starred state in ownCloud will be synced, too."
-  :group 'elfeed-protocol
+  :group 'elfeed-owncloud
   :type 'symbol)
 
 (defvar elfeed-owncloud-feeds (make-hash-table :test 'equal)
@@ -35,17 +71,14 @@ remove the tag, then the starred state in ownCloud will be synced, too."
 (defconst elfeed-owncloud-api-star-multi (concat elfeed-owncloud-api-base "/items/star/multiple"))
 (defconst elfeed-owncloud-api-unstar-multi (concat elfeed-owncloud-api-base "/items/unstar/multiple"))
 
-(defun elfeed-protocol-owncloud-id (url)
-  (elfeed-protocol-id "owncloud" url))
-
 (defun elfeed-owncloud--init-headers (url &optional put-json)
   "Get http request headers with authorization and user agent information. URL
 should contains user and password fields, if not, will query in the related feed
 properties."
   (let* ((urlobj (url-generic-parse-url url))
          (user (url-user urlobj))
-         (proto-id (elfeed-protocol-owncloud-id url))
-         (feed (elfeed-protocol-id-to-feed proto-id))
+         (proto-id (elfeed-owncloud-proto-id url))
+         (feed (elfeed-owncloud-proto-id-to-feed proto-id))
          (proto-props (when (listp feed) (cdr feed)))
          (password (if (url-password urlobj)
                        (url-password urlobj)
@@ -67,7 +100,7 @@ request. DATA is in string format, if not nil will send PUT request."
   (declare (indent defun))
   `(let* ((use-curl elfeed-use-curl) ; capture current value in closure
           (headers (elfeed-owncloud--init-headers ,url ,data))
-          (no-auth-url (elfeed-protocol-no-auth-url ,url))
+          (no-auth-url (elfeed-owncloud-no-auth-url ,url))
           (cb (lambda (status)
                 (if (elfeed-is-status-error status use-curl)
                     (let ((print-escape-newlines t))
@@ -100,13 +133,13 @@ request. DATA is in string format, if not nil will send PUT request."
   "Parse the result feeds JSON buffer and fill pasred feeds to db, ensure the
 point in the right place that `json-read' could execute. Return
 `elfeed-owncloud-feeds'."
-  (let* ((proto-id (elfeed-protocol-owncloud-id url))
+  (let* ((proto-id (elfeed-owncloud-proto-id url))
          (parsed-feeds (json-read))
          (feeds (cdr (assoc 'feeds parsed-feeds))))
     (puthash proto-id feeds elfeed-owncloud-feeds)
     (cl-loop for feed across feeds do
              (let* ((feed-url (cdr (assoc 'url feed)))
-                    (feed-id (elfeed-protocol-format-entry-feed-id
+                    (feed-id (elfeed-owncloud-format-entry-feed-id
                               proto-id feed-url))
                     (feed-title (cdr (assoc 'title feed)))
                     (feed-db (elfeed-db-get-feed feed-id)))
@@ -123,7 +156,7 @@ point in the right place that `json-read' could execute. Return
 (defun elfeed-owncloud--get-feed-url (url feed-id)
   "Get feed url through the ownCloud feed id."
   (catch 'found
-    (let* ((proto-id (elfeed-protocol-owncloud-id url))
+    (let* ((proto-id (elfeed-owncloud-proto-id url))
            (feeds (gethash proto-id elfeed-owncloud-feeds))
            (length (length feeds)))
       (dotimes (i length)
@@ -136,7 +169,7 @@ point in the right place that `json-read' could execute. Return
 (defun elfeed-owncloud--get-feed-id (url feed-url)
   "Get ownCloud feed id through the url."
   (catch 'found
-    (let* ((proto-id (elfeed-protocol-owncloud-id url))
+    (let* ((proto-id (elfeed-owncloud-proto-id url))
            (feeds (gethash proto-id elfeed-owncloud-feeds))
            (length (length feeds)))
       (dotimes (i length)
@@ -178,7 +211,7 @@ UTC."
 (defun elfeed-owncloud-entry-p (entry)
   "Check if specific ENTRY is fetched from ownCloud News. Return t if
 is, or return nil."
-  (let* ((proto-id (elfeed-protocol-entry-protocol-id entry))
+  (let* ((proto-id (elfeed-owncloud-entry-protocol-id entry))
          (proto-type (when proto-id (elfeed-protocol-type proto-id))))
     (string= proto-type "owncloud")))
 
@@ -191,7 +224,7 @@ User could download items.json from ownCloud manually, for example
 http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
 `elfeed-owncloud--parse-entries' in the buffer."
   (if elfeed-owncloud-feeds
-      (let* ((proto-id (elfeed-protocol-owncloud-id url))
+      (let* ((proto-id (elfeed-owncloud-proto-id url))
              (begin-time (time-to-seconds))
              (max-last-modified 0)
              (max-last-entry-id 0)
@@ -222,7 +255,7 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
                               (original (elfeed-db-get-entry full-id))
                               (original-date (and original
                                                   (elfeed-entry-date original)))
-                              (autotags (elfeed-protocol-feed-autotags proto-id feed-url))
+                              (autotags (elfeed-owncloud-feed-autotags proto-id feed-url))
                               (fixtags (elfeed-normalize-tags
                                         autotags elfeed-initial-tags))
                               (tags (progn
@@ -237,7 +270,7 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
                               (db-entry (elfeed-entry--create
                                          :title (elfeed-cleanup title)
                                          :id full-id
-                                         :feed-id (elfeed-protocol-format-entry-feed-id
+                                         :feed-id (elfeed-owncloud-format-entry-feed-id
                                                    proto-id feed-url)
                                          :link (elfeed-cleanup entry-url)
                                          :tags tags
@@ -289,7 +322,7 @@ entries. For update-feed, will fetch unread entries for special feed, the ARG is
 the feed id. For update-offset, will fetch all entries after the provide offset
 id. And for a timestamp means only update entries since the special time, the
 ARG is the time-stamp."
-  (let* ((proto-id (elfeed-protocol-owncloud-id url))
+  (let* ((proto-id (elfeed-owncloud-proto-id url))
          (offset-id (if arg arg (elfeed-owncloud--get-last-entry-id proto-id)))
          (url-update-offset (concat url (format elfeed-owncloud-api-update-offset
                                                 offset-id elfeed-owncloud-maxsize)))
@@ -332,7 +365,7 @@ ARG is the time-stamp."
   "Retry initial sync, fetch all unread and starred entries from ownCloud
 News. This may take a long time, ensure `elfeed-curl-timeout' is big enough."
   (interactive (list (elfeed-protocol-url
-                      (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
+                      (completing-read "Protocol Feed: " (elfeed-owncloud-proto-feed-list)))))
   (elfeed-owncloud-with-fetch
    (concat url elfeed-owncloud-api-feeds) nil
    (elfeed-owncloud--parse-feeds url)
@@ -342,7 +375,7 @@ News. This may take a long time, ensure `elfeed-curl-timeout' is big enough."
   "Update entries since special TIMESTAMP, the TIMESTAMP is the seconds since
 1970-01-01 00:00:00 UTC, the default TIMESTAMP point to 1 hours ago."
   (interactive (list (elfeed-protocol-url
-                      (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
+                      (completing-read "Protocol Feed: " (elfeed-owncloud-proto-feed-list)))))
   (unless timestamp
     (setq timestamp (- (time-to-seconds) (* 1 3600))))
   (elfeed-owncloud-with-fetch
@@ -354,7 +387,7 @@ News. This may take a long time, ensure `elfeed-curl-timeout' is big enough."
   "Fetch all the entries after the OFFSET id from ownCloud News. If OFFSET not
 provide, will update since the last entry id."
   (interactive (list (elfeed-protocol-url
-                      (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
+                      (completing-read "Protocol Feed: " (elfeed-owncloud-proto-feed-list)))))
   (elfeed-owncloud-with-fetch
    (concat url elfeed-owncloud-api-feeds) nil
    (elfeed-owncloud--parse-feeds url)
@@ -450,7 +483,7 @@ entriy list object, TAG is the action tag, for example unread and
      ((eq tag elfeed-owncloud-star-tag)
       (elfeed-owncloud-mark-unstar-multi url entries))))))
 
-(defun elfeed-protocol-owncloud-pre-tag (url entries &rest tags)
+(defun elfeed-owncloud-pre-tag (url entries &rest tags)
   "Sync unread/starred stats before tags added."
   (dolist (tag tags)
     (let* ((entries-modified (cl-loop for entry in entries
@@ -458,13 +491,49 @@ entriy list object, TAG is the action tag, for example unread and
                                       collect entry)))
       (elfeed-owncloud-sync-tag-multi url entries-modified tag 'add))))
 
-(defun elfeed-protocol-owncloud-pre-untag (url entries &rest tags)
+(defun elfeed-owncloud-pre-untag (url entries &rest tags)
   "Sync unread/starred stats before tags removed."
   (dolist (tag tags)
     (let* ((entries-modified (cl-loop for entry in entries
                                       when (elfeed-tagged-p tag entry)
                                       collect entry)))
       (elfeed-owncloud-sync-tag-multi url entries-modified tag 'remove))))
+
+(defun elfeed-owncloud-build-entry-groups (entries)
+  "Split entries to groups with the same protocol url id."
+  (let* ((entry-groups (make-hash-table :test 'equal)))
+    (cl-loop for entry in entries
+             do (progn
+                  (let ((proto-id (elfeed-owncloud-entry-protocol-id entry)))
+                    (when proto-id
+                      (puthash proto-id (append
+                                         (gethash proto-id entry-groups) (list entry))
+                               entry-groups)))))
+    entry-groups))
+
+(defun elfeed-owncloud-on-tag-add (entries tags)
+  "Dispatch for tags added. Will split entries to groups and
+dispatched by different protocols."
+  (let* ((entry-groups (elfeed-owncloud-build-entry-groups entries)))
+    (maphash (lambda (proto-id proto-entries)
+               (let* ((proto-type (elfeed-protocol-type proto-id))
+                      (proto-url (elfeed-owncloud-proto-id-to-url proto-id))
+                      (url (elfeed-protocol-url proto-url)))
+                 (when (string= proto-type "owncloud")
+                   (apply 'elfeed-owncloud-pre-tag url proto-entries tags))))
+             entry-groups)))
+
+(defun elfeed-owncloud-on-tag-remove (entries tags)
+  "Dispatch for tags removed. Will split entries to groups and
+dispatched by different protocols."
+  (let* ((entry-groups (elfeed-owncloud-build-entry-groups entries)))
+    (maphash (lambda (proto-id proto-entries)
+               (let* ((proto-type (elfeed-protocol-type proto-id))
+                      (proto-url (elfeed-owncloud-proto-id-to-url proto-id))
+                      (url (elfeed-protocol-url proto-url)))
+                 (when (string= proto-type "owncloud")
+                   (apply 'elfeed-owncloud-pre-untag url proto-entries tags))))
+             entry-groups)))
 
 (defun elfeed-owncloud-update-feed (url feed-url &optional callback)
   "Update entries under special feed in ownCloud News."
@@ -473,17 +542,17 @@ entriy list object, TAG is the action tag, for example unread and
     (when feed-id
       (elfeed-owncloud--do-update url 'update-feed feed-id callback))))
 
-(defun elfeed-protocol-owncloud-update (url &optional callback)
+(defun elfeed-owncloud-update (url &optional callback)
   "ownCloud News protocol updater. URL is the host name of ownCloud server, and
 authentication info is always required, for example
 \"https://user:pass@myhost.com\". If first time run, it will initial sync for
 target URL, or will only fetch the updated entries since last modified."
   (interactive (list (elfeed-protocol-url
-                      (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
-  (let* ((host-url (elfeed-protocol-host-url url))
-         (feed-url (elfeed-protocol-feed-url url)))
+                      (completing-read "Protocol Feed: " (elfeed-owncloud-proto-feed-list)))))
+  (let* ((host-url (elfeed-owncloud-proto-host-url url))
+         (feed-url (elfeed-owncloud-proto-feed-url url)))
     (if feed-url (elfeed-owncloud-update-feed host-url feed-url callback)
-      (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
+      (let* ((proto-id (elfeed-owncloud-proto-id host-url))
              (last-modified (elfeed-owncloud--get-last-modified proto-id)))
         (elfeed-owncloud-with-fetch
          (concat host-url elfeed-owncloud-api-feeds) nil
@@ -491,6 +560,22 @@ target URL, or will only fetch the updated entries since last modified."
          (if (> last-modified 0)
              (elfeed-owncloud--do-update host-url 'timestamp (+ 1 last-modified) callback)
        (elfeed-owncloud--do-update host-url 'init nil callback)))))))
+
+;;;###autoload
+(defun elfeed-owncloud-enable ()
+  "Enable hooks and advices for elfeed-protocol."
+  (interactive)
+  (elfeed-protocol-register "owncloud" 'elfeed-owncloud-update)
+  (add-hook 'elfeed-tag-hooks 'elfeed-owncloud-on-tag-add)
+  (add-hook 'elfeed-untag-hooks 'elfeed-owncloud-on-tag-remove))
+
+;;;###autoload
+(defun elfeed-owncloud-disable ()
+  "Disable hooks and advices elfeed-protocol."
+  (interactive)
+  (elfeed-protocol-unregister "owncloud")
+  (remove-hook 'elfeed-tag-hooks 'elfeed-owncloud-on-tag-add)
+  (remove-hook 'elfeed-untag-hooks 'elfeed-owncloud-on-tag-remove))
 
 (provide 'elfeed-owncloud)
 
