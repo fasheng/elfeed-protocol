@@ -1,4 +1,5 @@
 (load-file "elfeed-protocol-owncloud.el")
+(load-file "elfeed-protocol-ttrss.el")
 (load-file "elfeed-protocol.el")
 
 ;;; copy from elfeed/tests/elfeed-db-tests.el

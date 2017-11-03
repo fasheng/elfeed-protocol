@@ -1,4 +1,4 @@
-;;; elfeed-protocol.el --- Provide ownCloud and other protocols for elfeed -*- lexical-binding: t; -*-
+;;; elfeed-protocol.el --- Provide protocols like owncloud ttrss for elfeed -*- lexical-binding: t; -*-
 
 ;; Author: Xu Fasheng <fasheng.xu@gmail.com>
 ;; URL: https://github.com/fasheng/elfeed-protocol
@@ -9,8 +9,8 @@
 
 ;;; Commentary:
 ;; elfeed-protocol provide extra protocols to make self-hosting RSS
-;; readers like ownCloud News works with elfeed.  See the README for
-;; full documentation.
+;; readers like ownCloud News, Tiny TIny RSS works with elfeed.  See
+;; the README for full documentation.
 ;;
 ;; Usage:
 ;;
@@ -25,8 +25,7 @@
 ;;                       "owncloud+https://user1:pass1@myhost.com"
 ;;                       (list "owncloud+https://user2@myhost.com"
 ;;                             :password "password/with|special@characters:"
-;;                             :autotags '(("example.com" comic))
-;;                             )))
+;;                             :autotags '(("example.com" comic)))))
 ;;   (elfeed-protocol-enable)
 
 ;;; Code:
@@ -34,6 +33,7 @@
 (require 'cl-lib)
 (require 'elfeed)
 (require 'elfeed-protocol-owncloud)
+(require 'elfeed-protocol-ttrss)
 
 (defgroup elfeed-protocol ()
   "Provide extra protocol for elfeed."
@@ -213,14 +213,29 @@ PROTO-ID is the target protocol feed id.  LAST-MODIFIED is the target value."
   (let* ((feed (elfeed-db-get-feed proto-id)))
     (setf (elfeed-meta feed :last-modified) last-modified)))
 
+(defun elfeed-protocol-get-first-entry-id (proto-id)
+  "Get first entry id.
+PROTO-ID is the target protocol feed id.  If not initialized, just return -1."
+  (let* ((feed (elfeed-db-get-feed proto-id))
+         (last-entry-id (elfeed-meta feed :first-entry-id)))
+    (if last-entry-id
+        last-entry-id
+      -1)))
+
+(defun elfeed-protocol-set-first-entry-id (proto-id first-entry-id)
+  "Set first entry id to elfeed db.
+PROTO-ID is the target protocol feed id.  FIRST-ENTRY-ID is the target value."
+  (let* ((feed (elfeed-db-get-feed proto-id)))
+    (setf (elfeed-meta feed :first-entry-id) first-entry-id)))
+
 (defun elfeed-protocol-get-last-entry-id (proto-id)
   "Get last entry id.
-PROTO-ID is the target protocol feed id.  If not initialized, just return 0."
+PROTO-ID is the target protocol feed id.  If not initialized, just return -1."
   (let* ((feed (elfeed-db-get-feed proto-id))
          (last-entry-id (elfeed-meta feed :last-entry-id)))
     (if last-entry-id
         last-entry-id
-      0)))
+      -1)))
 
 (defun elfeed-protocol-set-last-entry-id (proto-id last-entry-id)
   "Set last entry id to elfeed db.
@@ -263,9 +278,9 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
     (maphash (lambda (proto-id proto-entries)
                (let* ((proto-type (elfeed-protocol-type proto-id))
                       (proto-url (elfeed-protocol-meta-url proto-id))
-                      (url (elfeed-protocol-url proto-url)))
+                      (host-url (elfeed-protocol-url proto-url)))
                  (apply (intern (concat "elfeed-protocol-" proto-type "-pre-tag"))
-                        url proto-entries tags)))
+                        host-url proto-entries tags)))
              entry-groups)))
 
 (defun elfeed-protocol-on-tag-remove (entries tags)
@@ -275,9 +290,9 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
     (maphash (lambda (proto-id proto-entries)
                (let* ((proto-type (elfeed-protocol-type proto-id))
                       (proto-url (elfeed-protocol-meta-url proto-id))
-                      (url (elfeed-protocol-url proto-url)))
+                      (host-url (elfeed-protocol-url proto-url)))
                  (apply (intern (concat "elfeed-protocol-" proto-type "-pre-untag"))
-                        url proto-entries tags)))
+                        host-url proto-entries tags)))
              entry-groups)))
 
 (defun elfeed-protocol-advice-update-feed (orig-func url)
@@ -327,7 +342,8 @@ ORIG-FUNC and URL-OR-FEED are the needed arguments."
   (advice-add 'elfeed-feed-autotags :around #'elfeed-protocol-advice-feed-autotags)
   (add-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
   (add-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove)
-  (elfeed-protocol-register "owncloud" 'elfeed-protocol-owncloud-update))
+  (elfeed-protocol-register "owncloud" 'elfeed-protocol-owncloud-update)
+  (elfeed-protocol-register "ttrss" 'elfeed-protocol-ttrss-update))
 
 ;;;###autoload
 (defun elfeed-protocol-disable ()
@@ -338,7 +354,8 @@ ORIG-FUNC and URL-OR-FEED are the needed arguments."
   (advice-remove 'elfeed-feed-autotags #'elfeed-protocol-advice-feed-autotags)
   (remove-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
   (remove-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove)
-  (elfeed-protocol-unregister "owncloud"))
+  (elfeed-protocol-unregister "owncloud")
+  (elfeed-protocol-unregister "ttrss"))
 
 (provide 'elfeed-protocol)
 

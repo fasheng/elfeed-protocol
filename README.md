@@ -6,7 +6,7 @@ Provide extra protocols to make self-hosting RSS readers works
 with [elfeed](https://github.com/skeeto/elfeed),
 including
 [Nextcloud/ownCloud News](https://nextcloud.com/),
-[Tiny Tiny RSS(TODO)](https://tt-rss.org/fox/tt-rss),
+[Tiny Tiny RSS](https://tt-rss.org/fox/tt-rss),
 [NewsBlur(TODO)](https://newsblur.com/) and even more.
 
 # Installation through MELPA
@@ -29,8 +29,7 @@ setup extra protocol feeds
                     "owncloud+https://user1:pass1@myhost.com"
                     (list "owncloud+https://user2@myhost.com"
                           :password "password/with|special@characters:"
-                          :autotags '(("example.com" comic))
-                          )))
+                          :autotags '(("example.com" comic)))))
 (elfeed-protocol-enable)
 ```
 
@@ -43,63 +42,103 @@ after advice for `elfeed`:
   (setq elfeed-protocol-tags elfeed-feeds)
   (setq elfeed-feeds (list
                       (list "owncloud+https://user:pass@myhost.com"
-                          :autotags elfeed-protocol-tags
-                          ))))
+                          :autotags elfeed-protocol-tags))))
 ```
 
-# Supported Protocols
-## ownCloud News
-1. Fetch all articles with the lastest modified time
+# Protocol Details
+## owncloud (ownCloud News)
+1. Fetch articles by the modified time
 1. Support sync unread and starred tags, the starred tag name defined
    in `elfeed-protocol-owncloud-star-tag` which default value is `star`. For
    example, if user add `star` tag to one article, the star stat will
    be sync to server, too
 
-# Have a Try
-If you never use such slef-hosting RSS readers, why not deploy one in 10 minutes. For
-example Nextcloud:
+Example:
+```emacs-lisp
+(setq elfeed-feeds (list
+                    "owncloud+https://user1:pass1@myhost.com"
+                    (list "owncloud+https://user2@myhost.com"
+                          :password "password/with|special@characters:"
+                          :autotags '(("example.com" comic)))))
+```
 
-1.  Fetch Nextcloud image and run it
+## ttrss (Tiny Tiny RSS, requires version: 1.7.6)
+1. Fetch articles by the entry ID
+1. Fetch tags in remote
+1. Support sync unread, starred and published tags, the starred tag
+   name defined in `elfeed-protocol-ttrss-star-tag` which default
+   value is `star`, and the published tag name defined in
+   `elfeed-protocol-ttrss-publish-tag` which default value is
+   `publish`
+
+Example:
+```emacs-lisp
+(setq elfeed-feeds (list
+                    "ttrss+https://user1:pass1@myhost.com"
+                    (list "ttrss+https://user2@myhost.com"
+                          :password "password/with|special@characters:"
+                          :autotags '(("example.com" comic)))))
+```
+
+# Run Unit-Tests
+
+Install `cask` package firstly, and then `make install; make test`
+
+# Deploy Services for Testing
+## Nextcloud/ownCloud News
+1.  Fetch docker image and run it
 
         docker pull nextcloud
-        docker run --rm -p 8080:80 nextcloud
+        docker run --rm -p 80:80 nextcloud
 
-2.  Open <http://127.0.0.1:8080> in browser to setup
+2.  Open <http://127.0.0.1> in browser to setup Nextcloud
     1.  Create admin user and select database to SQLite, then press "Finish setup"
     2.  Press left top popup menu and select "+Apps", select
         "Multimedia", and enable the "News" app
     3.  Press left top popup menu and switch to "News" app, then
         subscribe some feeds
 
-3.  Setup elfeed-protocol or
-    other
-    [Nextcloud News clients](https://github.com/owncloud/News-Android-App),
-    both will works OK
+3.  Setup `elfeed-protocol`
 
-# Run Tests
+    ```emacs-lisp
+    (setq elfeed-feeds '("owncloud+http://<admin>:<password>@localhost"))
+    ```
 
-Install `cask` package firstly, and then `make install; make test`
+## Tiny Tiny RSS
+1.  Fetch related docker images and run them
+
+        docker pull clue/ttrss
+        docker pull nornagon/postgres
+        docker run --rm -d --name ttrssdb nornagon/postgres
+        docker run --rm --link ttrssdb:db -p 80:80 clue/ttrss
+
+2.  Open <http://127.0.0.1> in browser to setup Tiny Tiny RSS
+    1. Use the default `admin:password` authorization info to login
+    2. Enter "Preferences" page to enable "Enable API access" and save configuration
+
+3.  Setup `elfeed-protocol`
+
+    ```emacs-lisp
+    (setq elfeed-feeds '("ttrss+http://admin:password@localhost"))
+    ```
 
 # Problems
 1. Sometimes emacs may be blocked if the parsing downloaded articles
    is too large, for example >50MB. This is caused by the known emacs
    bug that CPU will be in high usage if a text line is too
    long. There three methods to workaround this:
-   1. Method 1, setup the server side do not download one-line data
-      e.g. wrapped JSON if possible
-   2. Method 2, run emacs which cpulimit to prevent the use of CPU to
-      affect other programs
-
-          cpulimit -l 80 emacs
-
-   3. Method 3, limit the download size and update articles with
-      offset instead the modified time, this could run multiple times
-      to keep up to date, for ownCloud:
+   1. Method 1, limit the download size, for example:
 
           (setq elfeed-protocol-owncloud-maxsize 1000)
+
+   1. Method 2, for ownCloud, just update articles with offset entry
+      ID instead the modified time, this could run multiple times to
+      keep up to date to avoid download too large entries once time
+
           M-x elfeed-protocol-owncloud-update-offset
 
-   4. Method 4, reset the last modified time to skip some data, for ownCloud:
+   1. Method 3, some protocol provide update method to reset the last
+      modified time to skip some data, for example:
 
           M-x elfeed-protocol-owncloud-update-skip
 
