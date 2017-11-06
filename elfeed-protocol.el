@@ -9,7 +9,7 @@
 
 ;;; Commentary:
 
-;; elfeed-protocol provide extra protocol to make self-hosting RSS
+;; elfeed-protocol provide extra protocols to make self-hosting RSS
 ;; readers like ownCloud News works with elfeed. See the README for
 ;; full documentation.
 ;;
@@ -39,6 +39,57 @@
 (defgroup elfeed-protocol ()
   "Provide extra protocol for elfeed."
   :group 'comm)
+
+(defcustom elfeed-protocols ()
+  "List of all registered extra protocols in Elfeed.
+
+Could be modified by `elfeed-protocol-register' and
+`elfeed-protocol-unregister'.
+
+For example,
+  (elfeed-protocol-register \"owncloud\" 'elfeed-protocol-owncloud-update)
+  (elfeed-protocol-unregister \"owncloud\")
+"
+  :group 'elfeed-protocol
+  :type '(repeat (cons string symbol)))
+
+(defun elfeed-protocol-feed-p (feed-url)
+  "Check if a FEED-URL contains extra protocol."
+  (eq 'string (type-of (elfeed-protocol-type feed-url))))
+
+(defun elfeed-protocol-type (feed-url)
+  "Get protocol type in FEED-URL, for example \"owncloud+https://user@pass:host.com:443\"
+will return \"owncloud\". If there is no valid protocol type in PORTO-URL, will
+return nil."
+  (let* ((urlobj (url-generic-parse-url feed-url))
+         (type (url-type urlobj))
+         (list (when type (split-string type "+"))))
+    (when (and list (eq 2 (length list)))
+      (elt list 0))))
+
+(defun elfeed-protocol-url (feed-url)
+  "Get protocol url in FEED-URL, for example \"owncloud+https://user@pass:host.com:443\"
+will return \"https://user@pass:host.com:443\". If there is no valid protocol
+type in PORTO-URL, will return nil."
+  (let ((proto-type (elfeed-protocol-type feed-url)))
+    (when proto-type
+      (replace-regexp-in-string
+       (regexp-quote (concat proto-type  "+")) "" feed-url))))
+
+(defun elfeed-protocol-update-func (proto-type)
+  "Get update function for special PROTO-TYPE."
+  (cdr (assoc proto-type elfeed-protocols)))
+
+(defun elfeed-protocol-register (proto-type update-func)
+  "Register a new protocol updater to `elfeed-protocols'."
+  (if (elfeed-protocol-update-func proto-type)
+      (setf (cdr (assoc proto-type elfeed-protocols)) update-func)
+    (add-to-list 'elfeed-protocols (cons proto-type update-func))))
+
+(defun elfeed-protocol-unregister (proto-type)
+  "Unregister a protocol updater from `elfeed-protocols'."
+  (setq elfeed-protocols
+        (delq (assoc proto-type elfeed-protocols) elfeed-protocols)))
 
 (defun elfeed-protocol-id (proto-type url)
   "Remove password filed in url and build a protocol url as id."
@@ -126,8 +177,18 @@ overrode by `:autotags' item in protocol properties."
     entry-groups))
 
 (defun elfeed-protocol-feed-list ()
-  (cl-loop for url in (elfeed--shuffle (elfeed-feed-list))
-           when (elfeed-protocol-feed-p url) collect url))
+  (let* ((feed-url-list (cl-loop for feed in elfeed-feeds
+                                 when (listp feed) collect (car feed)
+                                 else collect feed)))
+    (cl-loop for url in feed-url-list
+             when (elfeed-protocol-type url) collect url)))
+
+(defun elfeed-protocol-normal-feed-list ()
+  (let* ((feed-url-list (cl-loop for feed in elfeed-feeds
+                                 when (listp feed) collect (car feed)
+                                 else collect feed)))
+    (cl-loop for url in feed-url-list
+             unless (elfeed-protocol-type url) collect url)))
 
 (defun elfeed-protocol-on-tag-add (entries tags)
   "Dispatch for tags added. Will split entries to groups and
@@ -153,21 +214,47 @@ dispatched by different protocols."
                         url proto-entries tags)))
              entry-groups)))
 
+(defun elfeed-protocol-advice-update-feed (orig-func url)
+  "Advice for `elfeed-update-feed` to update protocol feed correctly."
+  (interactive (list (completing-read "Feed: " (elfeed-feed-list))))
+  (if (elfeed-protocol-feed-p url)
+      (let* ((proto-type (elfeed-protocol-type url))
+             (update-func (elfeed-protocol-update-func proto-type)))
+        (if update-func
+            (progn
+              (unless elfeed--inhibit-update-init-hooks
+                (run-hooks 'elfeed-update-init-hooks))
+              (funcall update-func (elfeed-protocol-url url))
+              (run-hook-with-args 'elfeed-update-hooks url))
+          (elfeed-log 'error "There is not updater for protocol %s"
+                      proto-type)))
+    (funcall orig-func url)))
+
+(defun elfeed-protocol-advice-feed-list (&rest args)
+  "Advice for `elfeed-feed-list' to avoid error checking on protocol feeds."
+  (cl-loop for feed in elfeed-feeds
+           when (listp feed) collect (car feed)
+           else collect feed))
+
 ;;;###autoload
 (defun elfeed-protocol-enable ()
   "Enable hooks and advices for elfeed-protocol."
   (interactive)
-  (elfeed-protocol-register "owncloud" 'elfeed-protocol-owncloud-update)
+  (advice-add 'elfeed-feed-list :override #'elfeed-protocol-advice-feed-list)
+  (advice-add 'elfeed-update-feed :around #'elfeed-protocol-advice-update-feed)
   (add-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
-  (add-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove))
+  (add-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove)
+  (elfeed-protocol-register "owncloud" 'elfeed-protocol-owncloud-update))
 
 ;;;###autoload
 (defun elfeed-protocol-disable ()
   "Disable hooks and advices elfeed-protocol."
   (interactive)
-  (elfeed-protocol-unregister "owncloud")
+  (advice-remove 'elfeed-feed-list #'elfeed-protocol-advice-feed-list)
+  (advice-remove 'elfeed-update-feed #'elfeed-protocol-advice-update-feed)
   (remove-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
-  (remove-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove))
+  (remove-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove)
+  (elfeed-protocol-unregister "owncloud"))
 
 (provide 'elfeed-protocol)
 

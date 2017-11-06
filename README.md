@@ -2,7 +2,7 @@ elfeed-protocol
 ==============
 TODO [![MELPA](http://melpa.org/packages/elfeed-protocol-badge.svg)](http://melpa.org/#/elfeed-protocol)
 
-Provide extra protocol to make self-hosting RSS readers works
+Provide extra protocols to make self-hosting RSS readers works
 with [elfeed](https://github.com/skeeto/elfeed),
 including
 [Nextcloud/ownCloud News](https://nextcloud.com/),
