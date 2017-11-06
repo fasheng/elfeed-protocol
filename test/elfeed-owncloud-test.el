@@ -89,15 +89,15 @@
     (with-elfeed-test
      (let* ((url "https://user:pass@myhost.com:443")
             (proto-url (concat "owncloud+" url))
-            (proto-id (elfeed-owncloud-proto-id url))
+            (proto-id (elfeed-protocol-owncloud-id url))
             (elfeed-feeds (list proto-url))
             (elfeed-owncloud-feeds (elfeed-owncloud--parse-feeds url))
             (feed1-url (elfeed-owncloud--get-feed-url url 1))
             (feed1 (elfeed-db-get-feed
-                    (elfeed-owncloud-format-entry-feed-id proto-id feed1-url)))
+                    (elfeed-protocol-format-entry-feed-id proto-id feed1-url)))
             (feed2-url (elfeed-owncloud--get-feed-url url 2))
             (feed2 (elfeed-db-get-feed
-                    (elfeed-owncloud-format-entry-feed-id proto-id feed2-url)))
+                    (elfeed-protocol-format-entry-feed-id proto-id feed2-url)))
             )
        (should (string=
                 feed1-url
@@ -107,10 +107,10 @@
                 "http://www.example2.com/rss.jsp"))
        (should (string=
                 (elfeed-feed-url feed1)
-                (elfeed-owncloud-format-entry-feed-id proto-id "http://www.example.com/feed/")))
+                (elfeed-protocol-format-entry-feed-id proto-id "http://www.example.com/feed/")))
        (should (string=
                 (elfeed-feed-url feed2)
-                (elfeed-owncloud-format-entry-feed-id proto-id "http://www.example2.com/rss.jsp")))
+                (elfeed-protocol-format-entry-feed-id proto-id "http://www.example2.com/rss.jsp")))
        (should (string=
                 (elfeed-feed-title feed1)
                 "Feed 1"))
@@ -126,7 +126,7 @@
     (with-elfeed-test
      (let* ((url "https://user:pass@myhost.com:443")
             (proto-url (concat "owncloud+" url))
-            (proto-id (elfeed-owncloud-proto-id url))
+            (proto-id (elfeed-protocol-owncloud-id url))
             (elfeed-feeds (list (list proto-url :autotags
                                       '(("http://www.example.com/feed/" tag1)
                                         ("http://www.example2.com/rss.jsp" tag2)))))

@@ -1,7 +1,7 @@
 (source gnu)
 (source melpa)
 
-(package-file "elfeed-owncloud.el")
+(package-file "elfeed-protocol.el")
 
 (files "elfeed-*.el")
 
