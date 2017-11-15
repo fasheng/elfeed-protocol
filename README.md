@@ -49,7 +49,7 @@ after advice for `elfeed`:
 ## ownCloud News
 1. Fetch all articles with the lastest modified time
 1. Support sync unread and starred tags, the starred tag name defined
-   in `elfeed-owncloud-star-tag` which default value is `star`. For
+   in `elfeed-protocol-owncloud-star-tag` which default value is `star`. For
    example, if user add `star` tag to one article, the star stat will
    be sync to server, too
 
@@ -94,12 +94,12 @@ Install `cask` package firstly, and then `make install; make test`
       offset instead the modified time, this could run multiple times
       to keep up to date, for ownCloud:
 
-          (setq elfeed-owncloud-maxsize 1000)
-          M-x elfeed-owncloud-update-offset
+          (setq elfeed-protocol-owncloud-maxsize 1000)
+          M-x elfeed-protocol-owncloud-update-offset
 
    4. Method 4, reset the last modified time to skip some data, for ownCloud:
 
-          M-x elfeed-owncloud-update-skip
+          M-x elfeed-protocol-owncloud-update-skip
 
 # License
 

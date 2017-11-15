@@ -2,7 +2,7 @@
 (require 'ert)
 (require 'elfeed)
 
-(defvar elfeed-owncloud-test-feeds-json
+(defvar elfeed-protocol-owncloud-test-feeds-json
   "{
   \"starredCount\": 1,
   \"feeds\": [
@@ -38,7 +38,7 @@
   \"newestItemId\": 2
 }")
 
-(defvar elfeed-owncloud-test-entries-json
+(defvar elfeed-protocol-owncloud-test-entries-json
   "{
   \"items\": [
     {
@@ -82,20 +82,20 @@
   ]
 }")
 
-(ert-deftest elfeed-owncloud-feed-list ()
+(ert-deftest elfeed-protocol-owncloud-feed-list ()
   (with-temp-buffer
-    (insert elfeed-owncloud-test-feeds-json)
+    (insert elfeed-protocol-owncloud-test-feeds-json)
     (goto-char (point-min))
     (with-elfeed-test
      (let* ((url "https://user:pass@myhost.com:443")
             (proto-url (concat "owncloud+" url))
             (proto-id (elfeed-protocol-owncloud-id url))
             (elfeed-feeds (list proto-url))
-            (elfeed-owncloud-feeds (elfeed-owncloud--parse-feeds url))
-            (feed1-url (elfeed-owncloud--get-feed-url url 1))
+            (elfeed-protocol-owncloud-feeds (elfeed-protocol-owncloud--parse-feeds url))
+            (feed1-url (elfeed-protocol-owncloud--get-feed-url url 1))
             (feed1 (elfeed-db-get-feed
                     (elfeed-protocol-format-entry-feed-id proto-id feed1-url)))
-            (feed2-url (elfeed-owncloud--get-feed-url url 2))
+            (feed2-url (elfeed-protocol-owncloud--get-feed-url url 2))
             (feed2 (elfeed-db-get-feed
                     (elfeed-protocol-format-entry-feed-id proto-id feed2-url)))
             )
@@ -119,9 +119,9 @@
                 "Feed 2"))
        ))))
 
-(ert-deftest elfeed-owncloud-entry-list ()
+(ert-deftest elfeed-protocol-owncloud-entry-list ()
   (with-temp-buffer
-    (insert elfeed-owncloud-test-feeds-json)
+    (insert elfeed-protocol-owncloud-test-feeds-json)
     (goto-char (point-min))
     (with-elfeed-test
      (let* ((url "https://user:pass@myhost.com:443")
@@ -130,17 +130,17 @@
             (elfeed-feeds (list (list proto-url :autotags
                                       '(("http://www.example.com/feed/" tag1)
                                         ("http://www.example2.com/rss.jsp" tag2)))))
-            (elfeed-owncloud-feeds (elfeed-owncloud--parse-feeds url)))
+            (elfeed-protocol-owncloud-feeds (elfeed-protocol-owncloud--parse-feeds url)))
        (with-temp-buffer
-         (insert elfeed-owncloud-test-entries-json)
+         (insert elfeed-protocol-owncloud-test-entries-json)
          (goto-char (point-min))
          (let* (
-                (entries (elfeed-owncloud--parse-entries url))
+                (entries (elfeed-protocol-owncloud--parse-entries url))
                 (entry1 (elt entries 0))
                 (entry2 (elt entries 1))
                 )
-           (should (elfeed-owncloud-entry-p entry1))
-           (should (elfeed-owncloud-entry-p entry2))
+           (should (elfeed-protocol-owncloud-entry-p entry1))
+           (should (elfeed-protocol-owncloud-entry-p entry2))
            (should (string=
                     (elfeed-entry-title entry1)
                     "Entry 1"))

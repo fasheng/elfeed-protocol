@@ -33,7 +33,7 @@
 
 (require 'cl-lib)
 (require 'elfeed)
-(require 'elfeed-owncloud)
+(require 'elfeed-protocol-owncloud)
 
 (defgroup elfeed-protocol ()
   "Provide extra protocol for elfeed."
