@@ -1,11 +1,11 @@
-;;; elfeed-protocol.el --- Provide extra bakcends to make such like ownCloud News works with elfeed -*- lexical-binding: t; -*-
+;;; elfeed-protocol.el --- Provide ownCloud and other protocols for elfeed -*- lexical-binding: t; -*-
 
 ;; Author: Xu Fasheng <fasheng.xu@gmail.com>
 ;; URL: https://github.com/fasheng/elfeed-protocol
 ;; Version: 0.3.2
 ;; Package-Version: 20170501.1349
-;; Package-Requires : ((elfeed "2.1.1") (cl-lib "0.5"))
-;; Keywords: elfeed
+;; Package-Requires : ((emacs "24.4") (elfeed "2.1.1") (cl-lib "0.5"))
+;; Keywords: news
 
 ;;; Commentary:
 ;; elfeed-protocol provide extra protocols to make self-hosting RSS
@@ -39,7 +39,7 @@
   "Provide extra protocol for elfeed."
   :group 'comm)
 
-(defcustom elfeed-protocols ()
+(defcustom elfeed-protocol-list ()
   "List of all registered extra protocols in Elfeed.
 
 Could be modified by `elfeed-protocol-register' and
@@ -77,18 +77,18 @@ FEED-URL, just return nil."
 
 (defun elfeed-protocol-update-func (proto-type)
   "Get update function for special PROTO-TYPE."
-  (cdr (assoc proto-type elfeed-protocols)))
+  (cdr (assoc proto-type elfeed-protocol-list)))
 
 (defun elfeed-protocol-register (proto-type update-func)
-  "Register PROTO-TYPE with UPDATE-FUNC to `elfeed-protocols'."
+  "Register PROTO-TYPE with UPDATE-FUNC to `elfeed-protocol-list'."
   (if (elfeed-protocol-update-func proto-type)
-      (setf (cdr (assoc proto-type elfeed-protocols)) update-func)
-    (add-to-list 'elfeed-protocols (cons proto-type update-func))))
+      (setf (cdr (assoc proto-type elfeed-protocol-list)) update-func)
+    (add-to-list 'elfeed-protocol-list (cons proto-type update-func))))
 
 (defun elfeed-protocol-unregister (proto-type)
-  "Unregister a protocol named PROTO-TYPE from `elfeed-protocols'."
-  (setq elfeed-protocols
-        (delq (assoc proto-type elfeed-protocols) elfeed-protocols)))
+  "Unregister a protocol named PROTO-TYPE from `elfeed-protocol-list'."
+  (setq elfeed-protocol-list
+        (delq (assoc proto-type elfeed-protocol-list) elfeed-protocol-list)))
 
 (defun elfeed-protocol-id (proto-type url)
   "Build a protocol id for PROTO-TYPE and URL."
