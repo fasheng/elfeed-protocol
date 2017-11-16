@@ -1,6 +1,6 @@
 elfeed-protocol
 ==============
-TODO [![MELPA](http://melpa.org/packages/elfeed-protocol-badge.svg)](http://melpa.org/#/elfeed-protocol)
+[![MELPA](http://melpa.org/packages/elfeed-protocol-badge.svg)](http://melpa.org/#/elfeed-protocol)
 
 Provide extra protocols to make self-hosting RSS readers works
 with [elfeed](https://github.com/skeeto/elfeed),
@@ -10,7 +10,6 @@ including
 [NewsBlur(TODO)](https://newsblur.com/) and even more.
 
 # Installation through MELPA
-TODO
 
     ;; Install through package manager
     M-x package-install <ENTER>
