@@ -210,64 +210,57 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
         (setq items (cdr (assoc 'items (json-read))))
         (setq entries
               (cl-loop for item across items collect
-                       (let* ((id (cdr (assoc 'id item)))
-                              (guid-hash (cdr (assoc 'guidHash item)))
-                              (feed-id (cdr (assoc 'feedId item)))
-                              (feed-url (elfeed-protocol-owncloud--get-feed-url url feed-id))
-                              (entry-url (cdr (assoc 'url item)))
-                              (title (cdr (assoc 'title item)))
-                              (author (cdr (assoc 'author item)))
-                              (pub-date (cdr (assoc 'pubDate item)))
-                              (body (cdr (assoc 'body item)))
-                              (unread (not (eq (cdr (assoc 'unread item))
-                                               ':json-false)))
-                              (starred (not (eq (cdr (assoc 'starred item))
-                                                ':json-false)))
-                              (last-modified (cdr (assoc 'lastModified item)))
-                              (enclosure-mime (cdr (assoc 'enclosureMime item)))
-                              (enclosure-link (cdr (assoc 'enclosureLink item)))
+                       (pcase-let* (((map id ('guidHash guid-hash) ('feedId feed-id) ('url entry-url) title
+                                          author ('pubDate pub-date) body ('lastModified last-modified)
+                                          ('enclosureMime enclosure-mime) ('enclosureLink enclosure-link))
+                                     item)
+                                    (feed-url (elfeed-protocol-owncloud--get-feed-url url feed-id))
+                                    (unread (not (eq (map-elt item 'unread)
+                                                     ':json-false)))
+                                    (starred (not (eq (map-elt item 'starred)
+                                                      ':json-false)))
 
-                              (namespace (elfeed-url-to-namespace feed-url))
-                              (full-id (cons namespace (elfeed-cleanup guid-hash)))
-                              (original (elfeed-db-get-entry full-id))
-                              (original-date (and original
-                                                  (elfeed-entry-date original)))
-                              (autotags (elfeed-protocol-feed-autotags proto-id feed-url))
-                              (fixtags (elfeed-normalize-tags
-                                        autotags elfeed-initial-tags))
-                              (tags (progn
-                                      (unless unread
-                                        (setq fixtags (delete 'unread fixtags)))
-                                      (when starred
-                                        (push elfeed-protocol-owncloud-star-tag fixtags))
-                                      fixtags))
-                              (enclosures (when enclosure-link
-                                            (list (list enclosure-link
-                                                        enclosure-mime 0))))
-                              (db-entry (elfeed-entry--create
-                                         :title (elfeed-cleanup title)
-                                         :id full-id
-                                         :feed-id (elfeed-protocol-format-subfeed-id
-                                                   proto-id feed-url)
-                                         :link (elfeed-cleanup entry-url)
-                                         :tags tags
-                                         :date (elfeed-new-date-for-entry
-                                                original-date pub-date)
-                                         :enclosures enclosures
-                                         :content body
-                                         :content-type 'html
-                                         :meta `(,@(when author
-                                                     (list :author author))
-                                                 ,@(list :protocol-id proto-id
-                                                         :id id
-                                                         :guid-hash guid-hash
-                                                         :feed-id feed-id)))))
+                                    (namespace (elfeed-url-to-namespace feed-url))
+                                    (full-id (cons namespace (elfeed-cleanup guid-hash)))
+                                    (original (elfeed-db-get-entry full-id))
+                                    (original-date (and original
+                                                        (elfeed-entry-date original)))
+                                    (autotags (elfeed-protocol-feed-autotags proto-id feed-url))
+                                    (fixtags (elfeed-normalize-tags
+                                              autotags elfeed-initial-tags))
+                                    (tags (progn
+                                            (unless unread
+                                              (setq fixtags (delete 'unread fixtags)))
+                                            (when starred
+                                              (push elfeed-protocol-owncloud-star-tag fixtags))
+                                            fixtags))
+                                    (enclosures (when enclosure-link
+                                                  (list (list enclosure-link
+                                                              enclosure-mime 0))))
+                                    (db-entry (elfeed-entry--create
+                                               :title (elfeed-cleanup title)
+                                               :id full-id
+                                               :feed-id (elfeed-protocol-format-subfeed-id
+                                                         proto-id feed-url)
+                                               :link (elfeed-cleanup entry-url)
+                                               :tags tags
+                                               :date (elfeed-new-date-for-entry
+                                                      original-date pub-date)
+                                               :enclosures enclosures
+                                               :content body
+                                               :content-type 'html
+                                               :meta `(,@(when author
+                                                           (list :author author))
+                                                       ,@(list :protocol-id proto-id
+                                                               :id id
+                                                               :guid-hash guid-hash
+                                                               :feed-id feed-id)))))
                          ;; force override unread and star tags without repeat sync operation
                          (when original
                            (if unread (elfeed-tag-1 original 'unread)
                              (elfeed-untag-1 original 'unread))
                            (if starred (elfeed-tag-1 original elfeed-protocol-owncloud-star-tag)
-                               (elfeed-untag-1 original elfeed-protocol-owncloud-star-tag)))
+                             (elfeed-untag-1 original elfeed-protocol-owncloud-star-tag)))
                          ;; get the last modified time and entry id
                          (when (> last-modified max-last-modified)
                            (setq max-last-modified last-modified))
