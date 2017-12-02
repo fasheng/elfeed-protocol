@@ -94,10 +94,10 @@
             (elfeed-protocol-owncloud-feeds (elfeed-protocol-owncloud--parse-feeds url))
             (feed1-url (elfeed-protocol-owncloud--get-feed-url url 1))
             (feed1 (elfeed-db-get-feed
-                    (elfeed-protocol-format-entry-feed-id proto-id feed1-url)))
+                    (elfeed-protocol-format-subfeed-id proto-id feed1-url)))
             (feed2-url (elfeed-protocol-owncloud--get-feed-url url 2))
             (feed2 (elfeed-db-get-feed
-                    (elfeed-protocol-format-entry-feed-id proto-id feed2-url)))
+                    (elfeed-protocol-format-subfeed-id proto-id feed2-url)))
             )
        (should (string=
                 feed1-url
@@ -107,10 +107,10 @@
                 "http://www.example2.com/rss.jsp"))
        (should (string=
                 (elfeed-feed-url feed1)
-                (elfeed-protocol-format-entry-feed-id proto-id "http://www.example.com/feed/")))
+                (elfeed-protocol-format-subfeed-id proto-id "http://www.example.com/feed/")))
        (should (string=
                 (elfeed-feed-url feed2)
-                (elfeed-protocol-format-entry-feed-id proto-id "http://www.example2.com/rss.jsp")))
+                (elfeed-protocol-format-subfeed-id proto-id "http://www.example2.com/rss.jsp")))
        (should (string=
                 (elfeed-feed-title feed1)
                 "Feed 1"))

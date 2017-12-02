@@ -122,7 +122,7 @@ FEED-URL, just return nil."
   "Return protocol url id for specific ENTRY."
   (elfeed-meta entry :protocol-id))
 
-(defun elfeed-protocol-format-entry-feed-id (proto-id feed-url)
+(defun elfeed-protocol-format-subfeed-id (proto-id feed-url)
   "Build feed id for entry.
 Which just concat PROTO-ID and FEED-URL, for example
 \"owncloud+http://user@myhost.com::http://example.com/rss\""
@@ -135,11 +135,15 @@ Which just concat PROTO-ID and FEED-URL, for example
         (elt list 0)
       url)))
 
-(defun elfeed-protocol-feed-url (url)
-  "Get feed url from the feed id style URL."
+(defun elfeed-protocol-subfeed-url (url)
+  "Get sub feed url from the feed id style URL."
   (let ((list (split-string url "::")))
     (when (eq 2 (length list))
       (elt list 1))))
+
+(defun elfeed-protocol-subfeed-p (url)
+  "Check if a URL contain sub feed url."
+  (eq 'string (type-of (elfeed-protocol-subfeed-url url))))
 
 (defun elfeed-protocol-id-to-feed (proto-id)
   "Get related feed object in `elfeed-feeds' through the PROTO-ID."
@@ -258,22 +262,39 @@ ORIG-FUNC and URL are the needed arguments."
            when (listp feed) collect (car feed)
            else collect feed))
 
+(defun elfeed-protocol-advice-feed-autotags (orig-func url-or-feed)
+  "Advice for `elfeed-feed-autotags` to get protocol feed autotags correctly.
+ORIG-FUNC and URL-OR-FEED are the needed arguments."
+  (let* ((url (if (elfeed-feed-p url-or-feed)
+                  (or (elfeed-feed-url url-or-feed)
+                      (elfeed-feed-id url-or-feed))
+                url-or-feed))
+         (proto-autotags (when (elfeed-protocol-subfeed-p url)
+                           (let* ((proto-id (elfeed-protocol-host-url url))
+                                  (subfeed-url (elfeed-protocol-subfeed-url url)))
+                             (elfeed-protocol-feed-autotags proto-id subfeed-url)))))
+    (if proto-autotags
+        proto-autotags
+      (funcall orig-func url))))
+
 ;;;###autoload
 (defun elfeed-protocol-enable ()
   "Enable hooks and advices for elfeed-protocol."
   (interactive)
   (advice-add 'elfeed-feed-list :override #'elfeed-protocol-advice-feed-list)
   (advice-add 'elfeed-update-feed :around #'elfeed-protocol-advice-update-feed)
+  (advice-add 'elfeed-feed-autotags :around #'elfeed-protocol-advice-feed-autotags)
   (add-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
   (add-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove)
   (elfeed-protocol-register "owncloud" 'elfeed-protocol-owncloud-update))
 
 ;;;###autoload
 (defun elfeed-protocol-disable ()
-  "Disable hooks and advices elfeed-protocol."
+  "Disable hooks and advices for elfeed-protocol."
   (interactive)
   (advice-remove 'elfeed-feed-list #'elfeed-protocol-advice-feed-list)
   (advice-remove 'elfeed-update-feed #'elfeed-protocol-advice-update-feed)
+  (advice-remove 'elfeed-feed-autotags #'elfeed-protocol-advice-feed-autotags)
   (remove-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
   (remove-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove)
   (elfeed-protocol-unregister "owncloud"))

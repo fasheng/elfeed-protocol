@@ -113,7 +113,7 @@ place that `json-read' could execute.  Return `elfeed-protocol-owncloud-feeds'."
     (puthash proto-id feeds elfeed-protocol-owncloud-feeds)
     (cl-loop for feed across feeds do
              (let* ((feed-url (cdr (assoc 'url feed)))
-                    (feed-id (elfeed-protocol-format-entry-feed-id
+                    (feed-id (elfeed-protocol-format-subfeed-id
                               proto-id feed-url))
                     (feed-title (cdr (assoc 'title feed)))
                     (feed-db (elfeed-db-get-feed feed-id)))
@@ -247,7 +247,7 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
                               (db-entry (elfeed-entry--create
                                          :title (elfeed-cleanup title)
                                          :id full-id
-                                         :feed-id (elfeed-protocol-format-entry-feed-id
+                                         :feed-id (elfeed-protocol-format-subfeed-id
                                                    proto-id feed-url)
                                          :link (elfeed-cleanup entry-url)
                                          :tags tags
@@ -513,8 +513,8 @@ argument"
   (interactive (list (elfeed-protocol-url
                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
   (let* ((host-url (elfeed-protocol-host-url url))
-         (feed-url (elfeed-protocol-feed-url url)))
-    (if feed-url (elfeed-protocol-owncloud-update-feed host-url feed-url callback)
+         (subfeed-url (elfeed-protocol-subfeed-url url)))
+    (if subfeed-url (elfeed-protocol-owncloud-update-feed host-url subfeed-url callback)
       (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
              (last-modified (elfeed-protocol-owncloud--get-last-modified proto-id)))
         (elfeed-protocol-owncloud-with-fetch
