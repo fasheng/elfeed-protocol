@@ -109,13 +109,13 @@ URL is the target ownCloud url to fetch feeds.  Ensure the point in the right
 place that `json-read' could execute.  Return `elfeed-protocol-owncloud-feeds'."
   (let* ((proto-id (elfeed-protocol-owncloud-id url))
          (parsed-feeds (json-read))
-         (feeds (cdr (assoc 'feeds parsed-feeds))))
+         (feeds (map-elt parsed-feeds 'feeds)))
     (puthash proto-id feeds elfeed-protocol-owncloud-feeds)
     (cl-loop for feed across feeds do
-             (let* ((feed-url (cdr (assoc 'url feed)))
+             (let* ((feed-url (map-elt feed 'url))
                     (feed-id (elfeed-protocol-format-subfeed-id
                               proto-id feed-url))
-                    (feed-title (cdr (assoc 'title feed)))
+                    (feed-title (map-elt feed 'title))
                     (feed-db (elfeed-db-get-feed feed-id)))
                (setf (elfeed-feed-url feed-db) feed-id
                      (elfeed-feed-title feed-db) feed-title)))
@@ -135,8 +135,8 @@ place that `json-read' could execute.  Return `elfeed-protocol-owncloud-feeds'."
            (length (length feeds)))
       (dotimes (i length)
         (let* ((feed (elt feeds i))
-               (id (cdr (assoc 'id feed)))
-               (url (cdr (assoc 'url feed))))
+               (id (map-elt feed 'id))
+               (url (map-elt feed 'url)))
           (when (eq id feed-id)
             (throw 'found url)))))))
 
@@ -148,8 +148,8 @@ place that `json-read' could execute.  Return `elfeed-protocol-owncloud-feeds'."
            (length (length feeds)))
       (dotimes (i length)
         (let* ((feed (elt feeds i))
-               (id (cdr (assoc 'id feed)))
-               (url (cdr (assoc 'url feed))))
+               (id (map-elt feed 'id))
+               (url (map-elt feed 'url)))
           (when (string= url feed-url)
             (throw 'found id)))))))
 
@@ -207,7 +207,7 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
              (max-last-entry-id 0)
              items entries)
         (elfeed-log 'debug "elfeed-protocol-owncloud: parsing entries")
-        (setq items (cdr (assoc 'items (json-read))))
+        (setq items (map-elt (json-read) 'items))
         (setq entries
               (cl-loop for item across items collect
                        (pcase-let* (((map id ('guidHash guid-hash) ('feedId feed-id) ('url entry-url) title
