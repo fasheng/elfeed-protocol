@@ -51,9 +51,13 @@ For example,
   :group 'elfeed-protocol
   :type '(repeat (cons string symbol)))
 
-(defun elfeed-protocol-feed-p (feed-url)
-  "Check if a FEED-URL contain extra protocol."
-  (eq 'string (type-of (elfeed-protocol-type feed-url))))
+(defun elfeed-protocol-feed-p (url-or-feed)
+  "Check if a URL-OR-FEED contain extra protocol."
+  (let ((feed-url (if (elfeed-feed-p url-or-feed)
+                 (or (elfeed-feed-url url-or-feed)
+                     (elfeed-feed-id url-or-feed))
+               url-or-feed)))
+    (eq 'string (type-of (elfeed-protocol-type feed-url)))))
 
 (defun elfeed-protocol-type (feed-url)
   "Get the protocol type in FEED-URL.
@@ -156,14 +160,27 @@ Which just concat PROTO-ID and FEED-URL, for example
                      (string feed))))
     feed-url))
 
+(defun elfeed-protocol-meta-data (proto-id prop)
+  "Get meta property data which defined in `elfeed-feeds` for PROTO-ID.
+PROP could be :password, :autotags etc."
+  (let* ((feed (elfeed-protocol-id-to-feed proto-id))
+         (proto-props (when (listp feed) (cdr feed))))
+    (plist-get proto-props prop)))
+
+(defun elfeed-protocol-meta-password (proto-id)
+  "Get :password property data which defined in `elfeed-feeds` for PROTO-ID."
+  (elfeed-protocol-meta-data proto-id :password))
+
+(defun elfeed-protocol-meta-autotags (proto-id)
+  "Get :autotags property data which defined in `elfeed-feeds` for PROTO-ID."
+  (elfeed-protocol-meta-data proto-id :autotags))
+
 (defun elfeed-protocol-feed-autotags (proto-id url-or-feed)
   "Return autotags for protocol feed.
 Similar with `elfeed-feed-autotags' but `elfeed-feeds' overrode by `:autotags'
 item in protocol properties.  PROTO-ID is the protocol id and URL-OR-FEED is the
 traget child feed url under protocol feed"
-  (let* ((feed (elfeed-protocol-id-to-feed proto-id))
-         (proto-props (when (listp feed) (cdr feed)))
-         (elfeed-feeds (plist-get proto-props :autotags)))
+  (let ((elfeed-feeds (elfeed-protocol-meta-autotags proto-id)))
     (elfeed-feed-autotags url-or-feed)))
 
 (defun elfeed-protocol-build-entry-groups (entries)

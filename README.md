@@ -44,7 +44,7 @@ after advice for `elfeed`:
                               :autotags elfeed-protocol-tags
                               ))))
 
-# Support Protocols
+# Supported Protocols
 ## ownCloud News
 1. Fetch all articles with the lastest modified time
 1. Support sync unread and starred tags, the starred tag name defined
