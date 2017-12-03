@@ -156,7 +156,7 @@ place that `json-read' could execute.  Return `elfeed-protocol-owncloud-feeds'."
 (defun elfeed-protocol-owncloud--get-last-modified (proto-id)
   "Get last entry modified time.
 PROTO-ID is the target protocol feed id.  If not initialized just return 0.  The
-last modified time was saved in elfeed-db as a mock feed."
+last modified time was saved in elfeed db as a mock feed."
   (let* ((feed (elfeed-db-get-feed proto-id))
          (last-modified (elfeed-meta feed :last-modified)))
     (if last-modified
@@ -179,7 +179,7 @@ PROTO-ID is the target protocol feed id.  If not initialized, just return 0."
       0)))
 
 (defun elfeed-protocol-owncloud--set-last-entry-id (proto-id last-entry-id)
-  "Set last entry id to elfeed-db.
+  "Set last entry id to elfeed db.
 PROTO-ID is the target protocol feed id.  LAST-ENTRY-ID is the target value."
   (let* ((feed (elfeed-db-get-feed proto-id)))
     (setf (elfeed-meta feed :last-entry-id) last-entry-id)))
@@ -452,9 +452,9 @@ URL is the host name of ownCloud server.  ENTRIES is the target entry objects."
 
 (defun elfeed-protocol-owncloud-sync-tag-multi (url entries tag action)
   "Notify multiple entries to be unread.
-URL is the host name of ownCloud server.  ENTRIES is the target entry objects.
-TAG is the action tag, for example unread and `elfeed-protocol-owncloud-star-tag', ACTION
-could be add or remove."
+URL is the host name of ownCloud server.  ENTRIES is the target entry
+objects.  TAG is the action tag, for example unread and
+`elfeed-protocol-owncloud-star-tag', ACTION could be add or remove."
   (cond
    ((eq action 'add)
     (cond
