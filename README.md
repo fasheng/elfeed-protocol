@@ -1,6 +1,6 @@
 elfeed-protocol
 ==============
-[![MELPA](http://melpa.org/packages/elfeed-protocol-badge.svg)](http://melpa.org/#/elfeed-protocol)
+[![MELPA](http://melpa.org/packages/elfeed-protocol-badge.svg)](http://melpa.org/#/elfeed-protocol) [![MELPA Stable](https://stable.melpa.org/packages/elfeed-protocol-badge.svg)](https://stable.melpa.org/#/elfeed-protocol)
 
 Provide extra protocols to make self-hosting RSS readers works
 with [elfeed](https://github.com/skeeto/elfeed),
