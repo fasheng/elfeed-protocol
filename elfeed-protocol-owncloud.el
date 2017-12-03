@@ -49,12 +49,9 @@ then the starred state in ownCloud will be synced, too."
   "Get http request headers with authorization and user agent information.
 URL should contains user and password fields, if not, will query in the related
 feed properties.  Will set content type to json if PUT-JSON is not nil."
-  (let* ((urlobj (url-generic-parse-url url))
-         (user (url-user urlobj))
-         (proto-id (elfeed-protocol-owncloud-id url))
-         (password (if (url-password urlobj)
-                       (url-password urlobj)
-                     (elfeed-protocol-meta-password proto-id)))
+  (let* ((proto-id (elfeed-protocol-owncloud-id url))
+         (user (elfeed-protocol-meta-user proto-id))
+         (password (elfeed-protocol-meta-password proto-id))
          (headers `(("User-Agent" . ,elfeed-user-agent))))
     (when (or (not user) (not password))
       (elfeed-log 'error "elfeed-protocol-owncloud: missing username or password"))

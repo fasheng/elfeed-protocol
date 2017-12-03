@@ -145,8 +145,8 @@ Which just concat PROTO-ID and FEED-URL, for example
   "Check if a URL contain sub feed url."
   (eq 'string (type-of (elfeed-protocol-subfeed-url url))))
 
-(defun elfeed-protocol-id-to-feed (proto-id)
-  "Get related feed object in `elfeed-feeds' through the PROTO-ID."
+(defun elfeed-protocol-meta-feed (proto-id)
+  "Get meta protocol feed object in `elfeed-feeds' for PROTO-ID."
   (catch 'found
     (dolist (feed elfeed-feeds)
       (let* ((feed-url (cl-typecase feed
@@ -156,27 +156,37 @@ Which just concat PROTO-ID and FEED-URL, for example
         (when (string-match (concat "^" (regexp-quote feed-proto-id)) proto-id)
           (throw 'found feed))))))
 
-(defun elfeed-protocol-id-to-url (proto-id)
-  "Get related feed protocol url in `elfeed-feeds' through the PROTO-ID."
-  (let* ((feed (elfeed-protocol-id-to-feed proto-id))
+(defun elfeed-protocol-meta-url (proto-id)
+  "Get meta protocol feed url in `elfeed-feeds' for PROTO-ID."
+  (let* ((feed (elfeed-protocol-meta-feed proto-id))
          (feed-url (cl-typecase feed
                      (list (when (stringp (car feed)) (car feed)))
                      (string feed))))
     feed-url))
 
 (defun elfeed-protocol-meta-data (proto-id prop)
-  "Get meta property data which defined in `elfeed-feeds` for PROTO-ID.
+  "Get meta property data in `elfeed-feeds` for PROTO-ID.
 PROP could be :password, :autotags etc."
-  (let* ((feed (elfeed-protocol-id-to-feed proto-id))
+  (let* ((feed (elfeed-protocol-meta-feed proto-id))
          (proto-props (when (listp feed) (cdr feed))))
     (plist-get proto-props prop)))
 
+(defun elfeed-protocol-meta-user (proto-id)
+  "Get user property data in `elfeed-feeds` for PROTO-ID."
+  (let* ((proto-url (elfeed-protocol-meta-url proto-id))
+         (urlobj (url-generic-parse-url (elfeed-protocol-url proto-url))))
+    (url-user urlobj)))
+
 (defun elfeed-protocol-meta-password (proto-id)
-  "Get :password property data which defined in `elfeed-feeds` for PROTO-ID."
-  (elfeed-protocol-meta-data proto-id :password))
+  "Get :password property data in `elfeed-feeds` for PROTO-ID."
+  (let* ((proto-url (elfeed-protocol-meta-url proto-id))
+         (urlobj (url-generic-parse-url (elfeed-protocol-url proto-url))))
+    (if (url-password urlobj)
+        (url-password urlobj)
+      (elfeed-protocol-meta-data proto-id :password))))
 
 (defun elfeed-protocol-meta-autotags (proto-id)
-  "Get :autotags property data which defined in `elfeed-feeds` for PROTO-ID."
+  "Get :autotags property data in `elfeed-feeds` for PROTO-ID."
   (elfeed-protocol-meta-data proto-id :autotags))
 
 (defun elfeed-protocol-feed-autotags (proto-id url-or-feed)
@@ -221,7 +231,7 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
   (let* ((entry-groups (elfeed-protocol-build-entry-groups entries)))
     (maphash (lambda (proto-id proto-entries)
                (let* ((proto-type (elfeed-protocol-type proto-id))
-                      (proto-url (elfeed-protocol-id-to-url proto-id))
+                      (proto-url (elfeed-protocol-meta-url proto-id))
                       (url (elfeed-protocol-url proto-url)))
                  (apply (intern (concat "elfeed-protocol-" proto-type "-pre-tag"))
                         url proto-entries tags)))
@@ -233,7 +243,7 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
   (let* ((entry-groups (elfeed-protocol-build-entry-groups entries)))
     (maphash (lambda (proto-id proto-entries)
                (let* ((proto-type (elfeed-protocol-type proto-id))
-                      (proto-url (elfeed-protocol-id-to-url proto-id))
+                      (proto-url (elfeed-protocol-meta-url proto-id))
                       (url (elfeed-protocol-url proto-url)))
                  (apply (intern (concat "elfeed-protocol-" proto-type "-pre-untag"))
                         url proto-entries tags)))
