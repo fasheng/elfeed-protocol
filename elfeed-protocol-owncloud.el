@@ -264,7 +264,7 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
                          (when (> id max-last-entry-id)
                            (setq max-last-entry-id id))
                          (dolist (hook elfeed-new-entry-parse-hook)
-                           (funcall hook :owncloud item db-entry))
+                           (run-hook-with-args hook :owncloud item db-entry))
                          db-entry)))
         ;; Update last modified time and last entry id
         (when (and mark-last-modified (> max-last-modified 0))
