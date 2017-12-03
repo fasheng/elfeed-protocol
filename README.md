@@ -18,31 +18,34 @@ including
 # Initialization
 Setup elfeed-protocol, then switch to search view and and press G to update entries:
 
-    ;; curl recommend
-    (setq elfeed-use-curl t)
-    (elfeed-set-timeout 36000)
-    (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
-
-    ;; setup extra protocol feeds
-    (require 'elfeed-protocol)
-    (setq elfeed-feeds (list
-                        "owncloud+https://user1:pass1@myhost.com"
-                        (list "owncloud+https://user2@myhost.com"
-                              :password "password/with|special@characters:"
-                              :autotags '(("example.com" comic))
-                              )))
-    (elfeed-protocol-enable)
+```emacs-lisp
+;; curl recommend
+(setq elfeed-use-curl t)
+(elfeed-set-timeout 36000)
+(setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
+setup extra protocol feeds
+(require 'elfeed-protocol)
+(setq elfeed-feeds (list
+                    "owncloud+https://user1:pass1@myhost.com"
+                    (list "owncloud+https://user2@myhost.com"
+                          :password "password/with|special@characters:"
+                          :autotags '(("example.com" comic))
+                          )))
+(elfeed-protocol-enable)
+```
 
 To make `elfeed-org` tag rules works together with `elfeed-protocol`, just add a
 after advice for `elfeed`:
 
-    (defadvice elfeed (after configure-elfeed-feeds activate)
-      "Make elfeed-org autotags rules works with elfeed-protocol."
-      (setq elfeed-protocol-tags elfeed-feeds)
-      (setq elfeed-feeds (list
-                          (list "owncloud+https://user:pass@myhost.com"
-                              :autotags elfeed-protocol-tags
-                              ))))
+```emacs-lisp
+(defadvice elfeed (after configure-elfeed-feeds activate)
+  "Make elfeed-org autotags rules works with elfeed-protocol."
+  (setq elfeed-protocol-tags elfeed-feeds)
+  (setq elfeed-feeds (list
+                      (list "owncloud+https://user:pass@myhost.com"
+                          :autotags elfeed-protocol-tags
+                          ))))
+```
 
 # Supported Protocols
 ## ownCloud News
