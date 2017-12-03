@@ -496,17 +496,21 @@ if CALLBACK is not nil will call it with the result entries as argument."
     (when feed-id
       (elfeed-protocol-owncloud--do-update url 'update-feed feed-id callback))))
 
-(defun elfeed-protocol-owncloud-update (url &optional callback)
+(defun elfeed-protocol-owncloud-update (host-or-subfeed-url &optional callback)
   "OwnCloud News protocol updater.
-URL is the host name of ownCloud server, and authentication info is always
-required, for example \"https://user:pass@myhost.com\". If first time run, it
-will initial sync for target URL, or will only fetch the updated entries since
-last modified. if CALLBACK is not nil will call it with the result entries as
-argument"
+HOST-OR_SUBFEED-URL could be the host name of ownCloud server, and
+user field authentication info is always required to find the related
+protocol feed id correctly, for example
+\"https://user@myhost.com\". And HOST-OR_SUBFEED-URL also could be the
+sub feed url, too, for example
+\"https://user@myhost.com::https://subfeed.com\".  If first time run,
+it will initial sync operation, or will only fetch the updated entries
+since last modified. if CALLBACK is not nil will call it with the
+result entries as argument"
   (interactive (list (elfeed-protocol-url
                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
-  (let* ((host-url (elfeed-protocol-host-url url))
-         (subfeed-url (elfeed-protocol-subfeed-url url)))
+  (let* ((host-url (elfeed-protocol-host-url host-or-subfeed-url))
+         (subfeed-url (elfeed-protocol-subfeed-url host-or-subfeed-url)))
     (if subfeed-url (elfeed-protocol-owncloud-update-feed host-url subfeed-url callback)
       (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
              (last-modified (elfeed-protocol-owncloud--get-last-modified proto-id)))
