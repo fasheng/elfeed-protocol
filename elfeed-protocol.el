@@ -197,6 +197,37 @@ traget child feed url under protocol feed"
   (let ((elfeed-feeds (elfeed-protocol-meta-autotags proto-id)))
     (elfeed-feed-autotags url-or-feed)))
 
+(defun elfeed-protocol-get-last-modified (proto-id)
+  "Get last entry modified time.
+PROTO-ID is the target protocol feed id.  If not initialized just return 0.  The
+last modified time was saved in elfeed db as a mock feed."
+  (let* ((feed (elfeed-db-get-feed proto-id))
+         (last-modified (elfeed-meta feed :last-modified)))
+    (if last-modified
+        last-modified
+      0)))
+
+(defun elfeed-protocol-set-last-modified (proto-id last-modified)
+  "Set last entry modified time.
+PROTO-ID is the target protocol feed id.  LAST-MODIFIED is the target value."
+  (let* ((feed (elfeed-db-get-feed proto-id)))
+    (setf (elfeed-meta feed :last-modified) last-modified)))
+
+(defun elfeed-protocol-get-last-entry-id (proto-id)
+  "Get last entry id.
+PROTO-ID is the target protocol feed id.  If not initialized, just return 0."
+  (let* ((feed (elfeed-db-get-feed proto-id))
+         (last-entry-id (elfeed-meta feed :last-entry-id)))
+    (if last-entry-id
+        last-entry-id
+      0)))
+
+(defun elfeed-protocol-set-last-entry-id (proto-id last-entry-id)
+  "Set last entry id to elfeed db.
+PROTO-ID is the target protocol feed id.  LAST-ENTRY-ID is the target value."
+  (let* ((feed (elfeed-db-get-feed proto-id)))
+    (setf (elfeed-meta feed :last-entry-id) last-entry-id)))
+
 (defun elfeed-protocol-build-entry-groups (entries)
   "Split ENTRIES to groups with the same protocol url id."
   (let* ((entry-groups (make-hash-table :test 'equal)))

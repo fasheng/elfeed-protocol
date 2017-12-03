@@ -82,7 +82,7 @@
   ]
 }")
 
-(ert-deftest elfeed-protocol-owncloud-feed-list ()
+(ert-deftest elfeed-protocol-owncloud-parse-feeds ()
   (with-temp-buffer
     (insert elfeed-protocol-owncloud-test-feeds-json)
     (goto-char (point-min))
@@ -92,10 +92,10 @@
             (proto-id (elfeed-protocol-owncloud-id url))
             (elfeed-feeds (list proto-url))
             (elfeed-protocol-owncloud-feeds (elfeed-protocol-owncloud--parse-feeds url))
-            (feed1-url (elfeed-protocol-owncloud--get-feed-url url 1))
+            (feed1-url (elfeed-protocol-owncloud--get-subfeed-url url 1))
             (feed1 (elfeed-db-get-feed
                     (elfeed-protocol-format-subfeed-id proto-id feed1-url)))
-            (feed2-url (elfeed-protocol-owncloud--get-feed-url url 2))
+            (feed2-url (elfeed-protocol-owncloud--get-subfeed-url url 2))
             (feed2 (elfeed-db-get-feed
                     (elfeed-protocol-format-subfeed-id proto-id feed2-url)))
             )
@@ -119,7 +119,7 @@
                 "Feed 2"))
        ))))
 
-(ert-deftest elfeed-protocol-owncloud-entry-list ()
+(ert-deftest elfeed-protocol-owncloud-parse-entries ()
   (with-temp-buffer
     (insert elfeed-protocol-owncloud-test-feeds-json)
     (goto-char (point-min))
