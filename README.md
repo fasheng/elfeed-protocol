@@ -7,7 +7,7 @@ with [elfeed](https://github.com/skeeto/elfeed),
 including
 [Nextcloud/ownCloud News](https://nextcloud.com/),
 [Tiny Tiny RSS](https://tt-rss.org/fox/tt-rss),
-[NewsBlur(TODO)](https://newsblur.com/) and even more.
+[NewsBlur](https://newsblur.com/) and even more.
 
 # Installation through MELPA
 
@@ -76,6 +76,28 @@ Example:
 (setq elfeed-feeds (list
                     "ttrss+https://user1:pass1@myhost.com"
                     (list "ttrss+https://user2@myhost.com"
+                          :password "password/with|special@characters:"
+                          :autotags '(("example.com" comic)))))
+```
+
+## newsblur (NewsBlur)
+1. Fetch articles from recent pages
+1. Fetch tags in remote
+1. Support sync unread, starred(saved) tags, the starred tag name
+   defined in `elfeed-protocol-ttrss-star-tag` which default value is
+   `star`
+
+**NOTE**: For elfeed don't provide cookie argument for curl request,
+user must setup `elfeed-curl-extra-arguments` like the following
+example.
+
+Example:
+```emacs-lisp
+(setq elfeed-curl-extra-arguments '("-c" "/tmp/newsblur-cookie"
+                                    "-b" "/tmp/newsblur-cookie"))
+(setq elfeed-feeds (list
+                    "newsblur+https://user1:pass1@newsblur.com"
+                    (list "newsblur+https://user2@newsblur.com"
                           :password "password/with|special@characters:"
                           :autotags '(("example.com" comic)))))
 ```

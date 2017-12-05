@@ -1,4 +1,4 @@
-;;; elfeed-protocol.el --- Provide protocols like owncloud ttrss for elfeed -*- lexical-binding: t; -*-
+;;; elfeed-protocol.el --- Provide owncloud/ttrss/newsblur protocols for elfeed -*- lexical-binding: t; -*-
 
 ;; Author: Xu Fasheng <fasheng.xu@gmail.com>
 ;; URL: https://github.com/fasheng/elfeed-protocol
@@ -9,8 +9,8 @@
 
 ;;; Commentary:
 ;; elfeed-protocol provide extra protocols to make self-hosting RSS
-;; readers like ownCloud News, Tiny TIny RSS works with elfeed.  See
-;; the README for full documentation.
+;; readers like ownCloud News, Tiny TIny RSS and NewsBlur works with
+;; elfeed.  See the README for full documentation.
 ;;
 ;; Usage:
 ;;
@@ -34,6 +34,7 @@
 (require 'elfeed)
 (require 'elfeed-protocol-owncloud)
 (require 'elfeed-protocol-ttrss)
+(require 'elfeed-protocol-newsblur)
 
 (defgroup elfeed-protocol ()
   "Provide extra protocol for elfeed."
@@ -108,7 +109,7 @@ FEED-URL, just return nil."
       url)))
 
 (defun elfeed-protocol-no-auth-url (url)
-  "Remove user and password fields in URL is exists."
+  "Remove user and password fields in URL if exists."
   (let* ((urlobj (url-generic-parse-url url))
          (user (url-user urlobj))
          (password (if (url-password urlobj) (url-password urlobj) "")))
@@ -279,6 +280,7 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
                (let* ((proto-type (elfeed-protocol-type proto-id))
                       (proto-url (elfeed-protocol-meta-url proto-id))
                       (host-url (elfeed-protocol-url proto-url)))
+                 ;;TODO:
                  (apply (intern (concat "elfeed-protocol-" proto-type "-pre-tag"))
                         host-url proto-entries tags)))
              entry-groups)))
@@ -291,6 +293,7 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
                (let* ((proto-type (elfeed-protocol-type proto-id))
                       (proto-url (elfeed-protocol-meta-url proto-id))
                       (host-url (elfeed-protocol-url proto-url)))
+                 ;;TODO:
                  (apply (intern (concat "elfeed-protocol-" proto-type "-pre-untag"))
                         host-url proto-entries tags)))
              entry-groups)))
@@ -308,6 +311,7 @@ ORIG-FUNC and URL are the needed arguments."
                 (run-hooks 'elfeed-update-init-hooks))
               (funcall update-func (elfeed-protocol-url url))
               (run-hook-with-args 'elfeed-update-hooks url))
+          ;;TODO: unify all elfeed-log format
           (elfeed-log 'error "There is not updater for protocol %s"
                       proto-type)))
     (funcall orig-func url)))
@@ -343,7 +347,8 @@ ORIG-FUNC and URL-OR-FEED are the needed arguments."
   (add-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
   (add-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove)
   (elfeed-protocol-register "owncloud" 'elfeed-protocol-owncloud-update)
-  (elfeed-protocol-register "ttrss" 'elfeed-protocol-ttrss-update))
+  (elfeed-protocol-register "ttrss" 'elfeed-protocol-ttrss-update)
+  (elfeed-protocol-register "newsblur" 'elfeed-protocol-newsblur-update))
 
 ;;;###autoload
 (defun elfeed-protocol-disable ()
@@ -355,7 +360,8 @@ ORIG-FUNC and URL-OR-FEED are the needed arguments."
   (remove-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
   (remove-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove)
   (elfeed-protocol-unregister "owncloud")
-  (elfeed-protocol-unregister "ttrss"))
+  (elfeed-protocol-unregister "ttrss")
+  (elfeed-protocol-unregister "newsblur"))
 
 (provide 'elfeed-protocol)
 
