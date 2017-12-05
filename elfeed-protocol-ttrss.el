@@ -191,7 +191,7 @@ result JSON content by http request.  Return
     elfeed-protocol-ttrss-feeds))
 
 (defun elfeed-protocol-ttrss--get-subfeed-url (host-url feed-id)
-  "Get sub feed url for the ttrss protocol feed HOST-URL and target FEED-ID."
+  "Get sub feed url for the ttrss protocol feed HOST-URL and FEED-ID."
   (catch 'found
     (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
            (feeds (gethash proto-id elfeed-protocol-ttrss-feeds))
@@ -204,7 +204,7 @@ result JSON content by http request.  Return
             (throw 'found url)))))))
 
 (defun elfeed-protocol-ttrss--get-subfeed-id (host-url feed-url)
-  "Get sub feed id the ttrss protocol feed HOST-URL and target FEED-URL."
+  "Get sub feed id the ttrss protocol feed HOST-URL and FEED-URL."
   (catch 'found
     (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
            (feeds (gethash proto-id elfeed-protocol-ttrss-feeds))
@@ -222,12 +222,12 @@ result JSON content by http request.  Return
          (proto-type (when proto-id (elfeed-protocol-type proto-id))))
     (string= proto-type "ttrss")))
 
-(defun elfeed-protocol-ttrss--parse-entries (host-url content &optional mark-entry-id callback)
+(defun elfeed-protocol-ttrss--parse-entries (host-url content &optional mark-state callback)
   "Parse the entries JSON buffer and fill results to elfeed db.
 HOST-URL is the target Tiny Tiny RSS server url.  CONTENT is the
-result JSON content by http request.  If MARK-ENTRY-ID is nil, then
-just not update :last-entry-id and :first-entry-id value.  If CALLBACK
-is not nil, will call it with the result entries as argument.  Return
+result JSON content by http request.  If MARK-STATE is nil, then just
+not update :last-entry-id and :first-entry-id values.  If CALLBACK is
+not nil, will call it with the result entries as argument.  Return
 parsed entries."
   (if (> (hash-table-count elfeed-protocol-ttrss-feeds) 0)
       (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
@@ -300,19 +300,22 @@ parsed entries."
                              (elfeed-untag-1 original elfeed-protocol-ttrss-star-tag))
                            (if published (elfeed-tag-1 original elfeed-protocol-ttrss-publish-tag)
                              (elfeed-untag-1 original elfeed-protocol-ttrss-publish-tag)))
-                         ;; get the first and last entry id
+
+                         ;; calculate the first and last entry id
                          (when (or (< min-first-entry-id 0) (< id min-first-entry-id))
                            (setq min-first-entry-id id))
                          (when (or (< max-last-entry-id 0) (> id max-last-entry-id))
                            (setq max-last-entry-id id))
+
                          (dolist (hook elfeed-new-entry-parse-hook)
                            (run-hook-with-args hook :ttrss headline db-entry))
                          db-entry)))
-        ;; Update first and last entry id
-        (when (and mark-entry-id (>= min-first-entry-id 0))
+        ;; update first and last entry id
+        (when (and mark-state (>= min-first-entry-id 0))
           (elfeed-protocol-set-first-entry-id proto-id min-first-entry-id))
-        (when (and mark-entry-id (>= max-last-entry-id 0))
+        (when (and mark-state (>= max-last-entry-id 0))
           (elfeed-protocol-set-last-entry-id proto-id max-last-entry-id))
+
         (elfeed-db-add entries)
         (when callback (funcall callback entries))
         (elfeed-log 'debug "elfeed-protocol-ttrss: parse %s entries finished with %ss"
@@ -328,9 +331,9 @@ HOST-URL is the target Tiny Tiny RSS server url, and user field
 authentication info is always required so could find the related
 protocol feed id correctly, for example
 \"https://user:pass@myhost.com\". ACTION could be init, update and
-update-feed. For init, will fetch unread, starred and latest
+update-subfeed. For init, will fetch unread, starred and latest
 entries. For update, will fetch all entries since the provide entry
-id, the ARG is the entry id. And for update-feed, will fetch latest
+id, the ARG is the entry id. And for update-subfeed, will fetch latest
 entries for special feed, the ARG is the feed id.  If CALLBACK is not
 nil, will call it with the result entries as argument."
   (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
@@ -396,8 +399,8 @@ nil, will call it with the result entries as argument."
           host-url "GET" (json-encode-alist data-list-since)
           (elfeed-protocol-ttrss--parse-entries host-url content t callback)
           (run-hook-with-args 'elfeed-update-hooks host-url))))
-     ;; update entries for special feed
-     ((eq action 'update-feed)
+     ;; update entries for special sub feed
+     ((eq action 'update-subfeed)
       (let* ((feed-id arg)
              (data-list-feed (append data-list-base
                                      (list
@@ -556,7 +559,7 @@ result entries as argument."
     (when feed-id
       (elfeed-protocol-ttrss-fetch-prepare
         host-url
-        (elfeed-protocol-ttrss--do-update host-url 'update-feed feed-id callback)))))
+        (elfeed-protocol-ttrss--do-update host-url 'update-subfeed feed-id callback)))))
 
 (defun elfeed-protocol-ttrss-update (host-or-subfeed-url &optional callback)
   "Tiny Tiny RSS protocol updater.
