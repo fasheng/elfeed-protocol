@@ -121,9 +121,8 @@ BODY expressions after login.  The success session id will saved to
 `elfeed-protocol-ttrss-sid'"
   (declare (indent defun))
   `(if elfeed-protocol-ttrss-sid
-       (let* ((data-list-isloggedin (list
-                                     (cons "op" "isLoggedIn")
-                                     (cons "sid" elfeed-protocol-ttrss-sid))))
+       (let* ((data-list-isloggedin `(("op" . "isLoggedIn")
+                                      ("sid" . ,elfeed-protocol-ttrss-sid))))
          (elfeed-protocol-ttrss-with-fetch
            ,host-url "GET" (json-encode-alist data-list-isloggedin)
            (if (eq (map-elt content 'status) ':json-false)
@@ -148,9 +147,9 @@ server url, and will call CALLBACK after login."
   (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
          (user (elfeed-protocol-meta-user proto-id))
          (password (elfeed-protocol-meta-password proto-id))
-         (data-list (list (cons "op" "login")
-                          (cons "user" user)
-                          (cons "password" password)))
+         (data-list `(("op" . "login")
+                      ("user" . ,user)
+                      ("password" . ,password)))
          (data (json-encode-alist data-list)))
     (elfeed-protocol-ttrss-with-fetch
       host-url "GET" data
@@ -162,10 +161,9 @@ server url, and will call CALLBACK after login."
 HOST-URL is the target Tiny Tiny RSS server url.  Will call CALLBACK
 at end."
   (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
-         (data-list (list
-                     (cons "sid" elfeed-protocol-ttrss-sid)
-                     (cons "op" "getFeeds")
-                     (cons "limit" elfeed-protocol-ttrss-maxsize)))
+         (data-list `(("op" . "getFeeds")
+                      ("sid" . ,elfeed-protocol-ttrss-sid)
+                      ("limit" . ,elfeed-protocol-ttrss-maxsize)))
          (data (json-encode-alist data-list)))
     (elfeed-protocol-ttrss-with-fetch
       host-url "GET" data
@@ -337,25 +335,22 @@ id, the ARG is the entry id. And for update-subfeed, will fetch latest
 entries for special feed, the ARG is the feed id.  If CALLBACK is not
 nil, will call it with the result entries as argument."
   (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
-         (data-list-base (list
-                          (cons "sid" elfeed-protocol-ttrss-sid)
-                          (cons "op" "getHeadlines")
-                          (cons "show_content" "1")
-                          (cons "include_attachments" "1")
-                          (cons "order_by" "date_reverse")
-                          (cons "limit" elfeed-protocol-ttrss-maxsize)))
+         (data-list-base `(("op" . "getHeadlines")
+                           ("sid" . ,elfeed-protocol-ttrss-sid)
+                           ("show_content" . "1")
+                           ("include_attachments" . "1")
+                           ("order_by" . "date_reverse")
+                           ("limit" . ,elfeed-protocol-ttrss-maxsize)))
          (data-list-starred (append data-list-base
-                                    (list
-                                     (cons "feed_id"
-                                           elfeed-protocol-ttrss-api-feed-id-starred)
-                                     (cons "view_mode"
-                                           elfeed-protocol-ttrss-api-view-mode-all-articles))))
+                                    `(("feed_id" .
+                                       ,elfeed-protocol-ttrss-api-feed-id-starred)
+                                      ("view_mode" .
+                                       ,elfeed-protocol-ttrss-api-view-mode-all-articles))))
          (data-list-unread (append data-list-base
-                                   (list
-                                    (cons "feed_id"
-                                          elfeed-protocol-ttrss-api-feed-id-all-articles)
-                                    (cons "view_mode"
-                                          elfeed-protocol-ttrss-api-view-mode-unread)))))
+                                   `(("feed_id" .
+                                      ,elfeed-protocol-ttrss-api-feed-id-all-articles)
+                                     ("view_mode" .
+                                      ,elfeed-protocol-ttrss-api-view-mode-unread)))))
     (unless elfeed--inhibit-update-init-hooks
       (run-hooks 'elfeed-update-init-hooks))
     (cond
@@ -371,12 +366,11 @@ nil, will call it with the result entries as argument."
           (elfeed-protocol-ttrss--parse-entries host-url content t callback)
           (let* ((since-id (elfeed-protocol-get-first-entry-id proto-id))
                  (data-list-since (append data-list-base
-                                          (list
-                                           (cons "feed_id"
-                                                 elfeed-protocol-ttrss-api-feed-id-all-articles)
-                                           (cons "view_mode"
-                                                 elfeed-protocol-ttrss-api-view-mode-all-articles)
-                                           (cons "since_id" since-id)))))
+                                          `(("feed_id" .
+                                             ,elfeed-protocol-ttrss-api-feed-id-all-articles)
+                                            ("view_mode" .
+                                             ,elfeed-protocol-ttrss-api-view-mode-all-articles)
+                                            ("since_id" . ,since-id)))))
             ;; reset last entry id same with first entry id, so no
             ;; articles will be skipped in the following update
             ;; operation
@@ -389,12 +383,11 @@ nil, will call it with the result entries as argument."
      ((eq action 'update)
       (let* ((since-id (elfeed-protocol-get-last-entry-id proto-id))
              (data-list-since (append data-list-base
-                                      (list
-                                       (cons "feed_id"
-                                             elfeed-protocol-ttrss-api-feed-id-all-articles)
-                                       (cons "view_mode"
-                                             elfeed-protocol-ttrss-api-view-mode-all-articles)
-                                       (cons "since_id" since-id)))))
+                                      `(("feed_id" .
+                                         ,elfeed-protocol-ttrss-api-feed-id-all-articles)
+                                        ("view_mode" .
+                                         ,elfeed-protocol-ttrss-api-view-mode-all-articles)
+                                        ("since_id" . ,since-id)))))
         (elfeed-protocol-ttrss-with-fetch
           host-url "GET" (json-encode-alist data-list-since)
           (elfeed-protocol-ttrss--parse-entries host-url content t callback)
@@ -403,10 +396,9 @@ nil, will call it with the result entries as argument."
      ((eq action 'update-subfeed)
       (let* ((feed-id arg)
              (data-list-feed (append data-list-base
-                                     (list
-                                      (cons "feed_id" feed-id)
-                                      (cons "view_mode"
-                                            elfeed-protocol-ttrss-api-view-mode-all-articles)))))
+                                     `(("feed_id" . ,feed-id)
+                                       ("view_mode" .
+                                        ,elfeed-protocol-ttrss-api-view-mode-all-articles)))))
         (elfeed-protocol-ttrss-with-fetch
           host-url "GET" (json-encode-alist data-list-feed)
           (elfeed-protocol-ttrss--parse-entries host-url content nil callback)
@@ -459,13 +451,12 @@ means set to false, set to true and toggle."
          (ids (cl-loop for entry in entries collect
                        (when (elfeed-protocol-ttrss-entry-p entry)
                          (elfeed-meta entry :id))))
-         (data-list (list
-                     (cons "sid" elfeed-protocol-ttrss-sid)
-                     (cons "op" "updateArticle")
-                     (cons "article_ids"
-                           (apply #'elfeed-protocol-ttrss-join-ids-to-str "," ids))
-                     (cons "field" field)
-                     (cons "mode" mode)))
+         (data-list `(("op" . "updateArticle")
+                      ("sid" . ,elfeed-protocol-ttrss-sid)
+                      ("article_ids" .
+                       ,(apply #'elfeed-protocol-ttrss-join-ids-to-str "," ids))
+                      ("field" . ,field)
+                      ("mode" . ,mode)))
          (data (json-encode-alist data-list)))
     (when ids
       (elfeed-protocol-ttrss-with-fetch

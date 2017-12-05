@@ -406,7 +406,7 @@ entry objects."
          (ids (cl-loop for entry in entries collect
                        (when (elfeed-protocol-owncloud-entry-p entry)
                          (elfeed-meta entry :id))))
-         (data (json-encode-list (list (cons 'items ids)))))
+         (data (json-encode-list `(('items . ,ids)))))
     (when ids
       (elfeed-protocol-owncloud-with-fetch url data))))
 
@@ -418,7 +418,7 @@ entry objects."
          (ids (cl-loop for entry in entries collect
                        (when (elfeed-protocol-owncloud-entry-p entry)
                          (elfeed-meta entry :id))))
-         (data (json-encode-list (list (cons 'items ids)))))
+         (data (json-encode-list `(('items . ,ids)))))
     (when ids
       (elfeed-protocol-owncloud-with-fetch url data))))
 
@@ -431,9 +431,9 @@ entry objects."
                          (when (elfeed-protocol-owncloud-entry-p entry)
                            (let* ((feed-id (elfeed-meta entry :feed-id))
                                   (guid-hash (elfeed-meta entry :guid-hash)))
-                             (list (cons 'feedId feed-id)
-                                   (cons 'guidHash guid-hash))))))
-         (data (json-encode-list (list (cons 'items items)))))
+                             `(('feedId . ,feed-id)
+                               ('guidHash . ,guid-hash))))))
+         (data (json-encode-list `(('items . ,items)))))
     (when items
       (elfeed-protocol-owncloud-with-fetch url data))))
 
@@ -445,9 +445,9 @@ HOST-URL is the host name of ownCloud server.  ENTRIES is the target entry objec
                          (when (elfeed-protocol-owncloud-entry-p entry)
                            (let* ((feed-id (elfeed-meta entry :feed-id))
                                   (guid-hash (elfeed-meta entry :guid-hash)))
-                             (list (cons 'feedId feed-id)
-                                   (cons 'guidHash guid-hash))))))
-         (data (json-encode-list (list (cons 'items items)))))
+                             `(('feedId . ,feed-id)
+                               ('guidHash . ,guid-hash))))))
+         (data (json-encode-list `(('items . ,items)))))
     (when items
       (elfeed-protocol-owncloud-with-fetch url data))))
 
