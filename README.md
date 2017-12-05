@@ -131,16 +131,16 @@ Install `cask` package firstly, and then `make install; make test`
 
           (setq elfeed-protocol-owncloud-maxsize 1000)
 
-   1. Method 2, for ownCloud, just update articles with offset entry
+   1. Method 2, for ownCloud, just update articles since special entry
       ID instead the modified time, this could run multiple times to
       keep up to date to avoid download too large entries once time
 
-          M-x elfeed-protocol-owncloud-update-offset
+          M-x elfeed-protocol-owncloud-update-since-id
 
    1. Method 3, some protocol provide update method to reset the last
       modified time to skip some data, for example:
 
-          M-x elfeed-protocol-owncloud-update-skip
+          M-x elfeed-protocol-owncloud-update-since-now
 
 # License
 
