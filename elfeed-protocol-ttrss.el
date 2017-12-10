@@ -234,7 +234,9 @@ parsed entries."
              (max-last-entry-id (elfeed-protocol-get-last-entry-id proto-id))
              (headlines content)
              entries)
-        (elfeed-log 'debug "elfeed-protocol-ttrss: parsing entries")
+        (elfeed-log 'debug "elfeed-protocol-ttrss: parsing entries, first-entry-id: %d last-entry-id: %d"
+                    (elfeed-protocol-get-first-entry-id proto-id)
+                    (elfeed-protocol-get-last-entry-id proto-id))
         (setq entries
               (cl-loop for headline across headlines collect
                        (pcase-let* (((map id ('link entry-url) title
@@ -316,8 +318,10 @@ parsed entries."
 
         (elfeed-db-add entries)
         (when callback (funcall callback entries))
-        (elfeed-log 'debug "elfeed-protocol-ttrss: parse %s entries finished with %ss"
-                    (length entries) (- (time-to-seconds) begin-time))
+        (elfeed-log 'debug "elfeed-protocol-ttrss: parsed %s entries finished with %ss, first-entry-id: %d last-entry-id: %d"
+                    (length entries) (- (time-to-seconds) begin-time)
+                    (elfeed-protocol-get-first-entry-id proto-id)
+                    (elfeed-protocol-get-last-entry-id proto-id))
         entries)
     (progn
       (elfeed-log 'error "Warning: elfeed-protocol-ttrss-feeds is nil, please call elfeed-protocol-ttrss--update-feed-list first")

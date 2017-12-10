@@ -176,7 +176,10 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
              (max-last-entry-id (elfeed-protocol-get-last-entry-id proto-id))
              (max-last-modified 0)
              items entries)
-        (elfeed-log 'debug "elfeed-protocol-owncloud: parsing entries")
+        (elfeed-log 'debug "elfeed-protocol-owncloud: parsing entries, first-entry-id: %d last-entry-id: %d last-modified: %d"
+                    (elfeed-protocol-get-first-entry-id proto-id)
+                    (elfeed-protocol-get-last-entry-id proto-id)
+                    (elfeed-protocol-get-last-modified proto-id))
         (setq items (map-elt (json-read) 'items))
         (setq entries
               (cl-loop for item across items collect
@@ -253,8 +256,11 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
 
         (elfeed-db-add entries)
         (when callback (funcall callback entries))
-        (elfeed-log 'debug "elfeed-protocol-owncloud: parse %s entries finished with %ss"
-                    (length entries) (- (time-to-seconds) begin-time))
+        (elfeed-log 'debug "elfeed-protocol-owncloud: parsed %s entries finished with %ss, first-entry-id: %d last-entry-id: %d last-modified: %d"
+                    (length entries) (- (time-to-seconds) begin-time)
+                    (elfeed-protocol-get-first-entry-id proto-id)
+                    (elfeed-protocol-get-last-entry-id proto-id)
+                    (elfeed-protocol-get-last-modified proto-id))
         entries)
     (progn
       (elfeed-log 'error "Warning: elfeed-protocol-owncloud-feeds is nil, please call elfeed-protocol-owncloud--update-feed-list first")
