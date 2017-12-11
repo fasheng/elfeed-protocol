@@ -6,6 +6,7 @@
 (files "elfeed-*.el")
 
 (depends-on "elfeed")
+(depends-on "package-lint")
 
 (development
  (depends-on "xtest")

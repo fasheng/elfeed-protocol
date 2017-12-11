@@ -1,4 +1,4 @@
-;;; elfeed-protocol.el --- Provide owncloud/ttrss/newsblur protocols for elfeed -*- lexical-binding: t; -*-
+;;; elfeed-protocol.el --- Provide owncloud/ttrss protocols for elfeed -*- lexical-binding: t; -*-
 
 ;; Author: Xu Fasheng <fasheng.xu@gmail.com>
 ;; URL: https://github.com/fasheng/elfeed-protocol
@@ -40,7 +40,7 @@
   "Provide extra protocol for elfeed."
   :group 'comm)
 
-(defcustom elfeed-protocol-list ()
+(defcustom elfeed-protocol ()
   "List of all registered extra protocols in Elfeed.
 
 Could be modified by `elfeed-protocol-register' and

@@ -104,7 +104,16 @@ Example:
 
 # Run Unit-Tests
 
-Install `cask` package firstly, and then `make install; make test`
+Install `cask` system package firstly, and then run following commands
+
+```shell
+make init
+make test
+make checkdoc
+make elint
+make package-lint
+```
+
 
 # Deploy Services for Testing
 ## Nextcloud/ownCloud News
