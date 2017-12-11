@@ -82,13 +82,29 @@ FEED-URL, just return nil."
 
 (defun elfeed-protocol-update-func (proto-type)
   "Get update function for special PROTO-TYPE."
-  (cdr (assoc proto-type elfeed-protocol-list)))
+  (plist-get (cdr (assoc proto-type elfeed-protocol-list)) ':update))
 
-(defun elfeed-protocol-register (proto-type update-func)
-  "Register PROTO-TYPE with UPDATE-FUNC to `elfeed-protocol-list'."
+(defun elfeed-protocol-pre-tag-func (proto-type)
+  "Get pre-tag function for special PROTO-TYPE."
+  (plist-get (cdr (assoc proto-type elfeed-protocol-list)) ':pre-tag))
+
+(defun elfeed-protocol-pre-untag-func (proto-type)
+  "Get pre-untag function for special PROTO-TYPE."
+  (plist-get (cdr (assoc proto-type elfeed-protocol-list)) ':pre-untag))
+
+(defun elfeed-protocol-register (proto-type proto-funcs)
+  "Register PROTO-TYPE to `elfeed-protocol-list'.
+PROTO-FUNCS is a function list for :update :pre-tag(optinal)
+and :pre-untag(optinal) ,
+
+For example:
+
+  (list :update 'elfeed-protocol-xxx-update
+        :pre-tag 'elfeed-protocol-xxx-pre-tag
+        :pre-untag 'elfeed-protocol-xxx-pre-untag)"
   (if (elfeed-protocol-update-func proto-type)
-      (setf (cdr (assoc proto-type elfeed-protocol-list)) update-func)
-    (add-to-list 'elfeed-protocol-list (cons proto-type update-func))))
+      (setf (cdr (assoc proto-type elfeed-protocol-list)) proto-funcs)
+    (add-to-list 'elfeed-protocol-list (cons proto-type proto-funcs))))
 
 (defun elfeed-protocol-unregister (proto-type)
   "Unregister a protocol named PROTO-TYPE from `elfeed-protocol-list'."
@@ -279,10 +295,10 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
     (maphash (lambda (proto-id proto-entries)
                (let* ((proto-type (elfeed-protocol-type proto-id))
                       (proto-url (elfeed-protocol-meta-url proto-id))
-                      (host-url (elfeed-protocol-url proto-url)))
-                 ;;TODO:
-                 (apply (intern (concat "elfeed-protocol-" proto-type "-pre-tag"))
-                        host-url proto-entries tags)))
+                      (host-url (elfeed-protocol-url proto-url))
+                      (pre-tag-func (elfeed-protocol-pre-tag-func proto-type)))
+                 (when pre-tag-func
+                   (apply pre-tag-func host-url proto-entries tags))))
              entry-groups)))
 
 (defun elfeed-protocol-on-tag-remove (entries tags)
@@ -292,10 +308,10 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
     (maphash (lambda (proto-id proto-entries)
                (let* ((proto-type (elfeed-protocol-type proto-id))
                       (proto-url (elfeed-protocol-meta-url proto-id))
-                      (host-url (elfeed-protocol-url proto-url)))
-                 ;;TODO:
-                 (apply (intern (concat "elfeed-protocol-" proto-type "-pre-untag"))
-                        host-url proto-entries tags)))
+                      (host-url (elfeed-protocol-url proto-url))
+                      (pre-untag-func (elfeed-protocol-pre-untag-func proto-type)))
+                 (when pre-untag-func
+                   (apply pre-untag-func host-url proto-entries tags))))
              entry-groups)))
 
 (defun elfeed-protocol-advice-update-feed (orig-func url)
@@ -345,9 +361,15 @@ ORIG-FUNC and URL-OR-FEED are the needed arguments."
   (advice-add 'elfeed-feed-autotags :around #'elfeed-protocol-advice-feed-autotags)
   (add-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
   (add-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove)
-  (elfeed-protocol-register "owncloud" 'elfeed-protocol-owncloud-update)
-  (elfeed-protocol-register "ttrss" 'elfeed-protocol-ttrss-update)
-  (elfeed-protocol-register "newsblur" 'elfeed-protocol-newsblur-update))
+  (elfeed-protocol-register "owncloud" (list :update 'elfeed-protocol-owncloud-update
+                                             :pre-tag 'elfeed-protocol-owncloud-pre-tag
+                                             :pre-untag 'elfeed-protocol-owncloud-pre-untag))
+  (elfeed-protocol-register "ttrss" (list :update 'elfeed-protocol-ttrss-update
+                                          :pre-tag 'elfeed-protocol-ttrss-pre-tag
+                                          :pre-untag 'elfeed-protocol-ttrss-pre-untag))
+  (elfeed-protocol-register "newsblur" (list :update 'elfeed-protocol-newsblur-update
+                                             :pre-tag 'elfeed-protocol-newsblur-pre-tag
+                                             :pre-untag 'elfeed-protocol-newsblur-pre-untag)))
 
 ;;;###autoload
 (defun elfeed-protocol-disable ()
