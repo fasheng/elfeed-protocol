@@ -243,7 +243,7 @@ parsed entries."
                                           author ('updated pub-date) ('content body)
                                           ('tags ttrss-tags) attachments)
                                      headline)
-                                    (feed-id (string-to-number (map-elt headline 'feed_id )))
+                                    (feed-id (string-to-number (map-elt headline 'feed_id)))
                                     (guid-hash (elfeed-generate-id body))
                                     (feed-url (elfeed-protocol-ttrss--get-subfeed-url host-url feed-id))
                                     (unread (not (eq (map-elt headline 'unread)
@@ -446,7 +446,7 @@ id array."
 
 
 (defun elfeed-protocol-ttrss--update-article (host-url entries field mode)
-  "Notify multiple entries to be read.
+  "Notify multiple entries to be read/unread/starred/unstarred.
 HOST-URL is the target Tiny Tiny RSS server url.  ENTRIES is the
 target entry objects.  FIELD could be 0, 1, 2, 3 which means starred,
 published, unread, and article note.  MODE could be 0, 1, 2 which
@@ -550,7 +550,7 @@ HOST-URL is the host name of Tiny Tiny RSS server, FEED-URL is the
 target sub feed url, if CALLBACK is not nil will call it with the
 result entries as argument."
   (interactive)
-  (let* ((feed-id (elfeed-protocol-ttrss--get-subfeed-id url feed-url)))
+  (let* ((feed-id (elfeed-protocol-ttrss--get-subfeed-id host-url feed-url)))
     (when feed-id
       (elfeed-protocol-ttrss-fetch-prepare
         host-url
