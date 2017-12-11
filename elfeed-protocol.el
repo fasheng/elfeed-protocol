@@ -311,8 +311,7 @@ ORIG-FUNC and URL are the needed arguments."
                 (run-hooks 'elfeed-update-init-hooks))
               (funcall update-func (elfeed-protocol-url url))
               (run-hook-with-args 'elfeed-update-hooks url))
-          ;;TODO: unify all elfeed-log format
-          (elfeed-log 'error "There is not updater for protocol %s"
+          (elfeed-log 'error "elfeed-protocol: there is not updater for protocol %s"
                       proto-type)))
     (funcall orig-func url)))
 

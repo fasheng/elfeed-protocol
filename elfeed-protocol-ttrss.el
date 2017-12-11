@@ -111,7 +111,7 @@ Will eval rest BODY expressions at end."
           (api-status (map-elt result 'status))
           (content (map-elt result 'content)))
      (if (eq api-status elfeed-protocol-ttrss-api-status-err)
-         (elfeed-log 'error "ttrss error: %s" (map-elt content 'error))
+         (elfeed-log 'error "elfeed-protocol-ttrss:: %s" (map-elt content 'error))
        ,@body)))
 
 (defmacro elfeed-protocol-ttrss-fetch-prepare (host-url &rest body)
@@ -324,7 +324,7 @@ parsed entries."
                     (elfeed-protocol-get-last-entry-id proto-id))
         entries)
     (progn
-      (elfeed-log 'error "Warning: elfeed-protocol-ttrss-feeds is nil, please call elfeed-protocol-ttrss--update-feed-list first")
+      (elfeed-log 'error "elfeed-protocol-ttrss: elfeed-protocol-ttrss-feeds is nil, please call elfeed-protocol-ttrss--update-feed-list first")
       nil)))
 
 (defun elfeed-protocol-ttrss--do-update (host-url action &optional arg callback)

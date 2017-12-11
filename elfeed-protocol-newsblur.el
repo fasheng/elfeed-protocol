@@ -275,7 +275,7 @@ the result entries as argument.  Return parsed entries."
                     (elfeed-protocol-get-last-modified proto-id))
         entries)
     (progn
-      (elfeed-log 'error "Warning: elfeed-protocol-newsblur-feeds is nil, please call elfeed-protocol-newsblur--update-feed-list first")
+      (elfeed-log 'error "elfeed-protocol-newsblur: elfeed-protocol-newsblur-feeds is nil, please call elfeed-protocol-newsblur--update-feed-list first")
       nil)))
 
 (defun elfeed-protocol-newsblur--do-update (host-url action &optional arg callback)

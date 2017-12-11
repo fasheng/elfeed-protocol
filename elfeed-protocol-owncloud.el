@@ -263,7 +263,7 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
                     (elfeed-protocol-get-last-modified proto-id))
         entries)
     (progn
-      (elfeed-log 'error "Warning: elfeed-protocol-owncloud-feeds is nil, please call elfeed-protocol-owncloud--update-feed-list first")
+      (elfeed-log 'error "elfeed-protocol-owncloud:: elfeed-protocol-owncloud-feeds is nil, please call elfeed-protocol-owncloud--update-feed-list first")
       nil)))
 
 (defun elfeed-protocol-owncloud--do-update (host-url action &optional arg callback)
