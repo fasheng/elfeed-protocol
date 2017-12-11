@@ -102,7 +102,7 @@ finished."
 
 (defun elfeed-protocol-owncloud--parse-feeds (host-url)
   "Parse the feeds JSON buffer and fill results to db.
-HOST-URL is the target ownCloud server url.  Ensure the point in the
+HOST-URL is the host name of ownCloud server.  Ensure the point in the
 right place that `json-read' could execute.  Return
 `elfeed-protocol-owncloud-feeds'."
   (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
@@ -121,7 +121,7 @@ right place that `json-read' could execute.  Return
 
 (defun elfeed-protocol-owncloud--update-feed-list (host-url)
   "Update ownCloud News feed list.
-HOST-URL is the target ownCloud server url."
+HOST-URL is the host name of ownCloud server."
   (elfeed-protocol-owncloud-with-fetch
     (concat host-url elfeed-protocol-owncloud-api-feeds)
     nil (elfeed-protocol-owncloud--parse-feeds host-url)))

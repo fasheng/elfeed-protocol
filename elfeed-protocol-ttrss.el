@@ -72,7 +72,7 @@ then the published state in Tiny Tiny RSS will be synced, too."
 
 (defmacro elfeed-protocol-ttrss-with-fetch (host-url method data &rest body)
   "Just like `elfeed-with-fetch' but special for ttrss HTTP request.
-HOST-URL is the target Tiny Tiny RSS server url, METHOD could be
+HOST-URL is the host name of Tiny Tiny RSS server, METHOD could be
 \"GET\" or \"POST\", DATA is in JSON string format.  Optional argument
 BODY is the rest Lisp code after operation finished."
   (declare (indent defun))
@@ -116,7 +116,7 @@ Will eval rest BODY expressions at end."
 
 (defmacro elfeed-protocol-ttrss-fetch-prepare (host-url &rest body)
   "Ensure logged in and feed list updated before expressions.
-HOST-URL is the target Tiny Tiny RSS server url.  And will eval rest
+HOST-URL is the host name of Tiny Tiny RSS server.  And will eval rest
 BODY expressions after login.  The success session id will saved to
 `elfeed-protocol-ttrss-sid'"
   (declare (indent defun))
@@ -158,7 +158,7 @@ server url, and will call CALLBACK after login."
 
 (defun elfeed-protocol-ttrss--update-feed-list (host-url &optional callback)
   "Update Tiny Tiny RSS server feeds list.
-HOST-URL is the target Tiny Tiny RSS server url.  Will call CALLBACK
+HOST-URL is the host name of Tiny Tiny RSS server.  Will call CALLBACK
 at end."
   (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
          (data-list `(("op" . "getFeeds")
@@ -172,7 +172,7 @@ at end."
 
 (defun elfeed-protocol-ttrss--parse-feeds (host-url content)
   "Parse the feeds JSON buffer and fill results to db.
-HOST-URL is the target Tiny Tiny RSS server url.  CONTENT is the
+HOST-URL is the host name of Tiny Tiny RSS server.  CONTENT is the
 result JSON content by http request.  Return
 `elfeed-protocol-ttrss-feeds'."
   (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
@@ -222,7 +222,7 @@ result JSON content by http request.  Return
 
 (defun elfeed-protocol-ttrss--parse-entries (host-url content &optional mark-state callback)
   "Parse the entries JSON buffer and fill results to elfeed db.
-HOST-URL is the target Tiny Tiny RSS server url.  CONTENT is the
+HOST-URL is the host name of Tiny Tiny RSS server.  CONTENT is the
 result JSON content by http request.  If MARK-STATE is nil, then just
 not update :last-entry-id and :first-entry-id values.  If CALLBACK is
 not nil, will call it with the result entries as argument.  Return
@@ -329,7 +329,7 @@ parsed entries."
 
 (defun elfeed-protocol-ttrss--do-update (host-url action &optional arg callback)
   "Real ttrss protocol updating operations.
-HOST-URL is the target Tiny Tiny RSS server url, and user field
+HOST-URL is the host name of Tiny Tiny RSS server, and user field
 authentication info is always required so could find the related
 protocol feed id correctly, for example
 \"https://user:pass@myhost.com\". ACTION could be init, update and
@@ -411,7 +411,7 @@ nil, will call it with the result entries as argument."
 (defun elfeed-protocol-ttrss-reinit (host-url)
   "Retry initial sync operation.
 Will fetch unread, starred and latest entries from Tiny Tiny RSS.
-HOST-URL is the target Tiny Tiny RSS server url."
+HOST-URL is the host name of Tiny Tiny RSS server."
   (interactive (list (elfeed-protocol-url
                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
   (elfeed-protocol-ttrss-fetch-prepare
@@ -422,7 +422,7 @@ HOST-URL is the target Tiny Tiny RSS server url."
 
 ;; (defun elfeed-protocol-ttrss-update-older (host-url)
 ;;   "Fetch older entries.
-;; HOST-URL is the target Tiny Tiny RSS server url."
+;; HOST-URL is the host name of Tiny Tiny RSS server."
 ;;   (interactive (list (elfeed-protocol-url
 ;;                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
 ;;   (let* ((first-entry-id (elfeed-protocol-get-first-entry-id proto-id))
@@ -447,7 +447,7 @@ id array."
 
 (defun elfeed-protocol-ttrss--update-article (host-url entries field mode)
   "Notify multiple entries to be read/unread/starred/unstarred.
-HOST-URL is the target Tiny Tiny RSS server url.  ENTRIES is the
+HOST-URL is the host name of Tiny Tiny RSS server.  ENTRIES is the
 target entry objects.  FIELD could be 0, 1, 2, 3 which means starred,
 published, unread, and article note.  MODE could be 0, 1, 2 which
 means set to false, set to true and toggle."
@@ -468,43 +468,43 @@ means set to false, set to true and toggle."
 
 (defun elfeed-protocol-ttrss-mark-read (host-url entries)
   "Notify multiple entries to be read.
-HOST-URL is the target Tiny Tiny RSS server url.  ENTRIES is the target entry objects."
+HOST-URL is the host name of Tiny Tiny RSS server.  ENTRIES is the target entry objects."
   (elfeed-protocol-ttrss--update-article
    host-url entries elfeed-protocol-ttrss-api-update-article-field-unread 0))
 
 (defun elfeed-protocol-ttrss-mark-unread (host-url entries)
   "Notify multiple entries to be unread.
-HOST-URL is the target Tiny Tiny RSS server url.  ENTRIES is the target entry objects."
+HOST-URL is the host name of Tiny Tiny RSS server.  ENTRIES is the target entry objects."
   (elfeed-protocol-ttrss--update-article
    host-url entries elfeed-protocol-ttrss-api-update-article-field-unread 1))
 
 (defun elfeed-protocol-ttrss-mark-star (host-url entries)
   "Notify multiple entries to be starred.
-HOST-URL is the target Tiny Tiny RSS server url.  ENTRIES is the target entry objects."
+HOST-URL is the host name of Tiny Tiny RSS server.  ENTRIES is the target entry objects."
   (elfeed-protocol-ttrss--update-article
    host-url entries elfeed-protocol-ttrss-api-update-article-field-starred 1))
 
 (defun elfeed-protocol-ttrss-mark-unstar (host-url entries)
   "Notify multiple entries to be unstarred.
-HOST-URL is the target Tiny Tiny RSS server url.  ENTRIES is the target entry objects."
+HOST-URL is the host name of Tiny Tiny RSS server.  ENTRIES is the target entry objects."
   (elfeed-protocol-ttrss--update-article
    host-url entries elfeed-protocol-ttrss-api-update-article-field-starred 0))
 
 (defun elfeed-protocol-ttrss-mark-publish (host-url entries)
   "Notify multiple entries to be published.
-HOST-URL is the target Tiny Tiny RSS server url.  ENTRIES is the target entry objects."
+HOST-URL is the host name of Tiny Tiny RSS server.  ENTRIES is the target entry objects."
   (elfeed-protocol-ttrss--update-article
    host-url entries elfeed-protocol-ttrss-api-update-article-field-published 1))
 
 (defun elfeed-protocol-ttrss-mark-unpublish (host-url entries)
   "Notify multiple entries to be unpublished.
-HOST-URL is the target Tiny Tiny RSS server url.  ENTRIES is the target entry objects."
+HOST-URL is the host name of Tiny Tiny RSS server.  ENTRIES is the target entry objects."
   (elfeed-protocol-ttrss--update-article
    host-url entries elfeed-protocol-ttrss-api-update-article-field-published 0))
 
 (defun elfeed-protocol-ttrss-sync-tag (host-url entries tag action)
   "Sync unread starred and published tag states to Tiny Tiny RSS server.
-HOST-URL is the target Tiny Tiny RSS server url.  ENTRIES is the
+HOST-URL is the host name of Tiny Tiny RSS server.  ENTRIES is the
 target entry objects.  TAG is the action tag, for example unread,
 `elfeed-protocol-ttrss-star-tag' and
 `elfeed-protocol-ttrss-publish-tag', ACTION could be add or remove."
