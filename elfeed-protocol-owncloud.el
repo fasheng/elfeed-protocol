@@ -174,7 +174,7 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
              (begin-time (time-to-seconds))
              (min-first-entry-id (elfeed-protocol-get-first-entry-id proto-id))
              (max-last-entry-id (elfeed-protocol-get-last-entry-id proto-id))
-             (max-last-modified 0)
+             (max-last-modified (elfeed-protocol-get-last-modified proto-id))
              items entries)
         (elfeed-log 'debug "elfeed-protocol-owncloud: parsing entries, first-entry-id: %d last-entry-id: %d last-modified: %d"
                     (elfeed-protocol-get-first-entry-id proto-id)
