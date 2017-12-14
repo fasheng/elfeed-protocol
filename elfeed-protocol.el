@@ -40,7 +40,7 @@
   "Provide extra protocol for elfeed."
   :group 'comm)
 
-(defcustom elfeed-protocol ()
+(defcustom elfeed-protocol-list ()
   "List of all registered extra protocols in Elfeed.
 
 Could be modified by `elfeed-protocol-register' and
