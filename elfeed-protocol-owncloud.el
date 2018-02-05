@@ -122,35 +122,42 @@ right place that `json-read' could execute.  Return
 (defun elfeed-protocol-owncloud--update-feed-list (host-url)
   "Update ownCloud News feed list.
 HOST-URL is the host name of ownCloud server."
+  (elfeed-log 'debug "elfeed-protocol-owncloud: update feed list")
   (elfeed-protocol-owncloud-with-fetch
     (concat host-url elfeed-protocol-owncloud-api-feeds)
     nil (elfeed-protocol-owncloud--parse-feeds host-url)))
 
 (defun elfeed-protocol-owncloud--get-subfeed-url (host-url feed-id)
   "Get sub feed url for the ownCloud protocol feed HOST-URL and FEED-ID."
-  (catch 'found
-    (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
-           (feeds (gethash proto-id elfeed-protocol-owncloud-feeds))
-           (length (length feeds)))
-      (dotimes (i length)
-        (let* ((feed (elt feeds i))
-               (id (map-elt feed 'id))
-               (url (map-elt feed 'url)))
-          (when (eq id feed-id)
-            (throw 'found url)))))))
+  (let* ((url (catch 'found
+                (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
+                       (feeds (gethash proto-id elfeed-protocol-owncloud-feeds))
+                       (length (length feeds)))
+                  (dotimes (i length)
+                    (let* ((feed (elt feeds i))
+                           (id (map-elt feed 'id))
+                           (url (map-elt feed 'url)))
+                      (when (eq id feed-id)
+                        (throw 'found url))))))))
+    (unless url
+      (elfeed-log 'error "elfeed-protocol-owncloud: no subfeed for feed id %s" feed-id))
+    url))
 
 (defun elfeed-protocol-owncloud--get-subfeed-id (host-url feed-url)
   "Get sub feed url for the owncloud protocol feed HOST-URL and FEED-URL."
-  (catch 'found
-    (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
-           (feeds (gethash proto-id elfeed-protocol-owncloud-feeds))
-           (length (length feeds)))
-      (dotimes (i length)
-        (let* ((feed (elt feeds i))
-               (id (map-elt feed 'id))
-               (url (map-elt feed 'url)))
-          (when (string= url feed-url)
-            (throw 'found id)))))))
+  (let* ((id (catch 'found
+               (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
+                      (feeds (gethash proto-id elfeed-protocol-owncloud-feeds))
+                      (length (length feeds)))
+                 (dotimes (i length)
+                   (let* ((feed (elt feeds i))
+                          (id (map-elt feed 'id))
+                          (url (map-elt feed 'url)))
+                     (when (string= url feed-url)
+                       (throw 'found id))))))))
+    (unless id
+      (elfeed-log 'error "elfeed-protocol-owncloud: no subfeed for feed url %s" feed-url))
+    id))
 
 (defun elfeed-protocol-owncloud-entry-p (entry)
   "Check if specific ENTRY is fetched from ownCloud News."
@@ -256,7 +263,7 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
 
         (elfeed-db-add entries)
         (when callback (funcall callback entries))
-        (elfeed-log 'debug "elfeed-protocol-owncloud: parsed %s entries finished with %ss, first-entry-id: %d last-entry-id: %d last-modified: %d"
+        (elfeed-log 'debug "elfeed-protocol-owncloud: parsed %s entries with %fs, first-entry-id: %d last-entry-id: %d last-modified: %d"
                     (length entries) (- (time-to-seconds) begin-time)
                     (elfeed-protocol-get-first-entry-id proto-id)
                     (elfeed-protocol-get-last-entry-id proto-id)
@@ -279,6 +286,7 @@ update-since-id, will fetch all entries after the provide entry
 id. And for a update-since-time means only update entries since the
 special modified time, the ARG is the time-stamp.  If CALLBACK is not
 nil, will call it with the result entries as argument."
+  (elfeed-log 'debug "elfeed-protocol-owncloud: update entries with action %s, arg %s" action arg)
   (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
          (offset-id (if arg arg (elfeed-protocol-get-last-entry-id proto-id)))
          (url-update-since-id (concat host-url (format elfeed-protocol-owncloud-api-update-offset

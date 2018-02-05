@@ -111,6 +111,7 @@ BODY expressions after login."
   "Login remote NewsBlur server.
 HOST-URL is the host name of NewsBlur server.  Will call CALLBACK
 after login."
+  (elfeed-log 'debug "elfeed-protocol-newsblur: login")
   (let* ((proto-id (elfeed-protocol-newsblur-id host-url))
          (user (elfeed-protocol-meta-user proto-id))
          (password (elfeed-protocol-meta-password proto-id))
@@ -124,6 +125,7 @@ after login."
   "Update Tiny Tiny RSS server feeds list.
 HOST-URL is the host name of NewsBlur server.  Will call CALLBACK at
 end with argument NEED-LOGIN."
+  (elfeed-log 'debug "elfeed-protocol-newsblur: update feed list")
   (let* ((proto-id (elfeed-protocol-newsblur-id host-url))
          (url (concat host-url elfeed-protocol-newsblur-api-reader-feeds))
          (data "include_favicons=false"))
@@ -154,29 +156,35 @@ result JSON content by http request.  Return
 
 (defun elfeed-protocol-newsblur--get-subfeed-url (host-url feed-id)
   "Get sub feed url for the newsblur protocol feed HOST-URL and FEED-ID."
-  (catch 'found
-    (let* ((proto-id (elfeed-protocol-newsblur-id host-url))
-           (feeds (gethash proto-id elfeed-protocol-newsblur-feeds))
-           (length (length feeds)))
-      (dotimes (i length)
-        (let* ((feed (elt feeds i))
-               (id (map-elt feed 'id))
-               (url (map-elt feed 'feed_link)))
-          (when (eq id feed-id)
-            (throw 'found url)))))))
+  (let* ((url (catch 'found
+                (let* ((proto-id (elfeed-protocol-newsblur-id host-url))
+                       (feeds (gethash proto-id elfeed-protocol-newsblur-feeds))
+                       (length (length feeds)))
+                  (dotimes (i length)
+                    (let* ((feed (elt feeds i))
+                           (id (map-elt feed 'id))
+                           (url (map-elt feed 'feed_link)))
+                      (when (eq id feed-id)
+                        (throw 'found url))))))))
+    (unless url
+      (elfeed-log 'error "elfeed-protocol-newsblur: no subfeed for feed id %s" feed-id))
+    url))
 
 (defun elfeed-protocol-newsblur--get-subfeed-id (host-url feed-url)
   "Get sub feed id the newsblur protocol feed HOST-URL and FEED-URL."
-  (catch 'found
-    (let* ((proto-id (elfeed-protocol-newsblur-id host-url))
-           (feeds (gethash proto-id elfeed-protocol-newsblur-feeds))
-           (length (length feeds)))
-      (dotimes (i length)
-        (let* ((feed (elt feeds i))
-               (id (map-elt feed 'id))
-               (url (map-elt feed 'feed_link)))
-          (when (string= url feed-url)
-            (throw 'found id)))))))
+  (let* ((id (catch 'found
+               (let* ((proto-id (elfeed-protocol-newsblur-id host-url))
+                      (feeds (gethash proto-id elfeed-protocol-newsblur-feeds))
+                      (length (length feeds)))
+                 (dotimes (i length)
+                   (let* ((feed (elt feeds i))
+                          (id (map-elt feed 'id))
+                          (url (map-elt feed 'feed_link)))
+                     (when (string= url feed-url)
+                       (throw 'found id))))))))
+    (unless id
+      (elfeed-log 'error "elfeed-protocol-newsblur: no subfeed for feed url %s" feed-url))
+    id))
 
 (defun elfeed-protocol-newsblur-entry-p (entry)
   "Check if specific ENTRY is fetched from NewsBlur."
@@ -270,7 +278,7 @@ the result entries as argument.  Return parsed entries."
 
         (elfeed-db-add entries)
         (when callback (funcall callback entries))
-        (elfeed-log 'debug "elfeed-protocol-newsblur: parsed %s entries finished with %ss, last-modified: %d"
+        (elfeed-log 'debug "elfeed-protocol-newsblur: parsed %s entries with %fs, last-modified: %d"
                     (length entries) (- (time-to-seconds) begin-time)
                     (elfeed-protocol-get-last-modified proto-id))
         entries)
@@ -289,6 +297,7 @@ entries. For update, will fetch recent pages entries, the ARG is the
 page number. And for update-subfeed, will fetch entries for special
 feed, the ARG is the feed id.  If CALLBACK is not nil, will call it
 with the result entries as argument."
+  (elfeed-log 'debug "elfeed-protocol-newsblur: update entries with action %s, arg %s" action arg)
   (let* ((proto-id (elfeed-protocol-newsblur-id host-url))
          url)
     (unless elfeed--inhibit-update-init-hooks

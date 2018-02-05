@@ -111,7 +111,7 @@ Will eval rest BODY expressions at end."
           (api-status (map-elt result 'status))
           (content (map-elt result 'content)))
      (if (eq api-status elfeed-protocol-ttrss-api-status-err)
-         (elfeed-log 'error "elfeed-protocol-ttrss:: %s" (map-elt content 'error))
+         (elfeed-log 'error "elfeed-protocol-ttrss: %s" (map-elt content 'error))
        ,@body)))
 
 (defmacro elfeed-protocol-ttrss-fetch-prepare (host-url &rest body)
@@ -123,6 +123,7 @@ BODY expressions after login.  The success session id will saved to
   `(if elfeed-protocol-ttrss-sid
        (let* ((data-list-isloggedin `(("op" . "isLoggedIn")
                                       ("sid" . ,elfeed-protocol-ttrss-sid))))
+         (elfeed-log 'debug "elfeed-protocol-ttrss: check is logged in")
          (elfeed-protocol-ttrss-with-fetch
            ,host-url "GET" (json-encode-alist data-list-isloggedin)
            (if (eq (map-elt content 'status) ':json-false)
@@ -144,6 +145,7 @@ BODY expressions after login.  The success session id will saved to
 The success session id will saved to
 `elfeed-protocol-ttrss-sid'.  HOST-URL is the target Tiny Tiny RSS
 server url, and will call CALLBACK after login."
+  (elfeed-log 'debug "elfeed-protocol-ttrss: login")
   (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
          (user (elfeed-protocol-meta-user proto-id))
          (password (elfeed-protocol-meta-password proto-id))
@@ -160,6 +162,7 @@ server url, and will call CALLBACK after login."
   "Update Tiny Tiny RSS server feeds list.
 HOST-URL is the host name of Tiny Tiny RSS server.  Will call CALLBACK
 at end."
+  (elfeed-log 'debug "elfeed-protocol-ttrss: update feed list")
   (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
          (data-list `(("op" . "getFeeds")
                       ("sid" . ,elfeed-protocol-ttrss-sid)
@@ -190,29 +193,35 @@ result JSON content by http request.  Return
 
 (defun elfeed-protocol-ttrss--get-subfeed-url (host-url feed-id)
   "Get sub feed url for the ttrss protocol feed HOST-URL and FEED-ID."
-  (catch 'found
-    (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
-           (feeds (gethash proto-id elfeed-protocol-ttrss-feeds))
-           (length (length feeds)))
-      (dotimes (i length)
-        (let* ((feed (elt feeds i))
-               (id (map-elt feed 'id))
-               (url (map-elt feed 'feed_url)))
-          (when (eq id feed-id)
-            (throw 'found url)))))))
+  (let* ((url (catch 'found
+                (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
+                       (feeds (gethash proto-id elfeed-protocol-ttrss-feeds))
+                       (length (length feeds)))
+                  (dotimes (i length)
+                    (let* ((feed (elt feeds i))
+                           (id (map-elt feed 'id))
+                           (url (map-elt feed 'feed_url)))
+                      (when (eq id feed-id)
+                        (throw 'found url))))))))
+    (unless url
+      (elfeed-log 'error "elfeed-protocol-ttrss: no subfeed for feed id %s" feed-id))
+    url))
 
 (defun elfeed-protocol-ttrss--get-subfeed-id (host-url feed-url)
   "Get sub feed id the ttrss protocol feed HOST-URL and FEED-URL."
-  (catch 'found
-    (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
-           (feeds (gethash proto-id elfeed-protocol-ttrss-feeds))
-           (length (length feeds)))
-      (dotimes (i length)
-        (let* ((feed (elt feeds i))
-               (id (map-elt feed 'id))
-               (url (map-elt feed 'feed_url)))
-          (when (string= url feed-url)
-            (throw 'found id)))))))
+  (let* ((id (catch 'found
+               (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
+                      (feeds (gethash proto-id elfeed-protocol-ttrss-feeds))
+                      (length (length feeds)))
+                 (dotimes (i length)
+                   (let* ((feed (elt feeds i))
+                          (id (map-elt feed 'id))
+                          (url (map-elt feed 'feed_url)))
+                     (when (string= url feed-url)
+                       (throw 'found id))))))))
+    (unless id
+      (elfeed-log 'error "elfeed-protocol-ttrss: no subfeed for feed url %s" feed-url))
+    id))
 
 (defun elfeed-protocol-ttrss-entry-p (entry)
   "Check if specific ENTRY is fetched from Tiny Tiny RSS."
@@ -318,7 +327,7 @@ parsed entries."
 
         (elfeed-db-add entries)
         (when callback (funcall callback entries))
-        (elfeed-log 'debug "elfeed-protocol-ttrss: parsed %s entries finished with %ss, first-entry-id: %d last-entry-id: %d"
+        (elfeed-log 'debug "elfeed-protocol-ttrss: parsed %s entries with %fs, first-entry-id: %d last-entry-id: %d"
                     (length entries) (- (time-to-seconds) begin-time)
                     (elfeed-protocol-get-first-entry-id proto-id)
                     (elfeed-protocol-get-last-entry-id proto-id))
@@ -338,6 +347,7 @@ entries. For update, will fetch all entries since the provide entry
 id, the ARG is the entry id. And for update-subfeed, will fetch latest
 entries for special feed, the ARG is the feed id.  If CALLBACK is not
 nil, will call it with the result entries as argument."
+  (elfeed-log 'debug "elfeed-protocol-ttrss: update entries with action %s, arg %s" action arg)
   (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
          (data-list-base `(("op" . "getHeadlines")
                            ("sid" . ,elfeed-protocol-ttrss-sid)
