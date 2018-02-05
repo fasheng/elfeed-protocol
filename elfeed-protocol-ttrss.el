@@ -163,7 +163,7 @@ at end."
   (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
          (data-list `(("op" . "getFeeds")
                       ("sid" . ,elfeed-protocol-ttrss-sid)
-                      ("limit" . ,elfeed-protocol-ttrss-maxsize)))
+                      ("cat_id" . "-3")))
          (data (json-encode-alist data-list)))
     (elfeed-protocol-ttrss-with-fetch
       host-url "GET" data
