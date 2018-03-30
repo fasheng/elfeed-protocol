@@ -1,5 +1,6 @@
 (source gnu)
-(source melpa)
+;(source melpa)
+(source melpa-stable)
 
 (package-file "elfeed-protocol.el")
 
