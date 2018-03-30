@@ -3,6 +3,8 @@
 (load-file "elfeed-protocol-newsblur.el")
 (load-file "elfeed-protocol.el")
 
+(elfeed-protocol-enable)
+
 ;;; copy from elfeed/tests/elfeed-db-tests.el
 (defmacro with-elfeed-test (&rest body)
   "Run BODY with a fresh, empty database that will be destroyed on exit."
