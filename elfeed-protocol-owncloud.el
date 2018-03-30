@@ -78,15 +78,13 @@ finished."
                       (elfeed-handle-http-error
                        no-auth-url
                        (if use-curl elfeed-curl-error-message status)))
-                  (condition-case error
-                      (progn
-                        (unless use-curl
-                          (elfeed-move-to-first-empty-line)
-                          (set-buffer-multibyte t))
-                        ,@body
-                        (unless use-curl
-                          (kill-buffer)))
-                    (error (elfeed-handle-parse-error no-auth-url error)))))))
+                  (progn
+                    (unless use-curl
+                      (elfeed-move-to-first-empty-line)
+                      (set-buffer-multibyte t))
+                    ,@body
+                    (unless use-curl
+                      (kill-buffer)))))))
      (if use-curl
          (if ,data
              (elfeed-curl-enqueue no-auth-url cb :headers headers
