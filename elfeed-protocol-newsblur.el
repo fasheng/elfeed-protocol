@@ -396,17 +396,18 @@ HOST-URL is the host name of NewsBlur server.  ENTRIES is the target entry objec
 HOST-URL is the the host name of NewsBlur server.  ENTRIES is the
 target entry objects.  TAG is the action tag, for example unread, and
 `elfeed-protocol-newsblur-star-tag', ACTION could be add or remove."
-  (cond
-   ((eq action 'add)
+  (when entries
     (cond
-     ((eq tag 'unread) (elfeed-protocol-newsblur-mark-unread host-url entries))
-     ((eq tag elfeed-protocol-newsblur-star-tag)
-      (elfeed-protocol-newsblur-mark-star host-url entries))))
-   ((eq action 'remove)
-    (cond
-     ((eq tag 'unread) (elfeed-protocol-newsblur-mark-read host-url entries))
-     ((eq tag elfeed-protocol-newsblur-star-tag)
-      (elfeed-protocol-newsblur-mark-unstar host-url entries))))))
+     ((eq action 'add)
+      (cond
+       ((eq tag 'unread) (elfeed-protocol-newsblur-mark-unread host-url entries))
+       ((eq tag elfeed-protocol-newsblur-star-tag)
+        (elfeed-protocol-newsblur-mark-star host-url entries))))
+     ((eq action 'remove)
+      (cond
+       ((eq tag 'unread) (elfeed-protocol-newsblur-mark-read host-url entries))
+       ((eq tag elfeed-protocol-newsblur-star-tag)
+      (elfeed-protocol-newsblur-mark-unstar host-url entries)))))))
 
 (defun elfeed-protocol-newsblur-pre-tag (host-url entries &rest tags)
   "Sync unread, starred and published states before tags added.

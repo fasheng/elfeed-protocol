@@ -468,17 +468,18 @@ HOST-URL is the host name of ownCloud server.  ENTRIES is the target entry objec
 HOST-URL is the host name of ownCloud server.  ENTRIES is the target
 entry objects.  TAG is the action tag, for example unread and
 `elfeed-protocol-owncloud-star-tag', ACTION could be add or remove."
-  (cond
-   ((eq action 'add)
+  (when entries
     (cond
-     ((eq tag 'unread) (elfeed-protocol-owncloud-mark-unread-multi host-url entries))
-     ((eq tag elfeed-protocol-owncloud-star-tag)
-      (elfeed-protocol-owncloud-mark-star-multi host-url entries))))
-   ((eq action 'remove)
-    (cond
-     ((eq tag 'unread) (elfeed-protocol-owncloud-mark-read-multi host-url entries))
-     ((eq tag elfeed-protocol-owncloud-star-tag)
-      (elfeed-protocol-owncloud-mark-unstar-multi host-url entries))))))
+     ((eq action 'add)
+      (cond
+       ((eq tag 'unread) (elfeed-protocol-owncloud-mark-unread-multi host-url entries))
+       ((eq tag elfeed-protocol-owncloud-star-tag)
+        (elfeed-protocol-owncloud-mark-star-multi host-url entries))))
+     ((eq action 'remove)
+      (cond
+       ((eq tag 'unread) (elfeed-protocol-owncloud-mark-read-multi host-url entries))
+       ((eq tag elfeed-protocol-owncloud-star-tag)
+        (elfeed-protocol-owncloud-mark-unstar-multi host-url entries)))))))
 
 (defun elfeed-protocol-owncloud-pre-tag (host-url entries &rest tags)
   "Sync unread, starred states before tags added.

@@ -516,21 +516,22 @@ HOST-URL is the host name of Tiny Tiny RSS server.  ENTRIES is the
 target entry objects.  TAG is the action tag, for example unread,
 `elfeed-protocol-ttrss-star-tag' and
 `elfeed-protocol-ttrss-publish-tag', ACTION could be add or remove."
-  (cond
-   ((eq action 'add)
+  (when entries
     (cond
-     ((eq tag 'unread) (elfeed-protocol-ttrss-mark-unread host-url entries))
-     ((eq tag elfeed-protocol-ttrss-star-tag)
-      (elfeed-protocol-ttrss-mark-star host-url entries))
-     ((eq tag elfeed-protocol-ttrss-publish-tag)
-      (elfeed-protocol-ttrss-mark-publish host-url entries))))
-   ((eq action 'remove)
-    (cond
-     ((eq tag 'unread) (elfeed-protocol-ttrss-mark-read host-url entries))
-     ((eq tag elfeed-protocol-ttrss-star-tag)
-      (elfeed-protocol-ttrss-mark-unstar host-url entries))
-     ((eq tag elfeed-protocol-ttrss-publish-tag)
-      (elfeed-protocol-ttrss-mark-unpublish host-url entries))))))
+     ((eq action 'add)
+      (cond
+       ((eq tag 'unread) (elfeed-protocol-ttrss-mark-unread host-url entries))
+       ((eq tag elfeed-protocol-ttrss-star-tag)
+        (elfeed-protocol-ttrss-mark-star host-url entries))
+       ((eq tag elfeed-protocol-ttrss-publish-tag)
+        (elfeed-protocol-ttrss-mark-publish host-url entries))))
+     ((eq action 'remove)
+      (cond
+       ((eq tag 'unread) (elfeed-protocol-ttrss-mark-read host-url entries))
+       ((eq tag elfeed-protocol-ttrss-star-tag)
+        (elfeed-protocol-ttrss-mark-unstar host-url entries))
+       ((eq tag elfeed-protocol-ttrss-publish-tag)
+        (elfeed-protocol-ttrss-mark-unpublish host-url entries)))))))
 
 (defun elfeed-protocol-ttrss-pre-tag (host-url entries &rest tags)
   "Sync unread, starred and published states before tags added.
