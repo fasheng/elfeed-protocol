@@ -221,6 +221,22 @@ result JSON content by http request.  Return
       (elfeed-log 'error "elfeed-protocol-ttrss: no subfeed for feed url %s" feed-url))
     id))
 
+(defun elfeed-protocol-ttrss--get-subfeed-id-by-title (host-url feed-title)
+  "Get sub feed id the ttrss protocol feed HOST-URL and FEED-TITLE."
+  (let* ((id (catch 'found
+               (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
+                      (feeds (gethash proto-id elfeed-protocol-ttrss-feeds))
+                      (length (length feeds)))
+                 (dotimes (i length)
+                   (let* ((feed (elt feeds i))
+                          (id (map-elt feed 'id))
+                          (title (map-elt feed 'title)))
+                     (when (string= title feed-title)
+                       (throw 'found id))))))))
+    (unless id
+      (elfeed-log 'error "elfeed-protocol-ttrss: no subfeed for feed title %s" feed-title))
+    id))
+
 (defun elfeed-protocol-ttrss-entry-p (entry)
   "Check if specific ENTRY is fetched from Tiny Tiny RSS."
   (let* ((proto-id (elfeed-protocol-entry-protocol-id entry))
@@ -245,14 +261,33 @@ parsed entries."
                     (elfeed-protocol-get-first-entry-id proto-id)
                     (elfeed-protocol-get-last-entry-id proto-id))
         (setq entries
-              (cl-loop for headline across headlines collect
+              (cl-loop for headline across headlines
+                       when
+                       (pcase-let* (((map ('feed_id feed-id-str)
+                                          ('feed_title feed-title))
+                                     headline)
+                                    (feed-id
+                                     (if (null feed-id-str)
+                                         (elfeed-protocol-ttrss--get-subfeed-id-by-title host-url feed-title)
+                                       (string-to-number feed-id-str))))
+                         feed-id)
+                       collect
                        (pcase-let* (((map id ('link entry-url) title
                                           author ('updated pub-date) ('content body)
-                                          ('tags ttrss-tags) attachments)
+                                          ('tags ttrss-tags) attachments
+                                          ('feed_id feed-id-str)
+                                          ('feed_title feed-title)
+                                          )
                                      headline)
-                                    (feed-id (string-to-number (map-elt headline 'feed_id)))
                                     (guid-hash (elfeed-generate-id body))
-                                    (feed-url (elfeed-protocol-ttrss--get-subfeed-url host-url feed-id))
+                                    (feed-id
+                                     (if (null feed-id-str)
+                                         (elfeed-protocol-ttrss--get-subfeed-id-by-title host-url feed-title)
+                                       (string-to-number feed-id-str)))
+                                    (feed-url
+                                     (if (null feed-id)
+                                         ""
+                                       (elfeed-protocol-ttrss--get-subfeed-url host-url feed-id)))
                                     (unread (not (eq (map-elt headline 'unread)
                                                      ':json-false)))
                                     (starred (not (eq (map-elt headline 'marked)
