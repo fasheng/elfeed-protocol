@@ -2,20 +2,20 @@
 (require 'ert)
 (require 'elfeed)
 
-(defvar fixture-dir "./fixtures/ttrss/")
+(defvar elfeed-protocol-ttrss-fixture-dir "./fixtures/ttrss/")
 
-(defvar f-elfeed-protocol-ttrss-test-feeds
-  (concat fixture-dir "feeds.json"))
+(defvar elfeed-protocol-ttrss-fixture-feeds
+  (concat elfeed-protocol-ttrss-fixture-dir "feeds.json"))
 
-(defvar f-elfeed-protocol-ttrss-test-entries
-  (concat fixture-dir "entries.json"))
+(defvar elfeed-protocol-ttrss-fixture-entries
+  (concat elfeed-protocol-ttrss-fixture-dir "entries.json"))
 
-(defvar f-elfeed-protocol-ttrss-test-no-feed-id-entries
-  (concat fixture-dir "entries-no-feed-id.json"))
+(defvar elfeed-protocol-ttrss-fixture-no-feed-id-entries
+  (concat elfeed-protocol-ttrss-fixture-dir "entries-no-feed-id.json"))
 
 (ert-deftest elfeed-protocol-ttrss-parse-feeds ()
   (with-temp-buffer
-    (insert-file-contents f-elfeed-protocol-ttrss-test-feeds)
+    (insert-file-contents elfeed-protocol-ttrss-fixture-feeds)
     (goto-char (point-min))
     (with-elfeed-test
      (let* ((proto-url "ttrss+https://user:pass@myhost.com:443")
@@ -41,7 +41,7 @@
 
 (ert-deftest elfeed-protocol-ttrss-parse-entries ()
   (with-temp-buffer
-    (insert-file-contents f-elfeed-protocol-ttrss-test-feeds)
+    (insert-file-contents elfeed-protocol-ttrss-fixture-feeds)
     (goto-char (point-min))
     (with-elfeed-test
      (let* ((proto-url "ttrss+https://user:pass@myhost.com")
@@ -54,7 +54,7 @@
                                            (elfeed-protocol-ttrss--parse-feeds
                                             host-url content))))
        (with-temp-buffer
-         (insert-file-contents f-elfeed-protocol-ttrss-test-entries)
+         (insert-file-contents elfeed-protocol-ttrss-fixture-entries)
          (goto-char (point-min))
          (let* ((entries (elfeed-protocol-ttrss--parse-result
                            (elfeed-protocol-ttrss--parse-entries
@@ -79,7 +79,7 @@
 
 (ert-deftest elfeed-protocol-ttrss-parse-no-feed-id-entries ()
   (with-temp-buffer
-    (insert-file-contents f-elfeed-protocol-ttrss-test-feeds)
+    (insert-file-contents elfeed-protocol-ttrss-fixture-feeds)
     (goto-char (point-min))
     (with-elfeed-test
      (let* ((proto-url "ttrss+https://user:pass@myhost.com")
@@ -92,7 +92,7 @@
                                            (elfeed-protocol-ttrss--parse-feeds
                                             host-url content))))
        (with-temp-buffer
-         (insert-file-contents f-elfeed-protocol-ttrss-test-no-feed-id-entries)
+         (insert-file-contents elfeed-protocol-ttrss-fixture-no-feed-id-entries)
          (goto-char (point-min))
          (let* ((entries (elfeed-protocol-ttrss--parse-result
                            (elfeed-protocol-ttrss--parse-entries

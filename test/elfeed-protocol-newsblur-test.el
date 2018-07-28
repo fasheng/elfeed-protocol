@@ -4,15 +4,15 @@
 
 (defvar elfeed-protocol-newsblur-fixture-dir "./fixtures/newsblur/")
 
-(defvar f-elfeed-protocol-newsblur-test-feeds
+(defvar elfeed-protocol-newsblur-fixture-feeds
   (concat elfeed-protocol-newsblur-fixture-dir "feeds.json"))
 
-(defvar f-elfeed-protocol-newsblur-test-entries
+(defvar elfeed-protocol-newsblur-fixture-entries
   (concat elfeed-protocol-newsblur-fixture-dir "entries.json"))
 
 (ert-deftest elfeed-protocol-newsblur-parse-feeds ()
   (with-temp-buffer
-    (insert-file-contents f-elfeed-protocol-newsblur-test-feeds)
+    (insert-file-contents elfeed-protocol-newsblur-fixture-feeds)
     (goto-char (point-min))
     (with-elfeed-test
      (let* ((proto-url "newsblur+https://user:pass@newsblur.com")
@@ -38,7 +38,7 @@
 
 (ert-deftest elfeed-protocol-newsblur-parse-entries ()
   (with-temp-buffer
-    (insert-file-contents f-elfeed-protocol-newsblur-test-feeds)
+    (insert-file-contents elfeed-protocol-newsblur-fixture-feeds)
     (goto-char (point-min))
     (with-elfeed-test
      (let* ((proto-url "newsblur+https://user:pass@myhost.com")
@@ -51,7 +51,7 @@
                                            (elfeed-protocol-newsblur--parse-feeds
                                             host-url result))))
        (with-temp-buffer
-         (insert-file-contents f-elfeed-protocol-newsblur-test-entries)
+         (insert-file-contents elfeed-protocol-newsblur-fixture-entries)
          (goto-char (point-min))
          (let* ((entries (elfeed-protocol-newsblur--parse-result
                            (elfeed-protocol-newsblur--parse-entries
