@@ -1,0 +1,107 @@
+{
+  "code": 1,
+  "authenticated": true,
+  "hidden_stories_removed": 0,
+  "elapsed_time": 0.18,
+  "user_search": null,
+  "stories": [
+    {
+      "friend_shares": [],
+      "story_authors": "pearphp",
+      "intelligence": {
+        "feed": 0,
+        "tags": 0,
+        "author": 0,
+        "title": 1
+      },
+      "story_permalink": "https://news.ycombinator.com/item?id=15889939",
+      "reply_count": 0,
+      "comment_user_ids": [],
+      "story_timestamp": "1512880499",
+      "share_user_ids": [],
+      "story_hash": "6188470:5a2628",
+      "id": "https://news.ycombinator.com/item?id=15889939",
+      "comment_count": null,
+      "score": 1,
+      "story_tags": [],
+      "share_count": null,
+      "friend_comments": [],
+      "story_date": "2017-12-10 04:34:59",
+      "short_parsed_date": "Yesterday, 11:34pm",
+      "guid_hash": "5a2628",
+      "image_urls": [],
+      "story_feed_id": 569,
+      "long_parsed_date": "Yesterday, December 9th 11:34pm",
+      "public_comments": [],
+      "read_status": 1,
+      "has_modifications": false,
+      "story_title": "Ask HN: What software/service helps you be an effective remote developer?",
+      "story_content": "<p>Article URL: <a href=\\\"https://news.ycombinator.com/item?id=15889939\\\">https://news.ycombinator.com/item?id=15889939</a></p><p>Comments URL: <a href=\\\"https://news.ycombinator.com/item?id=15889939\\\">https://news.ycombinator.com/item?id=15889939</a></p><p>Points: 54</p><p># Comments: 29</p>"
+    },
+    {
+      "friend_shares": [],
+      "story_authors": "Andrew Liptak",
+      "intelligence": {
+        "feed": 0,
+        "tags": 0,
+        "author": 0,
+        "title": 0
+      },
+      "story_permalink": "https://www.theverge.com/2017/12/9/16756896/jessica-jones-season-2-teaser-trailer-watch",
+      "reply_count": 0,
+      "comment_user_ids": [],
+      "story_timestamp": "1512858665",
+      "share_user_ids": [],
+      "story_hash": "576138:52eed5",
+      "id": "https://www.theverge.com/2017/12/9/16756896/jessica-jones-season-2-teaser-trailer-watch",
+      "comment_count": null,
+      "score": 0,
+      "story_tags": [
+        "fundings & exits",
+        "hyperloop"
+      ],
+      "share_count": null,
+      "friend_comments": [],
+      "story_date": "2017-12-09 22:31:05",
+      "short_parsed_date": "Yesterday, 5:31pm",
+      "guid_hash": "52eed5",
+      "image_urls": [
+        "https://cdn.vox-cdn.com/thumbor/KReBajkoWVvP5vYpwxqXWi8cD0w=/270x0:1920x864/fit-in/1200x630/cdn.vox-cdn.com/uploads/chorus_asset/file/9841323/Screen_Shot_2017_12_09_at_5.18.58_PM.png"
+      ],
+      "story_feed_id": 1186180,
+      "long_parsed_date": "Yesterday, December 9th 5:31pm",
+      "public_comments": [],
+      "read_status": 0,
+      "has_modifications": false,
+      "story_title": "Jessica Jones’ second season gets its first teaser",
+      "story_content": "<img alt=\\\"\\\" src=\\\"https://cdn.vox-cdn.com/thumbor/PqIG8gJs1QVUZtPx8_b0qvCS9dE=/484x0:1780x864/1310x873/cdn.vox-cdn.com/uploads/chorus_image/image/57920759/Screen_Shot_2017_12_09_at_5.18.58_PM.0.png\\\" />\\n\\n\\n\\n  <p id=\\\"iJKRgd\\\">When we last saw Jessica Jones in Netflix’s <a href=\\\"https://www.theverge.com/2017/8/18/16166630/the-defenders-trailers-updates-commentary-netflix-marvel-team-up\\\"><em>The Defenders</em></a>, she escaped from the destruction of Midland Circle along with Luke Cage and Danny Rand, who all look to move on with their lives after stopping The Hand. Netflix debuted the first trailer for the next season of <em>Marvel’s Jessica Jones</em>, showing that while Jones is trying to move on, her past is catching up to her. </p>\\n<p id=\\\"nKeEGa\\\">In the teaser, we see that Jones is back to working as a private investigator, musing that people have their secrets, or at least someone else’s. It seems that there’s still some surprises in her past: her friend Trish telling her that knowing what was done to her might be helpful. Jones isn’t sold on the idea, asking “what if facing it makes me worse?” Along the way,...</p>\\n  <p>\\n    <a href=\\\"https://www.theverge.com/2017/12/9/16756896/jessica-jones-season-2-teaser-trailer-watch\\\">Continue reading&hellip;</a>\\n  </p>",
+      "starred": true
+    }
+  ],
+  "result": "ok",
+  "message": null,
+  "classifiers": {
+    "576138": {
+      "authors": {},
+      "feeds": {},
+      "titles": {
+        "iPhone": 1
+      },
+      "tags": {}
+    },
+    "6188470": {
+      "authors": {},
+      "feeds": {},
+      "titles": {
+        "NYTimes": 1,
+        "Python": 1,
+        "Deep Learning": 1,
+        "JavaScript": 1,
+        "Facebook": -1,
+        "Ask HN": 1
+      },
+      "tags": {}
+    }
+  },
+  "user_profiles": []
+}
