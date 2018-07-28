@@ -1,0 +1,16 @@
+{
+   "seq":0,
+   "status":0,
+   "content":[
+     {
+       "feed_url":"http://tt-rss.org/forum/rss.php",
+       "title":"Tiny Tiny RSS: Forum",
+       "id":1,
+       "unread":46,
+       "has_icon":true,
+       "cat_id":0,
+       "last_updated":1494163883,
+       "order_id":0
+     }
+   ]
+}

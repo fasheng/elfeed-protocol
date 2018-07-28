@@ -2,143 +2,20 @@
 (require 'ert)
 (require 'elfeed)
 
-(defvar elfeed-protocol-ttrss-test-feeds-json
-  "{
-   \"seq\":0,
-   \"status\":0,
-   \"content\":[
-     {
-       \"feed_url\":\"http://tt-rss.org/forum/rss.php\",
-       \"title\":\"Tiny Tiny RSS: Forum\",
-       \"id\":1,
-       \"unread\":46,
-       \"has_icon\":true,
-       \"cat_id\":0,
-       \"last_updated\":1494163883,
-       \"order_id\":0
-     }
-   ]
-}")
+(defvar fixture-dir "./fixtures/ttrss/")
 
-(defvar elfeed-protocol-ttrss-test-entries-json
-  "{
-  \"seq\": 0,
-  \"status\": 0,
-  \"content\": [
-    {
-      \"id\": 1,
-      \"unread\": false,
-      \"marked\": false,
-      \"published\": false,
-      \"updated\": 1494158580,
-      \"is_updated\": false,
-      \"title\": \"Pictures not shown in some feeds with figure block\",
-      \"link\": \"http://discourse.tt-rss.org/t/pictures-not-shown-in-some-feeds-with-figure-block/79/14\",
-      \"feed_id\": \"1\",
-      \"tags\": [
-        \"\"
-      ],
-      \"attachments\": [],
-      \"content\": \"content1\",
-      \"labels\": [],
-      \"feed_title\": \"Tiny Tiny RSS: Forum\",
-      \"comments_count\": 0,
-      \"comments_link\": \"\",
-      \"always_display_attachments\": false,
-      \"author\": \"@fox\",
-      \"score\": 0,
-      \"note\": null,
-      \"lang\": \"\"
-    },
-    {
-      \"id\": 2,
-      \"unread\": true,
-      \"marked\": true,
-      \"published\": true,
-      \"updated\": 1512246430,
-      \"is_updated\": false,
-      \"title\": \"PDO is coming, here's what you need to know\",
-      \"link\": \"http://discourse.tt-rss.org/t/pdo-is-coming-heres-what-you-need-to-know/689/6\",
-      \"feed_id\": 1,
-      \"tags\": [
-        \"ttrss_tag1\",
-        \"ttrss_tag2\"
-      ],
-      \"content\": \"content2\",
-      \"labels\": [],
-      \"feed\_title\": \"Tiny Tiny RSS: Forum\",
-      \"comments\_count\": 0,
-      \"comments\_link\": \"\",
-      \"always\_display_attachments\": false,
-      \"author\": \"@fox\",
-      \"score\": 0,
-      \"note\": null,
-      \"lang\": \"\"
-    }
-  ]
-}")
+(defvar f-elfeed-protocol-ttrss-test-feeds
+  (concat fixture-dir "feeds.json"))
 
-(defvar elfeed-protocol-ttrss-test-no-feed-id-entries-json
-  "{
-  \"seq\": 0,
-  \"status\": 0,
-  \"content\": [
-    {
-      \"id\": 1,
-      \"unread\": true,
-      \"marked\": true,
-      \"published\": false,
-      \"updated\": 1494158580,
-      \"is_updated\": false,
-      \"title\": \"Pictures not shown in some feeds with figure block\",
-      \"link\": \"http://discourse.tt-rss.org/t/pictures-not-shown-in-some-feeds-with-figure-block/79/14\",
-      \"feed_id\": null,
-      \"tags\": [
-        \"\"
-      ],
-      \"attachments\": [],
-      \"content\": \"content1\",
-      \"labels\": [],
-      \"feed_title\": \"Tiny Tiny RSS: Forum\",
-      \"comments_count\": 0,
-      \"comments_link\": \"\",
-      \"always_display_attachments\": false,
-      \"author\": \"@fox\",
-      \"score\": 0,
-      \"note\": null,
-      \"lang\": \"\"
-    },
-    {
-      \"id\": 2,
-      \"unread\": true,
-      \"marked\": true,
-      \"published\": true,
-      \"updated\": 1512246430,
-      \"is_updated\": false,
-      \"title\": \"PDO is coming, here's what you need to know\",
-      \"link\": \"http://discourse.tt-rss.org/t/pdo-is-coming-heres-what-you-need-to-know/689/6\",
-      \"feed_id\": null,
-      \"tags\": [
-        \"ttrss_tag1\",
-        \"ttrss_tag2\"
-      ],
-      \"content\": \"content2\",
-      \"labels\": [],
-      \"feed\_title\": \"invalid feed title\",
-      \"comments\_count\": 0,
-      \"comments\_link\": \"\",
-      \"always\_display_attachments\": false,
-      \"author\": \"@fox\",
-      \"score\": 0,
-      \"note\": null,
-      \"lang\": \"\"
-    }
-  ]
-}")
+(defvar f-elfeed-protocol-ttrss-test-entries
+  (concat fixture-dir "entries.json"))
+
+(defvar f-elfeed-protocol-ttrss-test-no-feed-id-entries
+  (concat fixture-dir "entries-no-feed-id.json"))
 
 (ert-deftest elfeed-protocol-ttrss-parse-feeds ()
   (with-temp-buffer
-    (insert elfeed-protocol-ttrss-test-feeds-json)
+    (insert-file-contents f-elfeed-protocol-ttrss-test-feeds)
     (goto-char (point-min))
     (with-elfeed-test
      (let* ((proto-url "ttrss+https://user:pass@myhost.com:443")
@@ -164,7 +41,7 @@
 
 (ert-deftest elfeed-protocol-ttrss-parse-entries ()
   (with-temp-buffer
-    (insert elfeed-protocol-ttrss-test-feeds-json)
+    (insert-file-contents f-elfeed-protocol-ttrss-test-feeds)
     (goto-char (point-min))
     (with-elfeed-test
      (let* ((proto-url "ttrss+https://user:pass@myhost.com")
@@ -177,7 +54,7 @@
                                            (elfeed-protocol-ttrss--parse-feeds
                                             host-url content))))
        (with-temp-buffer
-         (insert elfeed-protocol-ttrss-test-entries-json)
+         (insert-file-contents f-elfeed-protocol-ttrss-test-entries)
          (goto-char (point-min))
          (let* ((entries (elfeed-protocol-ttrss--parse-result
                            (elfeed-protocol-ttrss--parse-entries
@@ -200,9 +77,9 @@
                     '(ttrss_tag2 ttrss_tag1 publish star tag1 unread)))
            ))))))
 
-(ert-deftest elfeed-protocol-ttrss-parse-no-fee-id-entries ()
+(ert-deftest elfeed-protocol-ttrss-parse-no-feed-id-entries ()
   (with-temp-buffer
-    (insert elfeed-protocol-ttrss-test-feeds-json)
+    (insert-file-contents f-elfeed-protocol-ttrss-test-feeds)
     (goto-char (point-min))
     (with-elfeed-test
      (let* ((proto-url "ttrss+https://user:pass@myhost.com")
@@ -215,7 +92,7 @@
                                            (elfeed-protocol-ttrss--parse-feeds
                                             host-url content))))
        (with-temp-buffer
-         (insert elfeed-protocol-ttrss-test-no-feed-id-entries-json)
+         (insert-file-contents f-elfeed-protocol-ttrss-test-no-feed-id-entries)
          (goto-char (point-min))
          (let* ((entries (elfeed-protocol-ttrss--parse-result
                            (elfeed-protocol-ttrss--parse-entries
