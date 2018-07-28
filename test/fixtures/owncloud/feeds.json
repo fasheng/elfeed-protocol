@@ -1,0 +1,34 @@
+{
+  "starredCount": 1,
+  "feeds": [
+    {
+      "id": 1,
+      "url": "http://www.example.com/feed/",
+      "title": "Feed 1",
+      "faviconLink": "http://www.example.com/favicon.ico",
+      "added": 1492783825,
+      "folderId": 11,
+      "unreadCount": 2,
+      "ordering": 0,
+      "link": "http://www.example.com/",
+      "pinned": false,
+      "updateErrorCount": 0,
+      "lastUpdateError": null
+    },
+    {
+      "id": 2,
+      "url": "http://www.example2.com/rss.jsp",
+      "title": "Feed 2",
+      "faviconLink": "",
+      "added": 1492784045,
+      "folderId": 12,
+      "unreadCount": 0,
+      "ordering": 0,
+      "link": "http://www.example2.com/",
+      "pinned": false,
+      "updateErrorCount": 0,
+      "lastUpdateError": ""
+    }
+  ],
+  "newestItemId": 2
+}
