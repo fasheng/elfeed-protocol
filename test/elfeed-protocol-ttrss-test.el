@@ -59,7 +59,7 @@
       \"is_updated\": false,
       \"title\": \"PDO is coming, here's what you need to know\",
       \"link\": \"http://discourse.tt-rss.org/t/pdo-is-coming-heres-what-you-need-to-know/689/6\",
-      \"feed_id\": \"1\",
+      \"feed_id\": 1,
       \"tags\": [
         \"ttrss_tag1\",
         \"ttrss_tag2\"
