@@ -263,27 +263,27 @@ parsed entries."
         (setq entries
               (cl-loop for headline across headlines
                        when
-                       (pcase-let* (((map ('feed_id feed-id-str)
+                       (pcase-let* (((map ('feed_id feed-id)
                                           ('feed_title feed-title))
                                      headline)
                                     (feed-id
-                                     (if (null feed-id-str)
+                                     (if (null feed-id)
                                          (elfeed-protocol-ttrss--get-subfeed-id-by-title host-url feed-title)
-                                       (string-to-number feed-id-str))))
+                                       (if (stringp feed-id) (string-to-number feed-id) feed-id))))
                          feed-id)
                        collect
                        (pcase-let* (((map id ('link entry-url) title
                                           author ('updated pub-date) ('content body)
                                           ('tags ttrss-tags) attachments
-                                          ('feed_id feed-id-str)
+                                          ('feed_id feed-id)
                                           ('feed_title feed-title)
                                           )
                                      headline)
                                     (guid-hash (elfeed-generate-id body))
                                     (feed-id
-                                     (if (null feed-id-str)
+                                     (if (null feed-id)
                                          (elfeed-protocol-ttrss--get-subfeed-id-by-title host-url feed-title)
-                                       (string-to-number feed-id-str)))
+                                       (if (stringp feed-id) (string-to-number feed-id) feed-id)))
                                     (feed-url
                                      (if (null feed-id)
                                          ""
