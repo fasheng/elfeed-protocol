@@ -1,0 +1,211 @@
+{
+  "folders": [
+    {
+      "Writers": [
+        76,
+        38,
+        569,
+        183139,
+        5708255,
+        21309
+      ]
+    },
+    {
+      "Blogs": [
+        6227976,
+        6227690,
+        3581,
+        5994357,
+        1186180,
+        5636682,
+        526,
+        5261603,
+        {
+          "Photoblogs": [
+            50,
+            551953,
+            34,
+            776101,
+            3556,
+            1480028,
+            1095,
+            588075,
+            5984253,
+            5752038,
+            1627
+          ]
+        },
+        6605581
+      ]
+    }
+  ],
+  "saved_searches": [],
+  "user_id": 39040,
+  "social_profile": {
+    "website": "",
+    "following_user_ids": [
+      32048,
+      13,
+      33405,
+      26578,
+      219352
+    ],
+    "following_count": 5,
+    "shared_stories_count": 0,
+    "private": true,
+    "large_photo_url": "https://www.gravatar.com/avatar/e3c7a29b7538122f0ee20f8e9cf05f42",
+    "id": "social:39040",
+    "feed_address": "http://www.newsblur.com/social/rss/39040/homepage",
+    "user_id": 39040,
+    "feed_link": "http://homepage.newsblur.com/",
+    "follower_user_ids": [
+      33143,
+      33727,
+      39285,
+      35059
+    ],
+    "location": "",
+    "popular_publishers": [],
+    "follower_count": 4,
+    "username": "homepage",
+    "bio": "",
+    "average_stories_per_month": 0,
+    "feed_title": "homepage's blurblog",
+    "photo_service": "gravatar",
+    "stories_last_month": 0,
+    "photo_url": "https://www.gravatar.com/avatar/e3c7a29b7538122f0ee20f8e9cf05f42",
+    "num_subscribers": 4,
+    "protected": true
+  },
+  "starred_counts": [
+    {
+      "count": 0,
+      "feed_address": "http://www.newsblur.com/reader/starred_rss/39040/75ddb05c6a00/",
+      "tag": "",
+      "feed_id": null
+    }
+  ],
+  "starred_count": 0,
+  "is_staff": false,
+  "result": "ok",
+  "authenticated": true,
+  "feeds": {
+    "1186180": {
+      "subs": 14627,
+      "favicon_url": "https://s3.amazonaws.com/icons.newsblur.com/1186180.png",
+      "is_push": false,
+      "feed_opens": 183034,
+      "id": 1186180,
+      "s3_icon": true,
+      "feed_link": "http://bestof.metafilter.com/",
+      "updated_seconds_ago": 1055,
+      "favicon_fetching": false,
+      "ng": 0,
+      "favicon_border": "004c72",
+      "last_story_date": "2017-12-09 17:01:18",
+      "nt": 1,
+      "not_yet_fetched": false,
+      "updated": "17 minutes",
+      "average_stories_per_month": 10,
+      "ps": 0,
+      "feed_address": "http://feeds.feedburner.com/BestOfMetafilter",
+      "feed_title": "Best of MetaFilter",
+      "favicon_fade": "2489bb",
+      "is_newsletter": false,
+      "last_story_seconds_ago": 51343,
+      "favicon_color": "016698",
+      "stories_last_month": 19,
+      "active": true,
+      "fetched_once": true,
+      "favicon_text_color": "white",
+      "subscribed": true,
+      "num_subscribers": 14627,
+      "s3_page": false,
+      "min_to_decay": 22,
+      "search_indexed": true
+    },
+    "569": {
+      "subs": 16058,
+      "favicon_url": "https://s3.amazonaws.com/icons.newsblur.com/569.png",
+      "is_push": false,
+      "feed_opens": 40418,
+      "id": 569,
+      "s3_icon": true,
+      "feed_link": "http://anildash.com/",
+      "updated_seconds_ago": 965,
+      "favicon_fetching": false,
+      "ng": 0,
+      "favicon_border": "818180",
+      "last_story_date": "2017-09-11 13:07:05",
+      "nt": 0,
+      "not_yet_fetched": false,
+      "updated": "16 minutes",
+      "average_stories_per_month": 3,
+      "ps": 0,
+      "feed_address": "http://feeds.dashes.com/AnilDash",
+      "feed_title": "Anil Dash",
+      "favicon_fade": "cfcfce",
+      "is_newsletter": false,
+      "last_story_seconds_ago": 7754996,
+      "favicon_color": "acacab",
+      "stories_last_month": 0,
+      "active": true,
+      "fetched_once": true,
+      "favicon_text_color": "white",
+      "subscribed": true,
+      "num_subscribers": 16058,
+      "s3_page": false,
+      "min_to_decay": 720,
+      "search_indexed": true
+    }
+  },
+  "social_services": {
+    "facebook": {
+      "syncing": false,
+      "facebook_picture_url": null,
+      "facebook_uid": null
+    },
+    "twitter": {
+      "twitter_username": null,
+      "syncing": false,
+      "twitter_picture_url": null,
+      "twitter_uid": null
+    },
+    "gravatar": {
+      "gravatar_picture_url": "https://www.gravatar.com/avatar/e3c7a29b7538122f0ee20f8e9cf05f42"
+    },
+    "appdotnet": {
+      "syncing": false,
+      "appdotnet_uid": null,
+      "appdotnet_picture_url": null
+    },
+    "upload": {
+      "upload_picture_url": null
+    }
+  },
+  "categories": null,
+  "social_feeds": [
+    {
+      "username": "popular",
+      "ps": 0,
+      "user_id": 32048,
+      "subscription_user_id": 32048,
+      "feed_link": "http://popular.newsblur.com/",
+      "feed_address": "http://www.newsblur.com/social/rss/32048/popular",
+      "feed_opens": 59743,
+      "num_subscribers": 42590,
+      "shared_stories_count": 2163,
+      "private": false,
+      "feed_title": "The People Have Spoken",
+      "protected": false,
+      "location": "",
+      "photo_url": "https://s3.amazonaws.com/avatars.newsblur.com/avatars/32048/thumbnail_profile_1358188630.jpg",
+      "large_photo_url": "https://s3.amazonaws.com/avatars.newsblur.com/avatars/32048/large_profile_1358188630.jpg",
+      "is_trained": false,
+      "ng": 0,
+      "nt": 0,
+      "id": "social:32048",
+      "page_url": "/social/page/32048/popular"
+    }
+  ]
+}
