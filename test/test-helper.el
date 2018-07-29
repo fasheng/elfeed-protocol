@@ -22,3 +22,12 @@
      (unwind-protect
          (progn ,@body)
        (delete-directory temp-dir :recursive))))
+
+(defmacro with-fixture (fixture-path &rest body)
+  "Run BODY with the contents of the file specified by
+FIXTURE-PATH inserted into a temporary buffer."
+  (declare (indent defun))
+  `(with-temp-buffer
+     (insert-file-contents ,fixture-path)
+     (goto-char (point-min))
+     ,@body))
