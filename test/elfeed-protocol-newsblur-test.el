@@ -2,7 +2,7 @@
 (require 'ert)
 (require 'elfeed)
 
-(defvar elfeed-protocol-newsblur-fixture-dir "./fixtures/newsblur/")
+(defvar elfeed-protocol-newsblur-fixture-dir (concat (file-name-directory load-file-name) "fixtures/newsblur/"))
 
 (defvar elfeed-protocol-newsblur-fixture-feeds
   (concat elfeed-protocol-newsblur-fixture-dir "feeds.json"))

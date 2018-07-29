@@ -2,7 +2,7 @@
 (require 'ert)
 (require 'elfeed)
 
-(defvar elfeed-protocol-owncloud-fixtures-dir "./fixtures/owncloud/")
+(defvar elfeed-protocol-owncloud-fixtures-dir (concat (file-name-directory load-file-name) "fixtures/owncloud/"))
 
 (defvar elfeed-protocol-owncloud-fixture-feeds
   (concat elfeed-protocol-owncloud-fixtures-dir "feeds.json"))

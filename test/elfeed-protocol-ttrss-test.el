@@ -2,7 +2,7 @@
 (require 'ert)
 (require 'elfeed)
 
-(defvar elfeed-protocol-ttrss-fixture-dir "./fixtures/ttrss/")
+(defvar elfeed-protocol-ttrss-fixture-dir (concat (file-name-directory load-file-name) "fixtures/ttrss/"))
 
 (defvar elfeed-protocol-ttrss-fixture-feeds
   (concat elfeed-protocol-ttrss-fixture-dir "feeds.json"))
