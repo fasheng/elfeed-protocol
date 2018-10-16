@@ -4,7 +4,7 @@
 ;; URL: https://github.com/fasheng/elfeed-protocol
 ;; Version: 0.3.2
 ;; Package-Version: 20170501.1349
-;; Package-Requires : ((emacs "24.4") (elfeed "2.1.1") (cl-lib "0.5"))
+;; Package-Requires : ((emacs "24.4") (elfeed "2.1.1") (cl-lib "0.5") auth-source)
 ;; Keywords: news
 
 ;;; Commentary:
@@ -22,9 +22,28 @@
 ;;   ;; setup extra protocol feeds
 ;;   (require 'elfeed-protocol)
 ;;   (setq elfeed-feeds (list
+;;                       ;; format 1
 ;;                       "owncloud+https://user1:pass1@myhost.com"
+;;
+;;                       ;; format 2, for password with special characters
 ;;                       (list "owncloud+https://user2@myhost.com"
-;;                             :password "password/with|special@characters:"
+;;                             :password "password/with|special@characters:")
+;;
+;;                       ;; format 3, for password in file
+;;                       (list "owncloud+https://user3@myhost.com"
+;;                             :password-file "~/.password")
+;;
+;;                       ;; format 4, for password in .authinfo, ensure (auth-source-search :host "myhost.com" :port "443" :user "user4") exists
+;;                       (list "owncloud+https://user4@myhost.com"
+;;                             :use-authinfo t)
+;;
+;;                       ;; format 5, for password in gnome-keyring
+;;                       (list "owncloud+https://user5@myhost.com"
+;;                             :password (shell-command-to-string "secret-tool lookup attribute value"))
+;;
+;;                       ;; use autotags
+;;                       (list "owncloud+https://user6@myhost.com"
+;;                             :password "password"
 ;;                             :autotags '(("example.com" comic)))))
 ;;   (elfeed-protocol-enable)
 
@@ -195,12 +214,31 @@ PROP could be :password, :autotags etc."
     (url-user urlobj)))
 
 (defun elfeed-protocol-meta-password (proto-id)
-  "Get :password property data in `elfeed-feeds` for PROTO-ID."
+  "Get :password property data in `elfeed-feeds` for PROTO-ID.
+Will try to get password in url, password filed, passowrd file and
+.authinfo one by one."
   (let* ((proto-url (elfeed-protocol-meta-url proto-id))
          (urlobj (url-generic-parse-url (elfeed-protocol-url proto-url))))
-    (if (url-password urlobj)
-        (url-password urlobj)
-      (elfeed-protocol-meta-data proto-id :password))))
+    (cond
+     ((url-password urlobj) (url-password urlobj))
+     ((elfeed-protocol-meta-data proto-id :password)
+      (elfeed-protocol-meta-data proto-id :password))
+     ((elfeed-protocol-meta-data proto-id :password-file)
+      (elfeed-protocol-get-string-from-file
+       (elfeed-protocol-meta-data proto-id :password-file)))
+     ((elfeed-protocol-meta-data proto-id :use-authinfo)
+      (require 'auth-source)
+      (let* ((auth-info (auth-source-search :host (url-host urlobj)
+                                            :port (url-port urlobj)
+                                            :user (url-user urlobj)))
+             (secret (plist-get (car auth-info) :secret)))
+        (if (functionp secret) (funcall secret) secret))))))
+
+(defun elfeed-protocol-get-string-from-file (path)
+  "Return file content in PATH."
+  (with-temp-buffer
+    (insert-file-contents path)
+    (buffer-string)))
 
 (defun elfeed-protocol-meta-autotags (proto-id)
   "Get :autotags property data in `elfeed-feeds` for PROTO-ID."
