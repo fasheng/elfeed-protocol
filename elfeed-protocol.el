@@ -39,7 +39,11 @@
 ;;
 ;;                       ;; format 5, for password in gnome-keyring
 ;;                       (list "owncloud+https://user5@myhost.com"
-;;                             :password (shell-command-to-string "secret-tool lookup attribute value"))
+;;                             :password-eval (shell-command-to-string "secret-tool lookup attribute value"))
+;;
+;;                       ;; format 5, for password in pass(1), using password-store.el
+;;                       (list "owncloud+https://user5@myhost.com"
+;;                             :password-eval (password-store-get "owncloud/app-pass"))
 ;;
 ;;                       ;; use autotags
 ;;                       (list "owncloud+https://user6@myhost.com"
@@ -223,6 +227,8 @@ Will try to get password in url, password filed, passowrd file and
      ((url-password urlobj) (url-password urlobj))
      ((elfeed-protocol-meta-data proto-id :password)
       (elfeed-protocol-meta-data proto-id :password))
+     ((elfeed-protocol-meta-data proto-id :password-eval)
+      (eval (elfeed-protocol-meta-data proto-id :password-eval)))
      ((elfeed-protocol-meta-data proto-id :password-file)
       (elfeed-protocol-get-string-from-file
        (elfeed-protocol-meta-data proto-id :password-file)))
