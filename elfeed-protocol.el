@@ -21,34 +21,34 @@
 ;;
 ;;   ;; setup extra protocol feeds
 ;;   (require 'elfeed-protocol)
-;;   (setq elfeed-feeds (list
-;;                       ;; format 1
-;;                       "owncloud+https://user1:pass1@myhost.com"
+;;   (setq elfeed-feeds '(
+;;                        ;; format 1
+;;                        "owncloud+https://user1:pass1@myhost.com"
 ;;
-;;                       ;; format 2, for password with special characters
-;;                       (list "owncloud+https://user2@myhost.com"
-;;                             :password "password/with|special@characters:")
+;;                        ;; format 2, for password with special characters
+;;                        ("owncloud+https://user2@myhost.com"
+;;                         :password "password/with|special@characters:")
 ;;
-;;                       ;; format 3, for password in file
-;;                       (list "owncloud+https://user3@myhost.com"
-;;                             :password-file "~/.password")
+;;                        ;; format 3, for password in file
+;;                        ("owncloud+https://user3@myhost.com"
+;;                         :password-file "~/.password")
 ;;
-;;                       ;; format 4, for password in .authinfo, ensure (auth-source-search :host "myhost.com" :port "443" :user "user4") exists
-;;                       (list "owncloud+https://user4@myhost.com"
-;;                             :use-authinfo t)
+;;                        ;; format 4, for password in .authinfo, ensure (auth-source-search :host "myhost.com" :port "443" :user "user4") exists
+;;                        ("owncloud+https://user4@myhost.com"
+;;                         :use-authinfo t)
 ;;
-;;                       ;; format 5, for password in gnome-keyring
-;;                       (list "owncloud+https://user5@myhost.com"
-;;                             :password-eval (shell-command-to-string "secret-tool lookup attribute value"))
+;;                        ;; format 5, for password in gnome-keyring
+;;                        ("owncloud+https://user5@myhost.com"
+;;                         :password (shell-command-to-string "secret-tool lookup attribute value"))
 ;;
-;;                       ;; format 5, for password in pass(1), using password-store.el
-;;                       (list "owncloud+https://user5@myhost.com"
-;;                             :password-eval (password-store-get "owncloud/app-pass"))
+;;                        ;; format 5, for password in pass(1), using password-store.el
+;;                        ("owncloud+https://user5@myhost.com"
+;;                         :password (password-store-get "owncloud/app-pass"))
 ;;
-;;                       ;; use autotags
-;;                       (list "owncloud+https://user6@myhost.com"
-;;                             :password "password"
-;;                             :autotags '(("example.com" comic)))))
+;;                        ;; use autotags
+;;                        ("owncloud+https://user6@myhost.com"
+;;                         :password "password"
+;;                         :autotags '(("example.com" comic)))))
 ;;   (elfeed-protocol-enable)
 
 ;;; Code:
@@ -222,16 +222,24 @@ PROP could be :password, :autotags etc."
 Will try to get password in url, password filed, passowrd file and
 .authinfo one by one."
   (let* ((proto-url (elfeed-protocol-meta-url proto-id))
-         (urlobj (url-generic-parse-url (elfeed-protocol-url proto-url))))
+         (urlobj (url-generic-parse-url (elfeed-protocol-url proto-url)))
+         (meta-pass (elfeed-protocol-meta-data proto-id :password)))
     (cond
      ((url-password urlobj) (url-password urlobj))
-     ((elfeed-protocol-meta-data proto-id :password)
-      (elfeed-protocol-meta-data proto-id :password))
-     ((elfeed-protocol-meta-data proto-id :password-eval)
-      (eval (elfeed-protocol-meta-data proto-id :password-eval)))
+
+     ((and meta-pass (stringp meta-pass))
+      meta-pass)
+
+     ((and meta-pass (functionp meta-pass))
+      (funcall meta-pass))
+
+     ((and meta-pass (listp meta-pass) (functionp (car meta-pass)))
+      (eval meta-pass))
+
      ((elfeed-protocol-meta-data proto-id :password-file)
       (elfeed-protocol-get-string-from-file
        (elfeed-protocol-meta-data proto-id :password-file)))
+
      ((elfeed-protocol-meta-data proto-id :use-authinfo)
       (require 'auth-source)
       (let* ((auth-info (auth-source-search :host (url-host urlobj)
