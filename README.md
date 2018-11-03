@@ -23,8 +23,8 @@ Setup elfeed-protocol, then switch to search view and and press G to update entr
 (setq elfeed-use-curl t)
 (elfeed-set-timeout 36000)
 (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
+
 ;; setup extra protocol feeds
-(require 'elfeed-protocol)
 (setq elfeed-feeds '(
                      ;; format 1
                      "owncloud+https://user1:pass1@myhost.com"
@@ -64,7 +64,8 @@ after advice for `elfeed`:
   "Make elfeed-org autotags rules works with elfeed-protocol."
   (setq elfeed-protocol-tags elfeed-feeds)
   (setq elfeed-feeds (list
-                      (list "owncloud+https://user:pass@myhost.com"
+                      (list "owncloud+https://user@myhost.com"
+                            :password '(password-store-get "owncloud/app-pass")
                             :autotags elfeed-protocol-tags))))
 ```
 
