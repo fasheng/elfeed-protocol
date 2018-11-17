@@ -176,6 +176,8 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
 `elfeed-protocol-owncloud--parse-entries' in the buffer."
   (if (> (hash-table-count elfeed-protocol-owncloud-feeds) 0)
       (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
+             (unread-num 0)
+             (starred-num 0)
              (begin-time (time-to-seconds))
              (min-first-entry-id (elfeed-protocol-get-first-entry-id proto-id))
              (max-last-entry-id (elfeed-protocol-get-last-entry-id proto-id))
@@ -233,6 +235,9 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
                                                                :id id
                                                                :guid-hash guid-hash
                                                                :feed-id feed-id)))))
+                         (when unread (setq unread-num (+ unread-num 1)))
+                         (when starred (setq starred-num (+ starred-num 1)))
+
                          ;; force override unread and star tags without repeat sync operation
                          (when original
                            (if unread (elfeed-tag-1 original 'unread)
@@ -251,6 +256,9 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
                          (dolist (hook elfeed-new-entry-parse-hook)
                            (run-hook-with-args hook :owncloud item db-entry))
                          db-entry)))
+        (elfeed-db-add entries)
+        (when callback (funcall callback entries))
+
         ;; update last modified time and first last entry id
         (when (and mark-state (>= min-first-entry-id 0))
           (elfeed-protocol-set-first-entry-id proto-id min-first-entry-id))
@@ -259,10 +267,9 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
         (when (and mark-state (> max-last-modified 0))
           (elfeed-protocol-set-last-modified proto-id max-last-modified))
 
-        (elfeed-db-add entries)
-        (when callback (funcall callback entries))
-        (elfeed-log 'debug "elfeed-protocol-owncloud: parsed %s entries with %fs, first-entry-id: %d last-entry-id: %d last-modified: %d"
-                    (length entries) (- (time-to-seconds) begin-time)
+        (elfeed-log 'debug "elfeed-protocol-owncloud: parsed %s entries(%d unread, %d starred) with %fs, first-entry-id: %d last-entry-id: %d last-modified: %d"
+                    (length entries) unread-num starred-num
+                    (- (time-to-seconds) begin-time)
                     (elfeed-protocol-get-first-entry-id proto-id)
                     (elfeed-protocol-get-last-entry-id proto-id)
                     (elfeed-protocol-get-last-modified proto-id))
@@ -533,7 +540,7 @@ result entries as argument"
           (concat host-url elfeed-protocol-owncloud-api-feeds) nil
           (elfeed-protocol-owncloud--parse-feeds host-url)
           (if (> last-modified 0)
-              (elfeed-protocol-owncloud--do-update host-url 'update-since-time (+ 1 last-modified) callback)
+              (elfeed-protocol-owncloud--do-update host-url 'update-since-time last-modified callback)
             (elfeed-protocol-owncloud--do-update host-url 'init nil callback)))))))
 
 (provide 'elfeed-protocol-owncloud)
