@@ -269,13 +269,13 @@ the result entries as argument.  Return parsed entries."
                          (dolist (hook elfeed-new-entry-parse-hook)
                            (run-hook-with-args hook :newsblur headline db-entry))
                          db-entry)))
+        (elfeed-db-add entries)
+        (when callback (funcall callback entries))
 
         ;; update last modified time
         (when (and mark-state (> max-last-modified 0))
           (elfeed-protocol-set-last-modified proto-id max-last-modified))
 
-        (elfeed-db-add entries)
-        (when callback (funcall callback entries))
         (elfeed-log 'debug "elfeed-protocol-newsblur: parsed %s entries with %fs, last-modified: %d"
                     (length entries) (- (time-to-seconds) begin-time)
                     (elfeed-protocol-get-last-modified proto-id))

@@ -352,14 +352,15 @@ parsed entries."
                          (dolist (hook elfeed-new-entry-parse-hook)
                            (run-hook-with-args hook :ttrss headline db-entry))
                          db-entry)))
+        (elfeed-db-add entries)
+        (when callback (funcall callback entries))
+
         ;; update first and last entry id
         (when (and mark-state (>= min-first-entry-id 0))
           (elfeed-protocol-set-first-entry-id proto-id min-first-entry-id))
         (when (and mark-state (>= max-last-entry-id 0))
           (elfeed-protocol-set-last-entry-id proto-id max-last-entry-id))
 
-        (elfeed-db-add entries)
-        (when callback (funcall callback entries))
         (elfeed-log 'debug "elfeed-protocol-ttrss: parsed %s entries with %fs, first-entry-id: %d last-entry-id: %d"
                     (length entries) (- (time-to-seconds) begin-time)
                     (elfeed-protocol-get-first-entry-id proto-id)
