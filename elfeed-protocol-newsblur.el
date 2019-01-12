@@ -7,6 +7,7 @@
 (require 'json)
 (require 'url)
 (require 'elfeed)
+(require 'subr-x)
 
 ;;; Code:
 
