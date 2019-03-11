@@ -395,15 +395,15 @@ nil, will call it with the result entries as argument."
                                        ,elfeed-protocol-ttrss-api-feed-id-starred)
                                       ("view_mode" .
                                        ,elfeed-protocol-ttrss-api-view-mode-all-articles))))
-         (data-list-unread (append data-list-base
-                                   `(("feed_id" .
-                                      ,elfeed-protocol-ttrss-api-feed-id-all-articles)
-                                     ("view_mode" .
-                                      ,elfeed-protocol-ttrss-api-view-mode-unread)))))
+         (data-list-all (append data-list-base
+                                `(("feed_id" .
+                                   ,elfeed-protocol-ttrss-api-feed-id-all-articles)
+                                  ("view_mode" .
+                                   ,elfeed-protocol-ttrss-api-view-mode-all-articles)))))
     (unless elfeed--inhibit-update-init-hooks
       (run-hooks 'elfeed-update-init-hooks))
     (cond
-     ;; initial sync, fetch starred, unread and latest entries
+     ;; initial sync, fetch starred and latest entries
      ((eq action 'init)
       (elfeed-protocol-set-first-entry-id proto-id -1)
       (elfeed-protocol-set-last-entry-id proto-id -1)
@@ -411,23 +411,9 @@ nil, will call it with the result entries as argument."
         host-url "GET" (json-encode-alist data-list-starred)
         (elfeed-protocol-ttrss--parse-entries host-url content nil callback)
         (elfeed-protocol-ttrss-with-fetch
-          host-url "GET" (json-encode-alist data-list-unread)
+          host-url "GET" (json-encode-alist data-list-all)
           (elfeed-protocol-ttrss--parse-entries host-url content t callback)
-          (let* ((since-id (elfeed-protocol-get-first-entry-id proto-id))
-                 (data-list-since (append data-list-base
-                                          `(("feed_id" .
-                                             ,elfeed-protocol-ttrss-api-feed-id-all-articles)
-                                            ("view_mode" .
-                                             ,elfeed-protocol-ttrss-api-view-mode-all-articles)
-                                            ("since_id" . ,since-id)))))
-            ;; reset last entry id same with first entry id, so no
-            ;; articles will be skipped in the following update
-            ;; operation
-            (elfeed-protocol-set-last-entry-id proto-id since-id)
-            (elfeed-protocol-ttrss-with-fetch
-              host-url "GET" (json-encode-alist data-list-since)
-              (elfeed-protocol-ttrss--parse-entries host-url content t callback)
-              (run-hook-with-args 'elfeed-update-hooks host-url))))))
+          (run-hook-with-args 'elfeed-update-hooks host-url))))
      ;; update entries since last
      ((eq action 'update)
       (let* ((since-id (elfeed-protocol-get-last-entry-id proto-id))
