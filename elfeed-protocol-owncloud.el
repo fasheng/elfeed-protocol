@@ -346,7 +346,7 @@ time, ensure `elfeed-curl-timeout' is big enough."
     (elfeed-protocol-owncloud--parse-feeds host-url)
     (elfeed-protocol-owncloud--do-update host-url 'init)))
 
-(defun elfeed-protocol-owncloud-update-since-now (host-url &optional timestamp)
+(defun elfeed-protocol-owncloud-update-since-timestamp (host-url &optional timestamp)
   "Update entries since special timestamp.
 HOST-URL is the host name of ownCloud server.  TIMESTAMP is the
 seconds since 1970-01-01 00:00:00 UTC, the default timestamp just

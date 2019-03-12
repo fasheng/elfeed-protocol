@@ -195,7 +195,7 @@ make package-lint
    1. Method 3, some protocol provide update method to reset the last
       modified time to skip some data, for example:
 
-          M-x elfeed-protocol-owncloud-update-since-now
+          M-x elfeed-protocol-owncloud-update-since-timestamp
 
 # License
 
