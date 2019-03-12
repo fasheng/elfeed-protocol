@@ -17,8 +17,11 @@ Will generate one if is empty or invalid."
   :group 'elfeed-protocol
   :type 'string)
 
-(defcustom elfeed-protocol-ttrss-maxsize 1000
-  "Maximize entries size for each request."
+(defcustom elfeed-protocol-ttrss-maxsize 200
+  "Maximize entries size for each request.
+As the document said, before API level 6 maximum amount of returned headlines is
+capped at 60, API 6 and above sets it to 200. So set bigger than 200 just
+invalid."
   :group 'elfeed-protocol
   :type 'integer)
 
@@ -45,6 +48,7 @@ then the published state in Tiny Tiny RSS will be synced, too."
   "Feed list from Tiny Tiny RSS, will be filled before updating operation.")
 
 (defconst elfeed-protocol-ttrss-api-base "/api/")
+(defconst elfeed-protocol-ttrss-api-max-limit 200)
 (defconst elfeed-protocol-ttrss-api-status-ok 0)
 (defconst elfeed-protocol-ttrss-api-status-err 1)
 (defconst elfeed-protocol-ttrss-api-feed-id-starred -1)
@@ -70,6 +74,36 @@ then the published state in Tiny Tiny RSS will be synced, too."
   "Get http request headers for ttrss."
   `(("User-Agent" . ,elfeed-user-agent)
     ("Content-Type" . "application/json")))
+
+(defun elfeed-protocol-ttrss-get-entry-skip (proto-id update-action)
+  "Get last entry skip count for special UPDATE-ACTION.
+PROTO-ID is the target protocol feed id.  UPDATE-ACTION could be update,
+update-older or update-star.  If not initialized, just return -1."
+  (interactive (list (elfeed-protocol-url
+                      (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))
+                     (completing-read "Update action: " '(update update-older update-star))))
+  (let* ((feed (elfeed-db-get-feed proto-id))
+         (key-name (cond
+                    ((eq update-action 'update) :last-entry-skip)
+                    ((eq update-action 'update-older) :first-entry-skip)
+                    ((eq update-action 'update-star) :star-entry-skip)))
+         (skip (elfeed-meta feed key-name)))
+    (if skip skip -1)))
+
+(defun elfeed-protocol-ttrss-set-entry-skip (proto-id update-action skip)
+  "Set last entry skip count to elfeed db.
+PROTO-ID is the target protocol feed id.  UPDATE-ACTION could be update,
+update-older or update-star.  SKIP the target value."
+  (interactive (list (elfeed-protocol-url
+                      (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))
+                     (completing-read "Update action: " '(update update-older update-star))
+                     (read-string "Skip count: ")))
+  (let* ((feed (elfeed-db-get-feed proto-id))
+         (key-name (cond
+                    ((eq update-action 'update) :last-entry-skip)
+                    ((eq update-action 'update-older) :first-entry-skip)
+                    ((eq update-action 'update-star) :star-entry-skip))))
+    (setf (elfeed-meta feed key-name) skip)))
 
 (defmacro elfeed-protocol-ttrss-with-fetch (host-url method data &rest body)
   "Just like `elfeed-with-fetch' but special for ttrss HTTP request.
@@ -244,23 +278,23 @@ result JSON content by http request.  Return
          (proto-type (when proto-id (elfeed-protocol-type proto-id))))
     (string= proto-type "ttrss")))
 
-(defun elfeed-protocol-ttrss--parse-entries (host-url content &optional mark-state callback)
+(defun elfeed-protocol-ttrss--parse-entries (host-url content &optional mark-state update-action callback)
   "Parse the entries JSON buffer and fill results to elfeed db.
-HOST-URL is the host name of Tiny Tiny RSS server.  CONTENT is the
-result JSON content by http request.  If MARK-STATE is nil, then just
-not update :last-entry-id and :first-entry-id values.  If CALLBACK is
-not nil, will call it with the result entries as argument.  Return
-parsed entries."
+HOST-URL is the host name of Tiny Tiny RSS server.  CONTENT is the result JSON
+content by http request.  If MARK-STATE is nil, then just not update
+:last-entry-skip, :first-entry-skip or :star-entry-skip values.  UPDATE-ACTION
+could be update, update-older or update-star.  If CALLBACK is not nil, will call
+it with the result entries as argument.  Return parsed entries."
   (if (> (hash-table-count elfeed-protocol-ttrss-feeds) 0)
       (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
+             (entry-skip (elfeed-protocol-ttrss-get-entry-skip proto-id update-action))
+             (max-entry-id -1)
+             (unread-num 0)
+             (starred-num 0)
              (begin-time (time-to-seconds))
-             (min-first-entry-id (elfeed-protocol-get-first-entry-id proto-id))
-             (max-last-entry-id (elfeed-protocol-get-last-entry-id proto-id))
              (headlines content)
              entries)
-        (elfeed-log 'debug "elfeed-protocol-ttrss: parsing entries, first-entry-id: %d last-entry-id: %d"
-                    (elfeed-protocol-get-first-entry-id proto-id)
-                    (elfeed-protocol-get-last-entry-id proto-id))
+        (elfeed-log 'debug "elfeed-protocol-ttrss: %s, parsing entries, entry-skip: %d" update-action entry-skip)
         (setq entries
               (cl-loop for headline across headlines
                        when
@@ -335,6 +369,9 @@ parsed entries."
                                                                :id id
                                                                :guid-hash guid-hash
                                                                :feed-id feed-id)))))
+                         (when unread (setq unread-num (+ unread-num 1)))
+                         (when starred (setq starred-num (+ starred-num 1)))
+
                          ;; force override unread and star tags without repeat sync operation
                          (when original
                            (if unread (elfeed-tag-1 original 'unread)
@@ -344,11 +381,8 @@ parsed entries."
                            (if published (elfeed-tag-1 original elfeed-protocol-ttrss-publish-tag)
                              (elfeed-untag-1 original elfeed-protocol-ttrss-publish-tag)))
 
-                         ;; calculate the first and last entry id
-                         (when (or (< min-first-entry-id 0) (< id min-first-entry-id))
-                           (setq min-first-entry-id id))
-                         (when (or (< max-last-entry-id 0) (> id max-last-entry-id))
-                           (setq max-last-entry-id id))
+                         (when (> id max-entry-id)
+                           (setq max-entry-id id))
 
                          (dolist (hook elfeed-new-entry-parse-hook)
                            (run-hook-with-args hook :ttrss headline db-entry))
@@ -356,16 +390,31 @@ parsed entries."
         (elfeed-db-add entries)
         (when callback (funcall callback entries))
 
-        ;; update first and last entry id
-        (when (and mark-state (>= min-first-entry-id 0))
-          (elfeed-protocol-set-first-entry-id proto-id min-first-entry-id))
-        (when (and mark-state (>= max-last-entry-id 0))
-          (elfeed-protocol-set-last-entry-id proto-id max-last-entry-id))
+        ;; update last entry skip count
+        (when mark-state
+          (if (>= entry-skip 0)
+              (cond
+               ((or (eq update-action 'update) (eq update-action 'update-star))
+                (elfeed-protocol-ttrss-set-entry-skip
+                 proto-id update-action (+ entry-skip (length entries))))
+               ((eq update-action 'update-older)
+                (let* ((skip (max 0 (- entry-skip (length entries)))))
+                  (elfeed-protocol-ttrss-set-entry-skip
+                   proto-id update-action skip))))
+            (cond
+             ((eq update-action 'update)
+              (elfeed-protocol-ttrss-set-entry-skip proto-id update-action max-entry-id)
+              ;; set :first-entry-skip same with :last-entry-skip
+              (elfeed-protocol-ttrss-set-entry-skip proto-id 'update-older max-entry-id))
+             ((eq update-action 'update-older)
+              (elfeed-protocol-ttrss-set-entry-skip proto-id update-action max-entry-id))
+             ((eq update-action 'update-star)
+              (elfeed-protocol-ttrss-set-entry-skip proto-id update-action (length entries))))))
 
-        (elfeed-log 'debug "elfeed-protocol-ttrss: parsed %s entries with %fs, first-entry-id: %d last-entry-id: %d"
-                    (length entries) (- (time-to-seconds) begin-time)
-                    (elfeed-protocol-get-first-entry-id proto-id)
-                    (elfeed-protocol-get-last-entry-id proto-id))
+        (elfeed-log 'debug "elfeed-protocol-ttrss: %s, parsed %d entries(%d unread, %d starred) with %fs, entry-skip: %d"
+                    update-action (length entries) unread-num starred-num
+                    (- (time-to-seconds) begin-time)
+                    (elfeed-protocol-ttrss-get-entry-skip proto-id update-action))
         entries)
     (progn
       (elfeed-log 'error "elfeed-protocol-ttrss: elfeed-protocol-ttrss-feeds is nil, please call elfeed-protocol-ttrss--update-feed-list first")
@@ -373,15 +422,14 @@ parsed entries."
 
 (defun elfeed-protocol-ttrss--do-update (host-url action &optional arg callback)
   "Real ttrss protocol updating operations.
-HOST-URL is the host name of Tiny Tiny RSS server, and user field
-authentication info is always required so could find the related
-protocol feed id correctly, for example
-\"https://user:pass@myhost.com\". ACTION could be init, update and
-update-subfeed. For init, will fetch unread, starred and latest
-entries. For update, will fetch all entries since the provide entry
-id, the ARG is the entry id. And for update-subfeed, will fetch latest
-entries for special feed, the ARG is the feed id.  If CALLBACK is not
-nil, will call it with the result entries as argument."
+HOST-URL is the host name of Tiny Tiny RSS server, and user field authentication
+info is always required so could find the related protocol feed id correctly,
+for example \"https://user:pass@myhost.com\". ACTION could be init, update,
+update-older, update-star and update-subfeed. For init, will fetch unread,
+starred and latest entries. For update, update-older and update-star, will fetch
+entries after the skipped count, the ARG is the skip count. And for
+update-subfeed, will fetch latest entries for special feed, the ARG is the feed
+id.  If CALLBACK is not nil, will call it with the result entries as argument."
   (elfeed-log 'debug "elfeed-protocol-ttrss: update entries with action %s, arg %s" action arg)
   (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
          (data-list-base `(("op" . "getHeadlines")
@@ -395,6 +443,11 @@ nil, will call it with the result entries as argument."
                                        ,elfeed-protocol-ttrss-api-feed-id-starred)
                                       ("view_mode" .
                                        ,elfeed-protocol-ttrss-api-view-mode-all-articles))))
+         (data-list-unread (append data-list-base
+                                   `(("feed_id" .
+                                      ,elfeed-protocol-ttrss-api-feed-id-all-articles)
+                                     ("view_mode" .
+                                      ,elfeed-protocol-ttrss-api-view-mode-unread))))
          (data-list-all (append data-list-base
                                 `(("feed_id" .
                                    ,elfeed-protocol-ttrss-api-feed-id-all-articles)
@@ -403,30 +456,32 @@ nil, will call it with the result entries as argument."
     (unless elfeed--inhibit-update-init-hooks
       (run-hooks 'elfeed-update-init-hooks))
     (cond
-     ;; initial sync, fetch starred and latest entries
+     ;; initial sync, fetch starred, unread and latest entries
      ((eq action 'init)
-      (elfeed-protocol-set-first-entry-id proto-id -1)
-      (elfeed-protocol-set-last-entry-id proto-id -1)
+      (elfeed-protocol-ttrss-set-entry-skip proto-id 'update -1)
+      (elfeed-protocol-ttrss-set-entry-skip proto-id 'update-older -1)
+      (elfeed-protocol-ttrss-set-entry-skip proto-id 'update-star -1)
       (elfeed-protocol-ttrss-with-fetch
         host-url "GET" (json-encode-alist data-list-starred)
-        (elfeed-protocol-ttrss--parse-entries host-url content nil callback)
+        (elfeed-protocol-ttrss--parse-entries host-url content t 'update-star callback)
         (elfeed-protocol-ttrss-with-fetch
-          host-url "GET" (json-encode-alist data-list-all)
-          (elfeed-protocol-ttrss--parse-entries host-url content t callback)
+          host-url "GET" (json-encode-alist data-list-unread)
+          (elfeed-protocol-ttrss--parse-entries host-url content t 'update callback)
           (run-hook-with-args 'elfeed-update-hooks host-url))))
-     ;; update entries since last
-     ((eq action 'update)
-      (let* ((since-id (elfeed-protocol-get-last-entry-id proto-id))
-             (data-list-since (append data-list-base
-                                      `(("feed_id" .
-                                         ,elfeed-protocol-ttrss-api-feed-id-all-articles)
-                                        ("view_mode" .
-                                         ,elfeed-protocol-ttrss-api-view-mode-all-articles)
-                                        ("since_id" . ,since-id)))))
-        (elfeed-protocol-ttrss-with-fetch
-          host-url "GET" (json-encode-alist data-list-since)
-          (elfeed-protocol-ttrss--parse-entries host-url content t callback)
-          (run-hook-with-args 'elfeed-update-hooks host-url))))
+     ;; update entries
+     ((or (eq action 'update) (eq action 'update-older) (eq action 'update-star))
+      (let* ((feed-id (if (eq action 'update-star)
+                          elfeed-protocol-ttrss-api-feed-id-starred
+                        elfeed-protocol-ttrss-api-feed-id-all-articles))
+             (data-list-skip (append data-list-base
+                                     `(("feed_id" . ,feed-id)
+                                       ("view_mode" .
+                                        ,elfeed-protocol-ttrss-api-view-mode-all-articles)
+                                       ("skip" . ,arg)))))
+             (elfeed-protocol-ttrss-with-fetch
+               host-url "GET" (json-encode-alist data-list-skip)
+               (elfeed-protocol-ttrss--parse-entries host-url content t action callback)
+               (run-hook-with-args 'elfeed-update-hooks host-url))))
      ;; update entries for special sub feed
      ((eq action 'update-subfeed)
       (let* ((feed-id arg)
@@ -436,7 +491,7 @@ nil, will call it with the result entries as argument."
                                         ,elfeed-protocol-ttrss-api-view-mode-all-articles)))))
         (elfeed-protocol-ttrss-with-fetch
           host-url "GET" (json-encode-alist data-list-feed)
-          (elfeed-protocol-ttrss--parse-entries host-url content nil callback)
+          (elfeed-protocol-ttrss--parse-entries host-url content nil 'update callback)
           (run-hook-with-args 'elfeed-update-hooks host-url)))))))
 
 (defun elfeed-protocol-ttrss-reinit (host-url)
@@ -449,19 +504,31 @@ HOST-URL is the host name of Tiny Tiny RSS server."
     host-url
     (elfeed-protocol-ttrss--do-update host-url 'init)))
 
-;;TODO: looks ttrss api didn't provide correctly way to fetch older articles
+(defun elfeed-protocol-ttrss-update-older (host-url)
+  "Fetch older entries.
+HOST-URL is the host name of Tiny Tiny RSS server."
+  (interactive (list (elfeed-protocol-url
+                      (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
+  (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
+         (skip (elfeed-protocol-ttrss-get-entry-skip proto-id 'update-older)))
+    (setq skip (max 0 (- skip (min elfeed-protocol-ttrss-api-max-limit
+                                   elfeed-protocol-ttrss-maxsize))))
+    (elfeed-protocol-ttrss-fetch-prepare
+      host-url
+      (elfeed-protocol-ttrss--do-update host-url 'update-older skip))))
 
-;; (defun elfeed-protocol-ttrss-update-older (host-url)
-;;   "Fetch older entries.
-;; HOST-URL is the host name of Tiny Tiny RSS server."
-;;   (interactive (list (elfeed-protocol-url
-;;                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
-;;   (let* ((first-entry-id (elfeed-protocol-get-first-entry-id proto-id))
-;;          (sinze-id (- first-entry-id elfeed-protocol-ttrss-maxsize)))
-;;     (if (< sinze-id 0) (setq sinze-id 0))
-;;     (elfeed-protocol-ttrss-fetch-prepare
-;;       host-url
-;;       (elfeed-protocol-ttrss--do-update host-url 'update since-id))))
+(defun elfeed-protocol-ttrss-update-star (host-url)
+  "Fetch starred entries.
+For Tiny Tiny RSS only allow fetch Maximize 200 entries each time, so if your
+own much more starred entries, just run this function to fetch them all.
+HOST-URL is the host name of Tiny Tiny RSS server."
+  (interactive (list (elfeed-protocol-url
+                      (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
+  (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
+         (skip (elfeed-protocol-ttrss-get-entry-skip proto-id 'update-star)))
+    (elfeed-protocol-ttrss-fetch-prepare
+      host-url
+      (elfeed-protocol-ttrss--do-update host-url 'update-star skip))))
 
 (defun elfeed-protocol-ttrss-join-ids-to-str (separate &rest ids)
   "Convert article ids to string format.
@@ -605,11 +672,11 @@ result entries as argument"
          (feed-url (elfeed-protocol-subfeed-url host-or-subfeed-url)))
     (if feed-url (elfeed-protocol-ttrss-update-subfeed host-url feed-url callback)
       (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
-             (last-entry-id (elfeed-protocol-get-last-entry-id proto-id)))
+             (last-entry-skip (elfeed-protocol-ttrss-get-entry-skip proto-id 'update)))
         (elfeed-protocol-ttrss-fetch-prepare
           host-url
-          (if (> last-entry-id 0)
-              (elfeed-protocol-ttrss--do-update host-url 'update last-entry-id callback)
+          (if (>= last-entry-skip 0)
+              (elfeed-protocol-ttrss--do-update host-url 'update last-entry-skip callback)
             (elfeed-protocol-ttrss--do-update host-url 'init nil callback)))))))
 
 (provide 'elfeed-protocol-ttrss)

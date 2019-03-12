@@ -71,14 +71,19 @@ after advice for `elfeed`:
 
 # Protocol Details
 ## owncloud (ownCloud News)
-1. Fetch articles by the modified time
+1. Fetch articles with the modified time by default
 1. Support sync unread and starred tags, the starred tag name defined
    in `elfeed-protocol-owncloud-star-tag` which default value is `star`. For
    example, if user add `star` tag to one article, the star stat will
    be sync to server, too
+1. Support multiple fetching methods:
+   - `elfeed-protocol-owncloud-update-since-timestamp`
+   - `elfeed-protocol-owncloud-update-since-id`
+   - `elfeed-protocol-owncloud-update-older`
 
 Example:
 ```emacs-lisp
+(setq elfeed-protocol-owncloud-maxsize 1000)
 (setq elfeed-feeds (list
                     "owncloud+https://user1:pass1@myhost.com"
                     (list "owncloud+https://user2@myhost.com"
@@ -94,9 +99,17 @@ Example:
    value is `star`, and the published tag name defined in
    `elfeed-protocol-ttrss-publish-tag` which default value is
    `publish`
+1. Support multiple fetching methods:
+   - `elfeed-protocol-ttrss-update-older`
+   - `elfeed-protocol-ttrss-update-star`
+
+**NOTE**: For Tiny Tiny RSS only allow fetch Maximize 200 entries each
+time, so if your own much more starred entries, just run
+`elfeed-protocol-ttrss-update-star` manually to fetch them all
 
 Example:
 ```emacs-lisp
+(setq elfeed-protocol-ttrss-maxsize 200) ; bigger than 200 is invalid
 (setq elfeed-feeds (list
                     "ttrss+https://user1:pass1@myhost.com"
                     (list "ttrss+https://user2@myhost.com"
@@ -117,6 +130,7 @@ example.
 
 Example:
 ```emacs-lisp
+(setq elfeed-protocol-newsblur-maxpages 20)
 (setq elfeed-curl-extra-arguments '("-c" "/tmp/newsblur-cookie"
                                     "-b" "/tmp/newsblur-cookie"))
 (setq elfeed-feeds (list
