@@ -1,6 +1,6 @@
 ;;; elfeed-protocol.el --- Provide owncloud/ttrss protocols for elfeed -*- lexical-binding: t; -*-
 
-;; Author: Xu Fasheng <fasheng.xu@gmail.com>
+;; Author: Xu Fasheng <fasheng[AT]fasheng.info>
 ;; URL: https://github.com/fasheng/elfeed-protocol
 ;; Version: 0.3.2
 ;; Package-Version: 20170501.1349
