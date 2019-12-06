@@ -34,7 +34,7 @@ If t will update since last modified time, and if nil will update since last ent
 (defconst elfeed-protocol-owncloud-api-base "/index.php/apps/news/api/v1-2")
 (defconst elfeed-protocol-owncloud-api-feeds (concat elfeed-protocol-owncloud-api-base "/feeds"))
 (defconst elfeed-protocol-owncloud-api-init-unread (concat elfeed-protocol-owncloud-api-base "/items?type=3&getRead=false&batchSize=%s"))
-(defconst elfeed-protocol-owncloud-api-init-starred (concat elfeed-protocol-owncloud-api-base "/items?type=2&getRead=true&batchSize=%s"))
+(defconst elfeed-protocol-owncloud-api-init-starred (concat elfeed-protocol-owncloud-api-base "/items?type=2&getRead=true&batchSize=-1"))
 (defconst elfeed-protocol-owncloud-api-update (concat elfeed-protocol-owncloud-api-base "/items/updated?type=3&lastModified=%s"))
 (defconst elfeed-protocol-owncloud-api-update-subfeed (concat elfeed-protocol-owncloud-api-base "/items?type=0&id=%s&getRead=false&batchSize=%s"))
 (defconst elfeed-protocol-owncloud-api-update-offset (concat elfeed-protocol-owncloud-api-base "/items?type=3&offset=%s&getRead=true&batchSize=%s&oldestFirst=true"))
@@ -305,9 +305,7 @@ nil, will call it with the result entries as argument."
          (url-init-unread (concat host-url (format
                                             elfeed-protocol-owncloud-api-init-unread
                                             elfeed-protocol-owncloud-maxsize)))
-         (url-init-starred (concat host-url (format
-                                             elfeed-protocol-owncloud-api-init-starred
-                                             elfeed-protocol-owncloud-maxsize)))
+         (url-init-starred (concat host-url elfeed-protocol-owncloud-api-init-starred))
          (mark-state t)
          url-opt)
     (unless elfeed--inhibit-update-init-hooks
