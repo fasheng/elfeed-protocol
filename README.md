@@ -84,6 +84,7 @@ after advice for `elfeed`:
 Example:
 ```emacs-lisp
 (setq elfeed-protocol-owncloud-maxsize 1000)
+(setq elfeed-protocol-owncloud-update-with-modified-time t)
 (setq elfeed-feeds (list
                     "owncloud+https://user1:pass1@myhost.com"
                     (list "owncloud+https://user2@myhost.com"

@@ -22,6 +22,12 @@ then the starred state in ownCloud will be synced, too."
   :group 'elfeed-protocol
   :type 'symbol)
 
+(defcustom elfeed-protocol-owncloud-update-with-modified-time t
+  "Determine default update method for ownCloud News.
+If t will update since last modified time, and if nil will update since last entry id."
+  :group 'elfeed-protocol
+  :type 'boolean)
+
 (defvar elfeed-protocol-owncloud-feeds (make-hash-table :test 'equal)
   "Feed list from ownCloud News, will be filled before updating operation.")
 
@@ -535,12 +541,15 @@ result entries as argument"
          (subfeed-url (elfeed-protocol-subfeed-url host-or-subfeed-url)))
     (if subfeed-url (elfeed-protocol-owncloud-update-subfeed host-url subfeed-url callback)
       (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
-             (last-modified (elfeed-protocol-get-last-modified proto-id)))
+             (last-modified (elfeed-protocol-get-last-modified proto-id))
+             (last-entry-id (elfeed-protocol-get-last-entry-id proto-id)))
         (elfeed-protocol-owncloud-with-fetch
           (concat host-url elfeed-protocol-owncloud-api-feeds) nil
           (elfeed-protocol-owncloud--parse-feeds host-url)
           (if (> last-modified 0)
-              (elfeed-protocol-owncloud--do-update host-url 'update-since-time last-modified callback)
+              (if elfeed-protocol-owncloud-update-with-modified-time
+                  (elfeed-protocol-owncloud--do-update host-url 'update-since-time last-modified callback)
+                (elfeed-protocol-owncloud--do-update host-url 'update-since-id last-entry-id callback))
             (elfeed-protocol-owncloud--do-update host-url 'init nil callback)))))))
 
 (provide 'elfeed-protocol-owncloud)
