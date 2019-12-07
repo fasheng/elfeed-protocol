@@ -27,30 +27,30 @@ Setup elfeed-protocol, then switch to search view and and press G to update entr
 ;; setup extra protocol feeds
 (setq elfeed-feeds '(
                      ;; format 1
-                     "owncloud+https://user1:pass1@myhost.com"
+                     "owncloud+https://user:pass@myhost.com"
 
                      ;; format 2, for password with special characters
-                     ("owncloud+https://user2@myhost.com"
+                     ("owncloud+https://user@myhost.com"
                       :password "password/with|special@characters:")
 
                      ;; format 3, for password in file
-                     ("owncloud+https://user3@myhost.com"
+                     ("owncloud+https://user@myhost.com"
                       :password-file "~/.password")
 
                      ;; format 4, for password in .authinfo, ensure (auth-source-search :host "myhost.com" :port "443" :user "user4") exists
-                     ("owncloud+https://user4@myhost.com"
+                     ("owncloud+https://user@myhost.com"
                       :use-authinfo t)
 
                      ;; format 5, for password in gnome-keyring
-                     ("owncloud+https://user5@myhost.com"
+                     ("owncloud+https://user@myhost.com"
                       :password (shell-command-to-string "secret-tool lookup attribute value"))
 
-                     ;; format 5, for password in pass(1), using password-store.el
-                     ("owncloud+https://user5@myhost.com"
+                     ;; format 6, for password in pass(1), using password-store.el
+                     ("owncloud+https://user@myhost.com"
                       :password (password-store-get "owncloud/app-pass"))
 
                      ;; use autotags
-                     ("owncloud+https://user6@myhost.com"
+                     ("owncloud+https://user@myhost.com"
                       :password "password"
                       :autotags '(("example.com" comic)))))
 (elfeed-protocol-enable)
@@ -192,11 +192,22 @@ make package-lint
     (setq elfeed-feeds '("ttrss+http://admin:password@localhost"))
     ```
 
-# Problems
+# Q&A
+1. Not working if my password contains special characters like `@#$/:`.
+
+   Use format 2 instead in previous example for complex password:
+    ```emacs-lisp
+    ;; format 2, for password with special characters
+    ("owncloud+https://user@myhost.com"
+     :password "password/with|special@characters:")
+    ```
+
 1. Sometimes emacs may be blocked if the parsing downloaded articles
-   is too large, for example >50MB. This is caused by the known emacs
-   bug that CPU will be in high usage if a text line is too
-   long. There three methods to workaround this:
+   is too large, for example >50MB.
+
+   This is caused by the known emacs bug that CPU will be in high
+   usage if a text line is too long. There three methods to workaround
+   this:
    1. Method 1, limit the download size, for example:
 
           (setq elfeed-protocol-owncloud-maxsize 1000)
