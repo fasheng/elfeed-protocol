@@ -25,6 +25,18 @@ invalid."
   :group 'elfeed-protocol
   :type 'integer)
 
+(defcustom elfeed-protocol-ttrss-skip-magic-num 1000
+  "Magic number used to initialize the skip number.
+We use `skip' argument when `getHeadlines' to allow update older and latest
+entries continuously. But the problem is can't determine the skip number after
+the first update operation. We only know it similar to and less than the latest
+entry id, but if it same with the latest entry id it will cause next time update
+return zero entries. So here provide the magic number and minus it to compute
+the skip number to avoid such issue. The larger the value, the better, but may
+cause download fetched entries in following update operations."
+  :group 'elfeed-protocol
+  :type 'integer)
+
 (defcustom elfeed-protocol-ttrss-star-tag 'star
   "Default star tag for Tiny Tiny RSS entry.
 If one entry set or remove the tag,
@@ -288,7 +300,9 @@ it with the result entries as argument.  Return parsed entries."
   (if (> (hash-table-count elfeed-protocol-ttrss-feeds) 0)
       (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
              (entry-skip (elfeed-protocol-ttrss-get-entry-skip proto-id update-action))
+             (min-entry-id -1)
              (max-entry-id -1)
+             (first-skip-num -1)
              (unread-num 0)
              (starred-num 0)
              (begin-time (time-to-seconds))
@@ -383,6 +397,10 @@ it with the result entries as argument.  Return parsed entries."
 
                          (when (> id max-entry-id)
                            (setq max-entry-id id))
+                         (if (< min-entry-id 0)
+                             (setq min-entry-id id)
+                           (when (< id min-entry-id)
+                             (setq min-entry-id id)))
 
                          (dolist (hook elfeed-new-entry-parse-hook)
                            (run-hook-with-args hook :ttrss headline db-entry))
@@ -393,6 +411,7 @@ it with the result entries as argument.  Return parsed entries."
         ;; update last entry skip count
         (when mark-state
           (if (>= entry-skip 0)
+              ;; update entry skip
               (cond
                ((or (eq update-action 'update) (eq update-action 'update-star))
                 (elfeed-protocol-ttrss-set-entry-skip
@@ -401,18 +420,20 @@ it with the result entries as argument.  Return parsed entries."
                 (let* ((skip (max 0 (- entry-skip (length entries)))))
                   (elfeed-protocol-ttrss-set-entry-skip
                    proto-id update-action skip))))
+            ;; init entry skip
+            (setq first-skip-num (max 0 (- min-entry-id elfeed-protocol-ttrss-skip-magic-num)))
             (cond
              ((eq update-action 'update)
-              (elfeed-protocol-ttrss-set-entry-skip proto-id update-action max-entry-id)
+              (elfeed-protocol-ttrss-set-entry-skip proto-id update-action first-skip-num)
               ;; set :first-entry-skip same with :last-entry-skip
-              (elfeed-protocol-ttrss-set-entry-skip proto-id 'update-older max-entry-id))
+              (elfeed-protocol-ttrss-set-entry-skip proto-id 'update-older first-skip-num))
              ((eq update-action 'update-older)
-              (elfeed-protocol-ttrss-set-entry-skip proto-id update-action max-entry-id))
+              (elfeed-protocol-ttrss-set-entry-skip proto-id update-action first-skip-num))
              ((eq update-action 'update-star)
               (elfeed-protocol-ttrss-set-entry-skip proto-id update-action (length entries))))))
 
-        (elfeed-log 'debug "elfeed-protocol-ttrss: %s, parsed %d entries(%d unread, %d starred) with %fs, entry-skip: %d"
-                    update-action (length entries) unread-num starred-num
+        (elfeed-log 'debug "elfeed-protocol-ttrss: %s, parsed %d entries(%d unread, %d starred, min-entry-id %d, max-entry-id %d) with %fs, entry-skip: %d"
+                    update-action (length entries) unread-num starred-num min-entry-id max-entry-id
                     (- (time-to-seconds) begin-time)
                     (elfeed-protocol-ttrss-get-entry-skip proto-id update-action))
         entries)
