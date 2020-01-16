@@ -25,15 +25,16 @@ invalid."
   :group 'elfeed-protocol
   :type 'integer)
 
-(defcustom elfeed-protocol-ttrss-skip-magic-num 1000
+(defcustom elfeed-protocol-ttrss-skip-magic-num 600
   "Magic number used to initialize the skip number.
 We use `skip' argument when `getHeadlines' to allow update older and latest
-entries continuously. But the problem is can't determine the skip number after
-the first update operation. We only know it similar to and less than the latest
-entry id, but if it same with the latest entry id it will cause next time update
-return zero entries. So here provide the magic number and minus it to compute
-the skip number to avoid such issue. The larger the value, the better, but may
-cause download fetched entries in following update operations."
+entries continuously. But the problem is it can't determine the skip number
+after the first update operation. We only know the right value similar to and
+less than the latest entry id, but if it same with the latest entry id it will
+cause next time update return zero entries. So here provide the magic number and
+minus it to compute the skip number to avoid such issue. The larger the value,
+the better, but may led to download fetched entries in following update
+operations."
   :group 'elfeed-protocol
   :type 'integer)
 
