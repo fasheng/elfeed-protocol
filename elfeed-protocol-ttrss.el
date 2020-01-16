@@ -329,7 +329,7 @@ it with the result entries as argument.  Return parsed entries."
                                           ('feed_title feed-title)
                                           )
                                      headline)
-                                    (guid-hash (elfeed-generate-id body))
+                                    (guid-hash (elfeed-generate-id (format "%s%s%s%s" title entry-url pub-date body)))
                                     (feed-id
                                      (if (null feed-id)
                                          (elfeed-protocol-ttrss--get-subfeed-id-by-title host-url feed-title)
