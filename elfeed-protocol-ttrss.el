@@ -422,7 +422,7 @@ it with the result entries as argument.  Return parsed entries."
                   (elfeed-protocol-ttrss-set-entry-skip
                    proto-id update-action skip))))
             ;; init entry skip
-            (setq first-skip-num (max 0 (- min-entry-id elfeed-protocol-ttrss-skip-magic-num)))
+            (setq first-skip-num (max 0 (- max-entry-id elfeed-protocol-ttrss-skip-magic-num)))
             (cond
              ((eq update-action 'update)
               (elfeed-protocol-ttrss-set-entry-skip proto-id update-action first-skip-num)
