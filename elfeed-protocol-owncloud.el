@@ -88,6 +88,8 @@ finished."
                     (unless use-curl
                       (elfeed-move-to-first-empty-line)
                       (set-buffer-multibyte t))
+                    (when elfeed-protocol-log-trace
+                      (elfeed-log 'debug "elfeed-protocol-owncloud: %s" (buffer-string)))
                     ,@body
                     (unless use-curl
                       (kill-buffer)))))))

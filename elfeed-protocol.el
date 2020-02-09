@@ -62,6 +62,9 @@
   "Provide extra protocol for elfeed."
   :group 'comm)
 
+(defvar elfeed-protocol-log-trace nil
+  "Show more logs than debug level.")
+
 (defcustom elfeed-protocol-list ()
   "List of all registered extra protocols in Elfeed.
 
