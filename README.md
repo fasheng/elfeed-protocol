@@ -153,7 +153,6 @@ make elint
 make package-lint
 ```
 
-
 # Deploy Services for Testing
 ## Nextcloud/ownCloud News
 1.  Fetch docker image and run it
@@ -191,6 +190,22 @@ make package-lint
     ```emacs-lisp
     (setq elfeed-feeds '("ttrss+http://admin:password@localhost"))
     ```
+
+# Report Issues
+
+Please collect logs in buffer `*elfeed-log*` with the following config
+before reporting issues:
+
+```emacs-lisp
+(setq elfeed-log-level 'debug)
+(toggle-debug-on-error)
+
+;; for more logs
+(setq elfeed-protocol-log-trace t)
+(setq elfeed-protocol-owncloud-maxsize 10)
+(setq elfeed-protocol-ttrss-maxsize 10)
+(setq elfeed-protocol-newsblur-maxpages 1)
+```
 
 # Q&A
 1. Not working if my password contains special characters like `@#$/:`.
