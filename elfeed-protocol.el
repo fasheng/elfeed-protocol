@@ -77,6 +77,16 @@ For example,
   :group 'elfeed-protocol
   :type '(repeat (cons string symbol)))
 
+(defun elfeed-protocol-generate-ids-str (separate start end)
+  "Generate article ids string from START id to END id.
+SEPARATE is the string to be insert between each id."
+  (string-trim-right (cl-loop for id from start to end concat (format "%d%s" id separate)) separate))
+
+(defun elfeed-protocol-join-ids-to-str (separate &rest ids)
+  "Convert article ids to string format.
+SEPARATE is the string to be insert between each id, IDS is the target id array."
+  (string-trim-right (cl-loop for id in ids concat (format "%d%s" id separate)) separate))
+
 (defun elfeed-protocol-feed-p (url-or-feed)
   "Check if a URL-OR-FEED contain extra protocol."
   (let ((feed-url (if (elfeed-feed-p url-or-feed)
