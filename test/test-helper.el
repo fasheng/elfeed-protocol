@@ -1,6 +1,7 @@
+(load-file "elfeed-protocol-fever.el")
+(load-file "elfeed-protocol-newsblur.el")
 (load-file "elfeed-protocol-owncloud.el")
 (load-file "elfeed-protocol-ttrss.el")
-(load-file "elfeed-protocol-newsblur.el")
 (load-file "elfeed-protocol.el")
 
 (elfeed-protocol-enable)

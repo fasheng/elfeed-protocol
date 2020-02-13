@@ -1,0 +1,30 @@
+{
+  "api_version": 3,
+  "auth": 1,
+  "total_items": 30024,
+  "items": [
+    {
+      "id": 1,
+      "feed_id": 1,
+      "title": "Pictures not shown in some feeds with figure block",
+      "author": "",
+      "html": "content1",
+      "url": "http://discourse.tt-rss.org/t/pictures-not-shown-in-some-feeds-with-figure-block/79/14",
+      "is_saved": 0,
+      "is_read": 1,
+      "created_on_time": 1576367760
+    },
+    {
+      "id": 2,
+      "feed_id": 1,
+      "title": "PDO is coming, here's what you need to know",
+      "author": "",
+      "html": "content2",
+      "url": "http:http://discourse.tt-rss.org/t/pdo-is-coming-heres-what-you-need-to-know/689/6",
+      "is_saved": 1,
+      "is_read": 0,
+      "created_on_time": 1576367760
+    }
+  ],
+  "last_refreshed_on_time": "1581326728"
+}

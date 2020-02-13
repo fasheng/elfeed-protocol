@@ -5,9 +5,10 @@ elfeed-protocol
 Provide extra protocols to make self-hosting RSS readers work
 with [elfeed](https://github.com/skeeto/elfeed),
 including
+[Fever](https://feedafever.com/api),
+[NewsBlur](https://newsblur.com/),
 [Nextcloud/ownCloud News](https://nextcloud.com/),
-[Tiny Tiny RSS](https://tt-rss.org/fox/tt-rss),
-[NewsBlur](https://newsblur.com/) and even more.
+[Tiny Tiny RSS](https://tt-rss.org/fox/tt-rss) and even more.
 
 # Installation through MELPA
 
@@ -70,8 +71,55 @@ after advice for `elfeed`:
 ```
 
 # Protocol Details
+
+## fever (Fever)
+1. Fetch articles by the entry ID
+1. Support sync unread, starred(saved) tags, the starred tag name
+   defined in `elfeed-protocol-fever-star-tag` which default value is
+   `star`
+1. Support multiple fetching methods:
+   - `elfeed-protocol-fever-update-older`
+   - `elfeed-protocol-fever-update-star`
+
+**NOTE**: User must provide Fever API URL manually. For Tiny Tiny RSS
+Fever plugin, it is `https://your-ttrss-server/plugins/fever/`.
+
+Example:
+```emacs-lisp
+(setq elfeed-feeds (list
+                    (list "fever+https://user@myhost.com"
+                          :api-url "https://myhost.com/plugins/fever/"
+                          :password "password/with|special@characters:"
+                          :autotags '(("example.com" comic)))))
+```
+
+## newsblur (NewsBlur)
+1. Fetch articles from recent pages
+1. Fetch articles for special feed
+1. Fetch tags in remote
+1. Support sync unread, starred(saved) tags, the starred tag name
+   defined in `elfeed-protocol-ttrss-star-tag` which default value is
+   `star`
+
+**NOTE**: For elfeed don't provide cookie argument for curl request,
+user must setup `elfeed-curl-extra-arguments` like the following
+example.
+
+Example:
+```emacs-lisp
+(setq elfeed-protocol-newsblur-maxpages 20)
+(setq elfeed-curl-extra-arguments '("-c" "/tmp/newsblur-cookie"
+                                    "-b" "/tmp/newsblur-cookie"))
+(setq elfeed-feeds (list
+                    "newsblur+https://user1:pass1@newsblur.com"
+                    (list "newsblur+https://user2@newsblur.com"
+                          :password "password/with|special@characters:"
+                          :autotags '(("example.com" comic)))))
+```
+
 ## owncloud (ownCloud News)
 1. Fetch articles with the modified time by default
+1. Fetch articles for special feed
 1. Support sync unread and starred tags, the starred tag name defined
    in `elfeed-protocol-owncloud-star-tag` which default value is `star`. For
    example, if user add `star` tag to one article, the star stat will
@@ -94,6 +142,7 @@ Example:
 
 ## ttrss (Tiny Tiny RSS, requires version: 1.7.6)
 1. Fetch articles by the entry ID
+1. Fetch articles for special feed
 1. Fetch tags in remote
 1. Support sync unread, starred and published tags, the starred tag
    name defined in `elfeed-protocol-ttrss-star-tag` which default
@@ -114,29 +163,6 @@ Example:
 (setq elfeed-feeds (list
                     "ttrss+https://user1:pass1@myhost.com"
                     (list "ttrss+https://user2@myhost.com"
-                          :password "password/with|special@characters:"
-                          :autotags '(("example.com" comic)))))
-```
-
-## newsblur (NewsBlur)
-1. Fetch articles from recent pages
-1. Fetch tags in remote
-1. Support sync unread, starred(saved) tags, the starred tag name
-   defined in `elfeed-protocol-ttrss-star-tag` which default value is
-   `star`
-
-**NOTE**: For elfeed don't provide cookie argument for curl request,
-user must setup `elfeed-curl-extra-arguments` like the following
-example.
-
-Example:
-```emacs-lisp
-(setq elfeed-protocol-newsblur-maxpages 20)
-(setq elfeed-curl-extra-arguments '("-c" "/tmp/newsblur-cookie"
-                                    "-b" "/tmp/newsblur-cookie"))
-(setq elfeed-feeds (list
-                    "newsblur+https://user1:pass1@newsblur.com"
-                    (list "newsblur+https://user2@newsblur.com"
                           :password "password/with|special@characters:"
                           :autotags '(("example.com" comic)))))
 ```

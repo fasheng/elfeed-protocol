@@ -1,0 +1,22 @@
+{
+  "api_version": 3,
+  "auth": 1,
+  "feeds": [
+    {
+      "id": 1,
+      "favicon_id": 1,
+      "title": "Tiny Tiny RSS: Forum",
+      "url": "http://tt-rss.org/forum/rss.php",
+      "site_url": "http://tt-rss.org",
+      "is_spark": 0,
+      "last_updated_on_time": 1581325594
+    }
+  ],
+  "feeds_groups": [
+    {
+      "group_id": 15,
+      "feed_ids": "1,4,154"
+    }
+  ],
+  "last_refreshed_on_time": "1581326855"
+}

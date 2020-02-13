@@ -1,4 +1,4 @@
-;;; elfeed-protocol.el --- Provide owncloud/ttrss/newsblur protocols for elfeed -*- lexical-binding: t; -*-
+;;; elfeed-protocol.el --- Provide fever/newsblur/owncloud/ttrss protocols for elfeed -*- lexical-binding: t; -*-
 
 ;; Author: Xu Fasheng <fasheng[AT]fasheng.info>
 ;; URL: https://github.com/fasheng/elfeed-protocol
@@ -9,8 +9,8 @@
 
 ;;; Commentary:
 ;; elfeed-protocol provide extra protocols to make self-hosting RSS
-;; readers like ownCloud News, Tiny TIny RSS and NewsBlur work with
-;; elfeed.  See the README for full documentation.
+;; readers like Fever, NewsBlur, ownCloud News and Tiny TIny RSS work
+;; with elfeed.  See the README for full documentation.
 ;;
 ;; Usage:
 ;;
@@ -54,9 +54,10 @@
 
 (require 'cl-lib)
 (require 'elfeed)
+(require 'elfeed-protocol-fever)
+(require 'elfeed-protocol-newsblur)
 (require 'elfeed-protocol-owncloud)
 (require 'elfeed-protocol-ttrss)
-(require 'elfeed-protocol-newsblur)
 
 (defgroup elfeed-protocol ()
   "Provide extra protocol for elfeed."
@@ -83,9 +84,21 @@ SEPARATE is the string to be insert between each id."
   (string-trim-right (cl-loop for id from start to end concat (format "%d%s" id separate)) separate))
 
 (defun elfeed-protocol-join-ids-to-str (separate &rest ids)
-  "Convert article ids to string format.
+  "Convert article ids to string format, for example from (1 2) to \"1,2\".
 SEPARATE is the string to be insert between each id, IDS is the target id array."
   (string-trim-right (cl-loop for id in ids concat (format "%d%s" id separate)) separate))
+
+(defun elfeed-protocol-split-ids-sub-size (separate ids sub-size)
+  "Convert article ids to sub string list, for example from \"1,2,3\" to (\"1,2\" \"3\") if sub-size is 2.
+SEPARATE is the separate string. IDS is the a comma-separated string of item
+ids. SUB-SIZE is the item size to split for each request."
+  (let* ((ids-list (split-string ids separate))
+         (size (length ids-list))
+         (cycles (max 1 (ceiling (/ (float size) sub-size)))))
+    (cl-loop for i from 0 to (1- cycles) collect
+             (string-trim-right
+              (cl-loop for j from (* i sub-size) to (1- (min size (* (1+ i) sub-size))) concat
+                       (format "%s%s" (elt ids-list j) separate)) separate))))
 
 (defun elfeed-protocol-feed-p (url-or-feed)
   "Check if a URL-OR-FEED contain extra protocol."
@@ -163,7 +176,7 @@ For example:
   "Remove user and password fields in URL if exists."
   (let* ((urlobj (url-generic-parse-url url))
          (user (url-user urlobj))
-         (password (if (url-password urlobj) (url-password urlobj) "")))
+         (password (if (url-password urlobj) (url-password urlobj) nil)))
     (if password
         (replace-regexp-in-string
          (concat "\\(" (regexp-quote user) "\\(:" (regexp-quote password)
@@ -425,15 +438,19 @@ ORIG-FUNC and URL-OR-FEED are the needed arguments."
   (advice-add 'elfeed-feed-autotags :around #'elfeed-protocol-advice-feed-autotags)
   (add-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
   (add-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove)
+  (elfeed-protocol-register "fever" (list :update 'elfeed-protocol-fever-update
+                                          :pre-tag 'elfeed-protocol-fever-pre-tag
+                                          :pre-untag 'elfeed-protocol-fever-pre-untag))
+  (elfeed-protocol-register "newsblur" (list :update 'elfeed-protocol-newsblur-update
+                                             :pre-tag 'elfeed-protocol-newsblur-pre-tag
+                                             :pre-untag 'elfeed-protocol-newsblur-pre-untag))
   (elfeed-protocol-register "owncloud" (list :update 'elfeed-protocol-owncloud-update
                                              :pre-tag 'elfeed-protocol-owncloud-pre-tag
                                              :pre-untag 'elfeed-protocol-owncloud-pre-untag))
   (elfeed-protocol-register "ttrss" (list :update 'elfeed-protocol-ttrss-update
                                           :pre-tag 'elfeed-protocol-ttrss-pre-tag
                                           :pre-untag 'elfeed-protocol-ttrss-pre-untag))
-  (elfeed-protocol-register "newsblur" (list :update 'elfeed-protocol-newsblur-update
-                                             :pre-tag 'elfeed-protocol-newsblur-pre-tag
-                                             :pre-untag 'elfeed-protocol-newsblur-pre-untag)))
+  )
 
 ;;;###autoload
 (defun elfeed-protocol-disable ()
@@ -444,9 +461,10 @@ ORIG-FUNC and URL-OR-FEED are the needed arguments."
   (advice-remove 'elfeed-feed-autotags #'elfeed-protocol-advice-feed-autotags)
   (remove-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
   (remove-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove)
+  (elfeed-protocol-unregister "fever")
+  (elfeed-protocol-unregister "newsblur")
   (elfeed-protocol-unregister "owncloud")
-  (elfeed-protocol-unregister "ttrss")
-  (elfeed-protocol-unregister "newsblur"))
+  (elfeed-protocol-unregister "ttrss"))
 
 (provide 'elfeed-protocol)
 
