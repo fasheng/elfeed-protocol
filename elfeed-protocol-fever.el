@@ -433,13 +433,13 @@ HOST-URL is the host name of Fever server.  ENTRY is the target entry object."
   (elfeed-protocol-fever--write-item
    host-url entry elfeed-protocol-fever-api-item-state-unread))
 
-(defun elfeed-protocol-fever-mark-star (host-url entry)
+(defun elfeed-protocol-fever-mark-starred (host-url entry)
   "Notify item to be starred.
 HOST-URL is the host name of Fever server.  ENTRY is the target entry object."
   (elfeed-protocol-fever--write-item
    host-url entry elfeed-protocol-fever-api-item-state-saved))
 
-(defun elfeed-protocol-fever-mark-unstar (host-url entry)
+(defun elfeed-protocol-fever-mark-unstarred (host-url entry)
   "Notify item to be unstarred.
 HOST-URL is the host name of Fever server.  ENTRY is the target entry object."
   (elfeed-protocol-fever--write-item
@@ -456,12 +456,12 @@ ACTION could be add or remove."
       (cond
        ((eq tag 'unread) (elfeed-protocol-fever-mark-unread host-url entry))
        ((eq tag elfeed-protocol-fever-star-tag)
-        (elfeed-protocol-fever-mark-star host-url entry))))
+        (elfeed-protocol-fever-mark-starred host-url entry))))
      ((eq action 'remove)
       (cond
        ((eq tag 'unread) (elfeed-protocol-fever-mark-read host-url entry))
        ((eq tag elfeed-protocol-fever-star-tag)
-        (elfeed-protocol-fever-mark-unstar host-url entry)))))))
+        (elfeed-protocol-fever-mark-unstarred host-url entry)))))))
 
 (defun elfeed-protocol-fever-pre-tag (host-url entries &rest tags)
   "Sync unread and starred states before tags added.

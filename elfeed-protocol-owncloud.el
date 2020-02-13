@@ -403,7 +403,7 @@ entry object."
          (url (concat host-url (format elfeed-protocol-owncloud-api-unread id))))
     (elfeed-protocol-owncloud-with-fetch url "{}")))
 
-(defun elfeed-protocol-owncloud-mark-star (host-url entry)
+(defun elfeed-protocol-owncloud-mark-starred (host-url entry)
   "Notify special entry as starred.
 HOST-URL is the host name of ownCloud server.  ENTRY is the target
 entry object."
@@ -413,7 +413,7 @@ entry object."
                                        feed-id guid-hash))))
     (elfeed-protocol-owncloud-with-fetch url "{}")))
 
-(defun elfeed-protocol-owncloud-mark-unstar (host-url entry)
+(defun elfeed-protocol-owncloud-mark-unstarred (host-url entry)
   "Notify special entry as unstarred.
 HOST-URL is the host name of ownCloud server.  ENTRY is the target
 entry object."
@@ -447,7 +447,7 @@ entry objects."
     (when ids
       (elfeed-protocol-owncloud-with-fetch url data))))
 
-(defun elfeed-protocol-owncloud-mark-star-multi (host-url entries)
+(defun elfeed-protocol-owncloud-mark-starred-multi (host-url entries)
   "Notify multiple entries to be starred.
 HOST-URL is the host name of ownCloud server.  ENTRIES is the target
 entry objects."
@@ -462,7 +462,7 @@ entry objects."
     (when items
       (elfeed-protocol-owncloud-with-fetch url data))))
 
-(defun elfeed-protocol-owncloud-mark-unstar-multi (host-url entries)
+(defun elfeed-protocol-owncloud-mark-unstarred-multi (host-url entries)
   "Notify multiple entries to be unstarred.
 HOST-URL is the host name of ownCloud server.  ENTRIES is the target entry objects."
   (let* ((url (concat host-url elfeed-protocol-owncloud-api-unstar-multi))
@@ -487,12 +487,12 @@ entry objects.  TAG is the action tag, for example unread and
       (cond
        ((eq tag 'unread) (elfeed-protocol-owncloud-mark-unread-multi host-url entries))
        ((eq tag elfeed-protocol-owncloud-star-tag)
-        (elfeed-protocol-owncloud-mark-star-multi host-url entries))))
+        (elfeed-protocol-owncloud-mark-starred-multi host-url entries))))
      ((eq action 'remove)
       (cond
        ((eq tag 'unread) (elfeed-protocol-owncloud-mark-read-multi host-url entries))
        ((eq tag elfeed-protocol-owncloud-star-tag)
-        (elfeed-protocol-owncloud-mark-unstar-multi host-url entries)))))))
+        (elfeed-protocol-owncloud-mark-unstarred-multi host-url entries)))))))
 
 (defun elfeed-protocol-owncloud-pre-tag (host-url entries &rest tags)
   "Sync unread, starred states before tags added.

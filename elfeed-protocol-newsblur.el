@@ -380,14 +380,14 @@ HOST-URL is the host name of NewsBlur server.  ENTRIES is the target entry objec
     (elfeed-protocol-newsblur-update-entry-state
      host-url elfeed-protocol-newsblur-api-reader-mark-story-unread entry)))
 
-(defun elfeed-protocol-newsblur-mark-star (host-url entries)
+(defun elfeed-protocol-newsblur-mark-starred (host-url entries)
   "Notify multiple entries to be starred.
 HOST-URL is the host name of NewsBlur server.  ENTRIES is the target entry objects."
   (dolist (entry entries)
     (elfeed-protocol-newsblur-update-entry-state
      host-url elfeed-protocol-newsblur-api-reader-mark-story-starred entry)))
 
-(defun elfeed-protocol-newsblur-mark-unstar (host-url entries)
+(defun elfeed-protocol-newsblur-mark-unstarred (host-url entries)
   "Notify multiple entries to be unstarred.
 HOST-URL is the host name of NewsBlur server.  ENTRIES is the target entry objects."
   (dolist (entry entries)
@@ -405,12 +405,12 @@ target entry objects.  TAG is the action tag, for example unread, and
       (cond
        ((eq tag 'unread) (elfeed-protocol-newsblur-mark-unread host-url entries))
        ((eq tag elfeed-protocol-newsblur-star-tag)
-        (elfeed-protocol-newsblur-mark-star host-url entries))))
+        (elfeed-protocol-newsblur-mark-starred host-url entries))))
      ((eq action 'remove)
       (cond
        ((eq tag 'unread) (elfeed-protocol-newsblur-mark-read host-url entries))
        ((eq tag elfeed-protocol-newsblur-star-tag)
-      (elfeed-protocol-newsblur-mark-unstar host-url entries)))))))
+      (elfeed-protocol-newsblur-mark-unstarred host-url entries)))))))
 
 (defun elfeed-protocol-newsblur-pre-tag (host-url entries &rest tags)
   "Sync unread, starred and published states before tags added.
