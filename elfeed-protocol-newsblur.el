@@ -309,13 +309,13 @@ with the result entries as argument."
       (dotimes (i elfeed-protocol-newsblur-maxpages)
         (elfeed-protocol-newsblur-with-fetch
           (concat host-url (format
-                            elfeed-protocol-newsblur-api-reader-starred-stories (+ i 1)))
+                            elfeed-protocol-newsblur-api-reader-starred-stories (1+ i)))
           "GET" nil
           (elfeed-protocol-newsblur--parse-entries host-url result t callback)
           (run-hook-with-args 'elfeed-update-hooks host-url))
         (elfeed-protocol-newsblur-with-fetch
           (concat host-url (format
-                            elfeed-protocol-newsblur-api-reader-river-stories (+ i 1)))
+                            elfeed-protocol-newsblur-api-reader-river-stories (1+ i)))
           "GET" nil
           (elfeed-protocol-newsblur--parse-entries host-url result t callback)
           (run-hook-with-args 'elfeed-update-hooks host-url))))
@@ -324,7 +324,7 @@ with the result entries as argument."
       (dotimes (i elfeed-protocol-newsblur-maxpages)
         (elfeed-protocol-newsblur-with-fetch
           (concat host-url (format
-                            elfeed-protocol-newsblur-api-reader-river-stories (+ i 1)))
+                            elfeed-protocol-newsblur-api-reader-river-stories (1+ i)))
           "GET" nil
           (elfeed-protocol-newsblur--parse-entries host-url result t callback)
           (run-hook-with-args 'elfeed-update-hooks host-url))))
@@ -332,7 +332,7 @@ with the result entries as argument."
      ((eq action 'update-subfeed)
       (dotimes (i elfeed-protocol-newsblur-maxpages)
         (elfeed-protocol-newsblur-with-fetch
-          (concat host-url (format elfeed-protocol-newsblur-api-reader-feed arg (+ i 1)))
+          (concat host-url (format elfeed-protocol-newsblur-api-reader-feed arg (1+ i)))
           "GET" nil
           (elfeed-protocol-newsblur--parse-entries host-url result t callback)
           (run-hook-with-args 'elfeed-update-hooks host-url)))))))

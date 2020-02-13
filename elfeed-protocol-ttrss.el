@@ -371,8 +371,8 @@ it with the result entries as argument.  Return parsed entries."
                                                                :id id
                                                                :guid-hash guid-hash
                                                                :feed-id feed-id)))))
-                         (when unread (setq unread-num (+ unread-num 1)))
-                         (when starred (setq starred-num (+ starred-num 1)))
+                         (when unread (setq unread-num (1+ unread-num)))
+                         (when starred (setq starred-num (1+ starred-num)))
 
                          ;; force override unread and star tags without repeat sync operation
                          (when original
@@ -673,8 +673,9 @@ result entries as argument"
     (if feed-url (elfeed-protocol-ttrss-update-subfeed host-url feed-url callback)
       (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
              (last-entry-id (elfeed-protocol-ttrss-get-entry-mark proto-id 'update))
-             (ids (elfeed-protocol-generate-ids-str ","
-                   (+ last-entry-id 1)
+             (ids (elfeed-protocol-generate-ids-str
+                   ","
+                   (1+ last-entry-id)
                    (+ last-entry-id elfeed-protocol-ttrss-maxsize))))
         (elfeed-protocol-ttrss-fetch-prepare
           host-url

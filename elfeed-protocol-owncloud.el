@@ -243,8 +243,8 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
                                                                :id id
                                                                :guid-hash guid-hash
                                                                :feed-id feed-id)))))
-                         (when unread (setq unread-num (+ unread-num 1)))
-                         (when starred (setq starred-num (+ starred-num 1)))
+                         (when unread (setq unread-num (1+ unread-num)))
+                         (when starred (setq starred-num (1+ starred-num)))
 
                          ;; force override unread and star tags without repeat sync operation
                          (when original
