@@ -6,8 +6,9 @@
 (require 'cl-lib)
 (require 'json)
 (require 'url)
-(require 'elfeed)
 (require 'subr-x)
+(require 'elfeed)
+(require 'elfeed-protocol-common)
 
 ;;; Code:
 
@@ -349,8 +350,6 @@ result entries as argument."
                               elfeed-protocol-fever-api-saved-item-ids))
          (url-unread (concat (elfeed-protocol-fever--get-api-url host-url)
                              elfeed-protocol-fever-api-unread-item-ids))
-         (url-update (concat (elfeed-protocol-fever--get-api-url host-url)
-                             elfeed-protocol-fever-api-items))
          (data-base (elfeed-protocol-fever--build-data host-url)))
     (unless elfeed--inhibit-update-init-hooks
       (run-hooks 'elfeed-update-init-hooks))

@@ -7,6 +7,7 @@
 (require 'json)
 (require 'url)
 (require 'elfeed)
+(require 'elfeed-protocol-common)
 
 ;;; Code:
 
@@ -384,7 +385,7 @@ HOST-URL is the host name of ownCloud server."
                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
   (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
          (first-entry-id (elfeed-protocol-get-first-entry-id proto-id))
-         (sinze-id (- first-entry-id elfeed-protocol-owncloud-maxsize)))
+         (since-id (- first-entry-id elfeed-protocol-owncloud-maxsize)))
     (elfeed-protocol-owncloud-update-since-id host-url since-id)))
 
 (defun elfeed-protocol-owncloud-mark-read (host-url entry)

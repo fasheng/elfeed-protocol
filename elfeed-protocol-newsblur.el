@@ -6,8 +6,9 @@
 (require 'cl-lib)
 (require 'json)
 (require 'url)
-(require 'elfeed)
 (require 'subr-x)
+(require 'elfeed)
+(require 'elfeed-protocol-common)
 
 ;;; Code:
 
@@ -82,7 +83,6 @@ Lisp code after operation finished."
 Will eval rest BODY expressions at end."
   (declare (indent defun))
   `(let* ((result (json-read))
-          (authenticated (map-elt result 'authenticated))
           (errors (map-elt result 'errors)))
      (if errors
          (elfeed-log 'error "elfeed-protocol-newsblur: %s" errors)
@@ -127,12 +127,12 @@ after login."
 HOST-URL is the host name of NewsBlur server.  Will call CALLBACK at
 end with argument NEED-LOGIN."
   (elfeed-log 'debug "elfeed-protocol-newsblur: update feed list")
-  (let* ((proto-id (elfeed-protocol-newsblur-id host-url))
-         (url (concat host-url elfeed-protocol-newsblur-api-reader-feeds))
+  (let* ((url (concat host-url elfeed-protocol-newsblur-api-reader-feeds))
          (data "include_favicons=false"))
     (elfeed-protocol-newsblur-with-fetch
       url "GET" data
-      (let* ((need-login (eq authenticated ':json-false)))
+      (let* ((authenticated (map-elt result 'authenticated))
+             (need-login (eq authenticated ':json-false)))
         (unless need-login
           (elfeed-protocol-newsblur--parse-feeds host-url result))
         (when callback (funcall callback need-login))))))
@@ -213,7 +213,8 @@ the result entries as argument.  Return parsed entries."
                                           ('story_title title) ('story_authors author)
                                           ('story_content body) ('story_tags newsblur-tags)
                                           ('story_feed_id feed-id) ('guid_hash guid-hash)
-                                          ('image_urls image-urls))
+                                          ;; ('image_urls image-urls)
+                                          )
                                      headline)
                                     (pub-date (string-to-number (map-elt headline 'story_timestamp)))
                                     (feed-url (elfeed-protocol-newsblur--get-subfeed-url host-url feed-id))
@@ -299,8 +300,6 @@ page number. And for update-subfeed, will fetch entries for special
 feed, the ARG is the feed id.  If CALLBACK is not nil, will call it
 with the result entries as argument."
   (elfeed-log 'debug "elfeed-protocol-newsblur: update entries with action %s, arg %s" action arg)
-  (let* ((proto-id (elfeed-protocol-newsblur-id host-url))
-         url)
     (unless elfeed--inhibit-update-init-hooks
       (run-hooks 'elfeed-update-init-hooks))
     (cond
@@ -335,7 +334,7 @@ with the result entries as argument."
           (concat host-url (format elfeed-protocol-newsblur-api-reader-feed arg (1+ i)))
           "GET" nil
           (elfeed-protocol-newsblur--parse-entries host-url result t callback)
-          (run-hook-with-args 'elfeed-update-hooks host-url)))))))
+          (run-hook-with-args 'elfeed-update-hooks host-url))))))
 
 (defun elfeed-protocol-newsblur-reinit (host-url)
   "Retry initial sync operation.
@@ -345,7 +344,7 @@ host name of NewsBlur server."
                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
   (elfeed-protocol-newsblur-fetch-prepare
         host-url
-        (elfeed-protocol-newsblur--do-update host-url 'init nil callback)))
+        (elfeed-protocol-newsblur--do-update host-url 'init nil)))
 
 (defun elfeed-protocol-newsblur-build-story-hashes-args (entries)
   "Build story hashes arguments for ENTRIES."

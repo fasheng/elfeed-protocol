@@ -6,8 +6,9 @@
 (require 'cl-lib)
 (require 'json)
 (require 'url)
-(require 'elfeed)
 (require 'subr-x)
+(require 'elfeed)
+(require 'elfeed-protocol-common)
 
 ;;; Code:
 
@@ -194,8 +195,7 @@ server url, and will call CALLBACK after login."
 HOST-URL is the host name of Tiny Tiny RSS server.  Will call CALLBACK
 at end."
   (elfeed-log 'debug "elfeed-protocol-ttrss: update feed list")
-  (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
-         (data-list `(("op" . "getFeeds")
+  (let* ((data-list `(("op" . "getFeeds")
                       ("sid" . ,elfeed-protocol-ttrss-sid)
                       ("cat_id" . "-3")))
          (data (json-encode-alist data-list)))
@@ -309,7 +309,7 @@ it with the result entries as argument.  Return parsed entries."
                        collect
                        (pcase-let* (((map id ('link entry-url) title
                                           author ('updated pub-date) ('content body)
-                                          ('tags ttrss-tags) attachments
+                                          ('tags ttrss-tags) ; attachments
                                           ('feed_id feed-id)
                                           ('feed_title feed-title)
                                           )
@@ -547,8 +547,7 @@ HOST-URL is the host name of Tiny Tiny RSS server.  ENTRIES is the
 target entry objects.  FIELD could be 0, 1, 2, 3 which means starred,
 published, unread, and article note.  MODE could be 0, 1, 2 which
 means set to false, set to true and toggle."
-  (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
-         (ids (cl-loop for entry in entries collect
+  (let* ((ids (cl-loop for entry in entries collect
                        (when (elfeed-protocol-ttrss-entry-p entry)
                          (elfeed-meta entry :id))))
          (data-list `(("op" . "updateArticle")
