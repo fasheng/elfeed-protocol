@@ -108,7 +108,7 @@ HOST-URL is the host name of Tiny Tiny RSS server, METHOD could be
 BODY is the rest Lisp code after operation finished."
   (declare (indent defun))
   `(let* ((use-curl elfeed-use-curl) ; capture current value in closure
-          (url (concat host-url elfeed-protocol-ttrss-api-base))
+          (url (concat ,host-url elfeed-protocol-ttrss-api-base))
           (headers (elfeed-protocol-ttrss--init-headers))
           (no-auth-url (elfeed-protocol-no-auth-url url))
           (cb (lambda (status)
