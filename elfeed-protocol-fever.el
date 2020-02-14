@@ -280,8 +280,8 @@ argument.  Return parsed entries."
                                                                :id id
                                                                :guid-hash guid-hash
                                                                :feed-id feed-id)))))
-                         (when unread (setq unread-num (+ unread-num 1)))
-                         (when starred (setq starred-num (+ starred-num 1)))
+                         (when unread (setq unread-num (1+ unread-num 1)))
+                         (when starred (setq starred-num (1+ starred-num 1)))
 
                          ;; force override unread and star tags without repeat sync operation
                          (when original
@@ -493,9 +493,10 @@ argument"
   (let* ((host-url (elfeed-protocol-host-url host-or-subfeed-url))
          (proto-id (elfeed-protocol-fever-id host-url))
          (last-entry-id (elfeed-protocol-fever-get-update-mark proto-id 'update))
-         (ids (elfeed-protocol-generate-ids-str ","
-                                                (+ last-entry-id 1)
-                                                (+ last-entry-id elfeed-protocol-fever-maxsize))))
+         (ids (elfeed-protocol-generate-ids-str
+               ","
+               (1+ last-entry-id)
+               (+ last-entry-id elfeed-protocol-fever-maxsize))))
     (elfeed-protocol-fever-fetch-prepare
      host-url
      (if (>= last-entry-id 0)
