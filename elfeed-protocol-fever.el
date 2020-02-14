@@ -64,31 +64,29 @@ HOST-URL is the host name of Fever server. PARAMETER is optional"
         (concat data "&" parameter)
       data)))
 
-(defun elfeed-protocol-fever-get-entry-mark (proto-id update-action)
-  "Get last entry mark for special UPDATE-ACTION.
+(defun elfeed-protocol-fever-get-update-mark (proto-id update-action)
+  "Get last update mark for special UPDATE-ACTION.
 PROTO-ID is the target protocol feed id.  UPDATE-ACTION could be update or
 update-older.  If not initialized, just return -1."
   (interactive (list (completing-read "Protocol Feed: " (elfeed-protocol-feed-list))
                      (intern (completing-read "Update action: " '(update update-older)))))
-  (let* ((feed (elfeed-db-get-feed proto-id))
-         (key-name (cond
-                    ((eq update-action 'update) :last-entry-id)
-                    ((eq update-action 'update-older) :first-entry-id)))
-         (mark (elfeed-meta feed key-name)))
+  (let* ((key (cond
+               ((eq update-action 'update) :last-entry-id)
+               ((eq update-action 'update-older) :first-entry-id)))
+         (mark (elfeed-protocol-get-feed-meta-data proto-id key)))
     (if mark mark -1)))
 
-(defun elfeed-protocol-fever-set-entry-mark (proto-id update-action mark)
-  "Set last entry mark to elfeed db.
+(defun elfeed-protocol-fever-set-update-mark (proto-id update-action mark)
+  "Set last update mark to elfeed db.
 PROTO-ID is the target protocol feed id.  UPDATE-ACTION could be update or
 update-older.  MARK the target value."
   (interactive (list (completing-read "Protocol Feed: " (elfeed-protocol-feed-list))
                      (intern (completing-read "Update action: " '(update update-older)))
                      (read-number "Mark number: ")))
-  (let* ((feed (elfeed-db-get-feed proto-id))
-         (key-name (cond
-                    ((eq update-action 'update) :last-entry-id)
-                    ((eq update-action 'update-older) :first-entry-id))))
-    (setf (elfeed-meta feed key-name) mark)))
+  (let* ((key (cond
+               ((eq update-action 'update) :last-entry-id)
+               ((eq update-action 'update-older) :first-entry-id))))
+    (elfeed-protocol-set-feed-meta-data proto-id key mark)))
 
 (defmacro elfeed-protocol-fever-with-fetch (url method data &rest body)
   "Just like `elfeed-with-fetch' but special for fever HTTP request.
@@ -227,7 +225,7 @@ update-star.  If CALLBACK is not nil, will call it with the result entries as
 argument.  Return parsed entries."
   (if (> (hash-table-count elfeed-protocol-fever-feeds) 0)
       (let* ((proto-id (elfeed-protocol-fever-id host-url))
-             (entry-mark (elfeed-protocol-fever-get-entry-mark proto-id update-action))
+             (entry-mark (elfeed-protocol-fever-get-update-mark proto-id update-action))
              (min-entry-id -1)
              (max-entry-id -1)
              (first-entry-id -1)
@@ -310,26 +308,26 @@ argument.  Return parsed entries."
               ;; update entry mark
               (cond
                ((eq update-action 'update)
-                (elfeed-protocol-fever-set-entry-mark
+                (elfeed-protocol-fever-set-update-mark
                  proto-id update-action (max entry-mark max-entry-id)))
                ((eq update-action 'update-older)
                 (let* ((id (max 1 (- entry-mark elfeed-protocol-fever-maxsize))))
-                  (elfeed-protocol-fever-set-entry-mark
+                  (elfeed-protocol-fever-set-update-mark
                    proto-id update-action id))))
             ;; init entry mark
             (setq first-entry-id (max 1 max-entry-id))
             (cond
              ((eq update-action 'update)
-              (elfeed-protocol-fever-set-entry-mark proto-id update-action first-entry-id)
+              (elfeed-protocol-fever-set-update-mark proto-id update-action first-entry-id)
               ;; set :first-entry-id same with :last-entry-id
-              (elfeed-protocol-fever-set-entry-mark proto-id 'update-older first-entry-id))
+              (elfeed-protocol-fever-set-update-mark proto-id 'update-older first-entry-id))
              ((eq update-action 'update-older)
-              (elfeed-protocol-fever-set-entry-mark proto-id update-action first-entry-id)))))
+              (elfeed-protocol-fever-set-update-mark proto-id update-action first-entry-id)))))
 
         (elfeed-log 'debug "elfeed-protocol-fever: %s, parsed %d entries(%d unread, %d starred, min-entry-id %d, max-entry-id %d) with %fs, entry-mark: %d"
                     update-action (length entries) unread-num starred-num min-entry-id max-entry-id
                     (- (time-to-seconds) begin-time)
-                    (elfeed-protocol-fever-get-entry-mark proto-id update-action))
+                    (elfeed-protocol-fever-get-update-mark proto-id update-action))
         entries)
     (progn
       (elfeed-log 'error "elfeed-protocol-fever: elfeed-protocol-fever-feeds is nil, please call elfeed-protocol-fever--update-feed-list first")
@@ -359,8 +357,8 @@ result entries as argument."
     (cond
      ;; initial sync, fetch starred and unread entries
      ((eq action 'init)
-      (elfeed-protocol-fever-set-entry-mark proto-id 'update -1)
-      (elfeed-protocol-fever-set-entry-mark proto-id 'update-older -1)
+      (elfeed-protocol-fever-set-update-mark proto-id 'update -1)
+      (elfeed-protocol-fever-set-update-mark proto-id 'update-older -1)
       (elfeed-protocol-fever-with-fetch
        url-starred "POST" data-base
        (elfeed-protocol-fever--get-entries host-url (map-elt result 'saved_item_ids) nil 'update-star callback)
@@ -392,7 +390,7 @@ HOST-URL is the host name of Fever server."
   (interactive (list (elfeed-protocol-url
                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
   (let* ((proto-id (elfeed-protocol-fever-id host-url))
-         (first-entry-id (elfeed-protocol-fever-get-entry-mark proto-id 'update-older))
+         (first-entry-id (elfeed-protocol-fever-get-update-mark proto-id 'update-older))
          (ids (elfeed-protocol-generate-ids-str ","
                                                 (max 1 (- first-entry-id elfeed-protocol-fever-maxsize))
                                                 (max 1 (- first-entry-id 1)))))
@@ -495,7 +493,7 @@ argument"
                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
   (let* ((host-url (elfeed-protocol-host-url host-or-subfeed-url))
          (proto-id (elfeed-protocol-fever-id host-url))
-         (last-entry-id (elfeed-protocol-fever-get-entry-mark proto-id 'update))
+         (last-entry-id (elfeed-protocol-fever-get-update-mark proto-id 'update))
          (ids (elfeed-protocol-generate-ids-str ","
                                                 (+ last-entry-id 1)
                                                 (+ last-entry-id elfeed-protocol-fever-maxsize))))

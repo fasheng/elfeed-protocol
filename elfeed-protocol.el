@@ -78,28 +78,6 @@ For example,
   :group 'elfeed-protocol
   :type '(repeat (cons string symbol)))
 
-(defun elfeed-protocol-generate-ids-str (separate start end)
-  "Generate article ids string from START id to END id.
-SEPARATE is the string to be insert between each id."
-  (string-trim-right (cl-loop for id from start to end concat (format "%d%s" id separate)) separate))
-
-(defun elfeed-protocol-join-ids-to-str (separate &rest ids)
-  "Convert article ids to string format, for example from (1 2) to \"1,2\".
-SEPARATE is the string to be insert between each id, IDS is the target id array."
-  (string-trim-right (cl-loop for id in ids concat (format "%d%s" id separate)) separate))
-
-(defun elfeed-protocol-split-ids-sub-size (separate ids sub-size)
-  "Convert article ids to sub string list, for example from \"1,2,3\" to (\"1,2\" \"3\") if sub-size is 2.
-SEPARATE is the separate string. IDS is the a comma-separated string of item
-ids. SUB-SIZE is the item size to split for each request."
-  (let* ((ids-list (split-string ids separate))
-         (size (length ids-list))
-         (cycles (max 1 (ceiling (/ (float size) sub-size)))))
-    (cl-loop for i from 0 to (1- cycles) collect
-             (string-trim-right
-              (cl-loop for j from (* i sub-size) to (1- (min size (* (1+ i) sub-size))) concat
-                       (format "%s%s" (elt ids-list j) separate)) separate))))
-
 (defun elfeed-protocol-feed-p (url-or-feed)
   "Check if a URL-OR-FEED contain extra protocol."
   (let ((feed-url (if (elfeed-feed-p url-or-feed)
@@ -291,51 +269,77 @@ traget child feed url under protocol feed"
   (let ((elfeed-feeds (elfeed-protocol-meta-autotags proto-id)))
     (elfeed-feed-autotags url-or-feed)))
 
+(defun elfeed-protocol-get-feed-meta-data (proto-id key)
+  "Get meta data in feed db.
+PROTO-ID is the target protocol feed id.  KEY is the key name."
+  (let* ((feed (elfeed-db-get-feed proto-id)))
+    (elfeed-meta feed key)))
+
+(defun elfeed-protocol-set-feed-meta-data (proto-id key value)
+  "Get meta data in feed db.
+PROTO-ID is the target protocol feed id.  KEY is the key name.  VALUE is the
+target value."
+  (let* ((feed (elfeed-db-get-feed proto-id)))
+    (setf (elfeed-meta feed key) value)))
+
 (defun elfeed-protocol-get-last-modified (proto-id)
   "Get last entry modified time.
 PROTO-ID is the target protocol feed id.  If not initialized just return 0.  The
 last modified time was saved in elfeed db as a mock feed."
-  (let* ((feed (elfeed-db-get-feed proto-id))
-         (last-modified (elfeed-meta feed :last-modified)))
+  (let* ((last-modified (elfeed-protocol-get-feed-meta-data proto-id :last-modified)))
     (if last-modified
         last-modified
       0)))
-
 (defun elfeed-protocol-set-last-modified (proto-id last-modified)
   "Set last entry modified time.
 PROTO-ID is the target protocol feed id.  LAST-MODIFIED is the target value."
-  (let* ((feed (elfeed-db-get-feed proto-id)))
-    (setf (elfeed-meta feed :last-modified) last-modified)))
+  (elfeed-protocol-set-feed-meta-data proto-id :last-modified last-modified))
 
 (defun elfeed-protocol-get-first-entry-id (proto-id)
   "Get first entry id.
 PROTO-ID is the target protocol feed id.  If not initialized, just return -1."
-  (let* ((feed (elfeed-db-get-feed proto-id))
-         (last-entry-id (elfeed-meta feed :first-entry-id)))
+  (let* ((last-entry-id (elfeed-protocol-get-feed-meta-data proto-id :first-entry-id)))
     (if last-entry-id
         last-entry-id
       -1)))
-
 (defun elfeed-protocol-set-first-entry-id (proto-id first-entry-id)
   "Set first entry id to elfeed db.
 PROTO-ID is the target protocol feed id.  FIRST-ENTRY-ID is the target value."
-  (let* ((feed (elfeed-db-get-feed proto-id)))
-    (setf (elfeed-meta feed :first-entry-id) first-entry-id)))
+  (elfeed-protocol-set-feed-meta-data proto-id :first-entry-id first-entry-id))
 
 (defun elfeed-protocol-get-last-entry-id (proto-id)
   "Get last entry id.
 PROTO-ID is the target protocol feed id.  If not initialized, just return -1."
-  (let* ((feed (elfeed-db-get-feed proto-id))
-         (last-entry-id (elfeed-meta feed :last-entry-id)))
+  (let* ((last-entry-id (elfeed-protocol-get-feed-meta-data proto-id :last-entry-id)))
     (if last-entry-id
         last-entry-id
       -1)))
-
 (defun elfeed-protocol-set-last-entry-id (proto-id last-entry-id)
   "Set last entry id to elfeed db.
 PROTO-ID is the target protocol feed id.  LAST-ENTRY-ID is the target value."
-  (let* ((feed (elfeed-db-get-feed proto-id)))
-    (setf (elfeed-meta feed :last-entry-id) last-entry-id)))
+  (elfeed-protocol-set-feed-meta-data proto-id :last-entry-id last-entry-id))
+
+(defun elfeed-protocol-generate-ids-str (separate start end)
+  "Generate article ids string from START id to END id.
+SEPARATE is the string to be insert between each id."
+  (string-trim-right (cl-loop for id from start to end concat (format "%d%s" id separate)) separate))
+
+(defun elfeed-protocol-join-ids-to-str (separate &rest ids)
+  "Convert article ids to string format, for example from (1 2) to \"1,2\".
+SEPARATE is the string to be insert between each id, IDS is the target id array."
+  (string-trim-right (cl-loop for id in ids concat (format "%d%s" id separate)) separate))
+
+(defun elfeed-protocol-split-ids-sub-size (separate ids sub-size)
+  "Convert article ids to sub string list, for example from \"1,2,3\" to (\"1,2\" \"3\") if sub-size is 2.
+SEPARATE is the separate string. IDS is the a comma-separated string of item
+ids. SUB-SIZE is the item size to split for each request."
+  (let* ((ids-list (split-string ids separate))
+         (size (length ids-list))
+         (cycles (max 1 (ceiling (/ (float size) sub-size)))))
+    (cl-loop for i from 0 to (1- cycles) collect
+             (string-trim-right
+              (cl-loop for j from (* i sub-size) to (1- (min size (* (1+ i) sub-size))) concat
+                       (format "%s%s" (elt ids-list j) separate)) separate))))
 
 (defun elfeed-protocol-build-entry-groups (entries)
   "Split ENTRIES to groups with the same protocol url id."
