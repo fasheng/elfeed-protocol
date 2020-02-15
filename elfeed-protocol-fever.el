@@ -413,10 +413,11 @@ HOST-URL is the host name of Fever server."
 HOST-URL is the host name of Fever server.  ID is the target entry id.
 STATE could be \"read\", \"unread\", \"saved\" and \"unsaved\"."
   (let* ((url (elfeed-protocol-fever--get-api-url host-url))
-           (data (elfeed-protocol-fever--build-data
-                  host-url (format "mark=item&id=%s&as=%s" id state))))
-      (elfeed-protocol-fever-with-fetch
-       url "POST" data)))
+         (data (elfeed-protocol-fever--build-data
+                host-url (format "mark=item&id=%s&as=%s" id state))))
+    (elfeed-log 'debug "elfeed-protocol-fever: mark item %s as %s" id state)
+    (elfeed-protocol-fever-with-fetch
+      url "POST" data)))
 
 (defun elfeed-protocol-fever-mark-read (host-url id)
   "Notify item to be read.

@@ -373,24 +373,28 @@ url.  ID is the target entry id."
 (defun elfeed-protocol-newsblur-mark-read (host-url id)
   "Notify multiple entries to be read.
 HOST-URL is the host name of NewsBlur server.  ID is the target entry id."
+  (elfeed-log 'debug "elfeed-protocol-newsblur: mark read, id: %s" id)
   (elfeed-protocol-newsblur-update-entry-state
    host-url elfeed-protocol-newsblur-api-reader-mark-story-read id))
 
 (defun elfeed-protocol-newsblur-mark-unread (host-url id)
   "Notify multiple entries to be unread.
 HOST-URL is the host name of NewsBlur server.  ID is the target entry id."
+  (elfeed-log 'debug "elfeed-protocol-newsblur: mark unread, id: %s" id)
   (elfeed-protocol-newsblur-update-entry-state
    host-url elfeed-protocol-newsblur-api-reader-mark-story-unread id))
 
 (defun elfeed-protocol-newsblur-mark-starred (host-url id)
   "Notify multiple entries to be starred.
 HOST-URL is the host name of NewsBlur server.  ID is the target entry id."
+  (elfeed-log 'debug "elfeed-protocol-newsblur: mark starred, id: %s" id)
   (elfeed-protocol-newsblur-update-entry-state
    host-url elfeed-protocol-newsblur-api-reader-mark-story-starred id))
 
 (defun elfeed-protocol-newsblur-mark-unstarred (host-url id)
   "Notify multiple entries to be unstarred.
 HOST-URL is the host name of NewsBlur server.  ID is the target entry id."
+  (elfeed-log 'debug "elfeed-protocol-newsblur: mark unstarred, id: %s" id)
   (elfeed-protocol-newsblur-update-entry-state
    host-url elfeed-protocol-newsblur-api-reader-mark-story-unstarred id))
 

@@ -429,6 +429,7 @@ HOST-URL is the host name of ownCloud server.  IDS is the target entry ids."
   (let* ((url (concat host-url elfeed-protocol-owncloud-api-read-multi))
          (data (json-encode-list `((items . ,ids)))))
     (when ids
+      (elfeed-log 'debug "elfeed-protocol-owncloud: mark read, ids: %s" ids)
       (elfeed-protocol-owncloud-with-fetch url data))))
 
 (defun elfeed-protocol-owncloud-mark-unread-multi (host-url ids)
@@ -437,6 +438,7 @@ HOST-URL is the host name of ownCloud server.  IDS is the target entry ids."
   (let* ((url (concat host-url elfeed-protocol-owncloud-api-unread-multi))
          (data (json-encode-list `((items . ,ids)))))
     (when ids
+      (elfeed-log 'debug "elfeed-protocol-owncloud: mark unread, ids: %s" ids)
       (elfeed-protocol-owncloud-with-fetch url data))))
 
 (defun elfeed-protocol-owncloud-mark-starred-multi (host-url star-ids)
@@ -451,6 +453,7 @@ with format (list (cons feed-id guid-hash))."
                              (guidHash . ,guid-hash)))))
          (data (json-encode-list `((items . ,items)))))
     (when items
+      (elfeed-log 'debug "elfeed-protocol-owncloud: mark starred, star-ids: %s" star-ids)
       (elfeed-protocol-owncloud-with-fetch url data))))
 
 (defun elfeed-protocol-owncloud-mark-unstarred-multi (host-url star-ids)
@@ -465,6 +468,7 @@ with format (list (cons feed-id guid-hash))."
                              (guidHash . ,guid-hash)))))
          (data (json-encode-list `((items . ,items)))))
     (when items
+      (elfeed-log 'debug "elfeed-protocol-owncloud: mark unstarred, star-ids: %s" star-ids)
       (elfeed-protocol-owncloud-with-fetch url data))))
 
 (defun elfeed-protocol-owncloud-sync-pending-ids (host-url)

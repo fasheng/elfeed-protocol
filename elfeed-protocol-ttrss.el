@@ -565,6 +565,7 @@ means set to false, set to true and toggle."
   "Notify multiple entries to be read.
 HOST-URL is the host name of Tiny Tiny RSS server.  IDS is the target entry
 ids."
+  (elfeed-log 'debug "elfeed-protocol-ttrss: mark read, ids: %s" ids)
   (elfeed-protocol-ttrss--update-article
    host-url ids elfeed-protocol-ttrss-api-update-article-field-unread 0))
 
@@ -572,6 +573,7 @@ ids."
   "Notify multiple entries to be unread.
 HOST-URL is the host name of Tiny Tiny RSS server.  IDS is the target entry
 ids."
+  (elfeed-log 'debug "elfeed-protocol-ttrss: mark unread, ids: %s" ids)
   (elfeed-protocol-ttrss--update-article
    host-url ids elfeed-protocol-ttrss-api-update-article-field-unread 1))
 
@@ -579,6 +581,7 @@ ids."
   "Notify multiple entries to be starred.
 HOST-URL is the host name of Tiny Tiny RSS server.  IDS is the target entry
 ids."
+  (elfeed-log 'debug "elfeed-protocol-ttrss: mark starred, ids: %s" ids)
   (elfeed-protocol-ttrss--update-article
    host-url ids elfeed-protocol-ttrss-api-update-article-field-starred 1))
 
@@ -586,6 +589,7 @@ ids."
   "Notify multiple entries to be unstarred.
 HOST-URL is the host name of Tiny Tiny RSS server.  IDS is the target entry
 ids."
+  (elfeed-log 'debug "elfeed-protocol-ttrss: mark unstarred, ids: %s" ids)
   (elfeed-protocol-ttrss--update-article
    host-url ids elfeed-protocol-ttrss-api-update-article-field-starred 0))
 
@@ -593,6 +597,7 @@ ids."
   "Notify multiple entries to be published.
 HOST-URL is the host name of Tiny Tiny RSS server.  IDS is the target entry
 ids."
+  (elfeed-log 'debug "elfeed-protocol-ttrss: mark published, ids: %s" ids)
   (elfeed-protocol-ttrss--update-article
    host-url ids elfeed-protocol-ttrss-api-update-article-field-published 1))
 
@@ -600,6 +605,7 @@ ids."
   "Notify multiple entries to be unpublished.
 HOST-URL is the host name of Tiny Tiny RSS server.  IDS is the target entry
 ids."
+  (elfeed-log 'debug "elfeed-protocol-ttrss: mark unpublished, ids: %s" ids)
   (elfeed-protocol-ttrss--update-article
    host-url ids elfeed-protocol-ttrss-api-update-article-field-published 0))
 
