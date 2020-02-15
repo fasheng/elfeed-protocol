@@ -316,6 +316,7 @@ nil, will call it with the result entries as argument."
     (cond
      ;; initial sync, fetch unread entries
      ((eq action 'init)
+      (elfeed-protocol-set-last-modified proto-id 0)
       (elfeed-protocol-set-first-entry-id proto-id -1)
       (elfeed-protocol-set-last-entry-id proto-id -1)
       (setq url-opt url-init-unread))

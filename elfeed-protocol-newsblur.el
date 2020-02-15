@@ -300,11 +300,13 @@ page number. And for update-subfeed, will fetch entries for special
 feed, the ARG is the feed id.  If CALLBACK is not nil, will call it
 with the result entries as argument."
   (elfeed-log 'debug "elfeed-protocol-newsblur: update entries with action %s, arg %s" action arg)
+  (let* ((proto-id (elfeed-protocol-newsblur-id host-url)))
     (unless elfeed--inhibit-update-init-hooks
       (run-hooks 'elfeed-update-init-hooks))
     (cond
      ;; init
      ((eq action 'init)
+      (elfeed-protocol-set-last-modified proto-id 0)
       (dotimes (i elfeed-protocol-newsblur-maxpages)
         (elfeed-protocol-newsblur-with-fetch
           (concat host-url (format
@@ -334,7 +336,7 @@ with the result entries as argument."
           (concat host-url (format elfeed-protocol-newsblur-api-reader-feed arg (1+ i)))
           "GET" nil
           (elfeed-protocol-newsblur--parse-entries host-url result t callback)
-          (run-hook-with-args 'elfeed-update-hooks host-url))))))
+          (run-hook-with-args 'elfeed-update-hooks host-url)))))))
 
 (defun elfeed-protocol-newsblur-reinit (host-url)
   "Retry initial sync operation.
