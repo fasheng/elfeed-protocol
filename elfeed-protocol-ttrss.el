@@ -478,7 +478,6 @@ not nil, will call it with the result entries as argument."
           (run-hook-with-args 'elfeed-update-hooks host-url))))
      ;; update older or latest entries
      ((or (eq action 'update) (eq action 'update-older))
-      (elfeed-protocol-ttrss-sync-pending-ids host-url)
       (let* ((data-list-article `(("op" . "getArticle")
                                   ("sid" . ,elfeed-protocol-ttrss-sid)
                                   ("article_id" . ,arg))))
@@ -496,7 +495,6 @@ not nil, will call it with the result entries as argument."
                (run-hook-with-args 'elfeed-update-hooks host-url))))
      ;; update entries for special sub feed
      ((eq action 'update-subfeed)
-      (elfeed-protocol-ttrss-sync-pending-ids host-url)
       (let* ((feed-id arg)
              (data-list-feed (append data-list-base
                                      `(("feed_id" . ,feed-id)
@@ -713,6 +711,7 @@ result entries as argument"
                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
   (let* ((host-url (elfeed-protocol-host-url host-or-subfeed-url))
          (feed-url (elfeed-protocol-subfeed-url host-or-subfeed-url)))
+    (elfeed-protocol-ttrss-sync-pending-ids host-url)
     (if feed-url (elfeed-protocol-ttrss-update-subfeed host-url feed-url callback)
       (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
              (last-entry-id (elfeed-protocol-ttrss-get-update-mark proto-id 'update))

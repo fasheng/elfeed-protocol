@@ -323,7 +323,6 @@ with the result entries as argument."
           (run-hook-with-args 'elfeed-update-hooks host-url))))
      ;; update entries
      ((eq action 'update)
-      (elfeed-protocol-newsblur-sync-pending-ids host-url)
       (dotimes (i elfeed-protocol-newsblur-maxpages)
         (elfeed-protocol-newsblur-with-fetch
           (concat host-url (format
@@ -333,7 +332,6 @@ with the result entries as argument."
           (run-hook-with-args 'elfeed-update-hooks host-url))))
      ;; update entries for special sub feed
      ((eq action 'update-subfeed)
-      (elfeed-protocol-newsblur-sync-pending-ids host-url)
       (dotimes (i elfeed-protocol-newsblur-maxpages)
         (elfeed-protocol-newsblur-with-fetch
           (concat host-url (format elfeed-protocol-newsblur-api-reader-feed arg (1+ i)))
@@ -487,6 +485,7 @@ nil will call it with the result entries as argument"
          (feed-url (elfeed-protocol-subfeed-url host-or-subfeed-url))
          (proto-id (elfeed-protocol-newsblur-id host-url))
          (last-modified (elfeed-protocol-get-last-modified proto-id)))
+    (elfeed-protocol-newsblur-sync-pending-ids host-url)
     (if feed-url (elfeed-protocol-newsblur-update-subfeed host-url feed-url callback)
       (elfeed-protocol-newsblur-fetch-prepare
         host-url

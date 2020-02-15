@@ -332,7 +332,6 @@ nil, will call it with the result entries as argument."
       (setq url-opt (concat host-url
                             (format elfeed-protocol-owncloud-api-update-subfeed arg
                                     elfeed-protocol-owncloud-maxsize)))))
-    (elfeed-protocol-owncloud-sync-pending-ids host-url)
     (elfeed-protocol-owncloud-with-fetch url-opt nil
       (elfeed-protocol-owncloud--parse-entries host-url mark-state callback)
       (run-hook-with-args 'elfeed-update-hooks host-url))
@@ -566,6 +565,7 @@ result entries as argument"
                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
   (let* ((host-url (elfeed-protocol-host-url host-or-subfeed-url))
          (subfeed-url (elfeed-protocol-subfeed-url host-or-subfeed-url)))
+    (elfeed-protocol-owncloud-sync-pending-ids host-url)
     (if subfeed-url (elfeed-protocol-owncloud-update-subfeed host-url subfeed-url callback)
       (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
              (last-modified (elfeed-protocol-get-last-modified proto-id))

@@ -367,7 +367,6 @@ result entries as argument."
         (elfeed-protocol-fever--get-entries host-url (map-elt result 'unread_item_ids) t 'update callback))))
      ;; update older or latest entries
      ((or (eq action 'update) (eq action 'update-older))
-      (elfeed-protocol-fever-sync-pending-ids host-url)
       (elfeed-protocol-fever--get-entries host-url arg t action callback))
      ;; update starred entries
      ((eq action 'update-star)
@@ -524,6 +523,7 @@ argument"
                ","
                (1+ last-entry-id)
                (+ last-entry-id elfeed-protocol-fever-maxsize))))
+    (elfeed-protocol-fever-sync-pending-ids host-url)
     (elfeed-protocol-fever-fetch-prepare
      host-url
      (if (>= last-entry-id 0)
