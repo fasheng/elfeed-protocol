@@ -468,6 +468,7 @@ not nil, will call it with the result entries as argument."
       (elfeed-protocol-ttrss-set-update-mark proto-id 'update -1)
       (elfeed-protocol-ttrss-set-update-mark proto-id 'update-older -1)
       (elfeed-protocol-ttrss-set-update-mark proto-id 'update-star -1)
+      (elfeed-protocol-clean-pending-ids proto-id)
       (elfeed-protocol-ttrss-with-fetch
         host-url "GET" (json-encode-alist data-list-starred)
         (elfeed-protocol-ttrss--parse-entries host-url content t 'update-star callback)
@@ -477,6 +478,7 @@ not nil, will call it with the result entries as argument."
           (run-hook-with-args 'elfeed-update-hooks host-url))))
      ;; update older or latest entries
      ((or (eq action 'update) (eq action 'update-older))
+      (elfeed-protocol-ttrss-sync-pending-ids host-url)
       (let* ((data-list-article `(("op" . "getArticle")
                                   ("sid" . ,elfeed-protocol-ttrss-sid)
                                   ("article_id" . ,arg))))
@@ -494,6 +496,7 @@ not nil, will call it with the result entries as argument."
                (run-hook-with-args 'elfeed-update-hooks host-url))))
      ;; update entries for special sub feed
      ((eq action 'update-subfeed)
+      (elfeed-protocol-ttrss-sync-pending-ids host-url)
       (let* ((feed-id arg)
              (data-list-feed (append data-list-base
                                      `(("feed_id" . ,feed-id)
@@ -600,33 +603,58 @@ ids."
   (elfeed-protocol-ttrss--update-article
    host-url ids elfeed-protocol-ttrss-api-update-article-field-published 0))
 
-(defun elfeed-protocol-ttrss-sync-tag-multi (host-url entries tag action)
+(defun elfeed-protocol-ttrss-sync-pending-ids (host-url)
+  "Sync pending read/unread/starred/unstarred/published/unpublished entry states to Tiny Tiny RSS server.
+HOST-URL is the host name of Tiny Tiny RSS server."
+  (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
+         (pending-read-ids (elfeed-protocol-get-pending-ids proto-id :pending-read))
+         (pending-unread-ids (elfeed-protocol-get-pending-ids proto-id :pending-unread))
+         (pending-starred-ids (elfeed-protocol-get-pending-ids proto-id :pending-starred))
+         (pending-unstarred-ids (elfeed-protocol-get-pending-ids proto-id :pending-unstarred))
+         (pending-published-ids (elfeed-protocol-get-pending-ids proto-id :pending-published))
+         (pending-unpublished-ids (elfeed-protocol-get-pending-ids proto-id :pending-unpublished)))
+    (when pending-read-ids (elfeed-protocol-ttrss-mark-read-multi host-url pending-read-ids))
+    (when pending-unread-ids (elfeed-protocol-ttrss-mark-unread-multi host-url pending-unread-ids))
+    (when pending-starred-ids (elfeed-protocol-ttrss-mark-starred-multi host-url pending-starred-ids))
+    (when pending-unstarred-ids (elfeed-protocol-ttrss-mark-unstarred-multi host-url pending-unstarred-ids))
+    (when pending-published-ids (elfeed-protocol-ttrss-mark-published-multi host-url pending-published-ids))
+    (when pending-unpublished-ids (elfeed-protocol-ttrss-mark-unpublished-multi host-url pending-unpublished-ids))
+    (elfeed-protocol-clean-pending-ids proto-id)))
+
+(defun elfeed-protocol-ttrss-append-pending-ids (host-url entries tag action)
   "Sync unread starred and published tag states to Tiny Tiny RSS server.
 HOST-URL is the host name of Tiny Tiny RSS server.  ENTRIES is the
 target entry objects.  TAG is the action tag, for example unread,
 `elfeed-protocol-ttrss-star-tag' and
 `elfeed-protocol-ttrss-publish-tag', ACTION could be add or remove."
   (when entries
-    (let* ((ids (cl-loop for entry in entries collect
+    (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
+           (ids (cl-loop for entry in entries collect
                          (when (elfeed-protocol-ttrss-entry-p entry)
                            (elfeed-meta entry :id)))))
       (cond
        ((eq action 'add)
         (cond
          ((eq tag 'unread)
-          (elfeed-protocol-ttrss-mark-unread-multi host-url ids))
+          (elfeed-protocol-append-pending-ids proto-id :pending-unread ids)
+          (elfeed-protocol-remove-pending-ids proto-id :pending-read ids))
          ((eq tag elfeed-protocol-ttrss-star-tag)
-          (elfeed-protocol-ttrss-mark-starred-multi host-url ids))
+          (elfeed-protocol-append-pending-ids proto-id :pending-starred ids)
+          (elfeed-protocol-remove-pending-ids proto-id :pending-unstarred ids))
          ((eq tag elfeed-protocol-ttrss-publish-tag)
-          (elfeed-protocol-ttrss-mark-published-multi host-url ids))))
+          (elfeed-protocol-append-pending-ids proto-id :pending-published ids)
+          (elfeed-protocol-remove-pending-ids proto-id :pending-unpublished ids))))
        ((eq action 'remove)
         (cond
          ((eq tag 'unread)
-          (elfeed-protocol-ttrss-mark-read-multi host-url ids))
+          (elfeed-protocol-append-pending-ids proto-id :pending-read ids)
+          (elfeed-protocol-remove-pending-ids proto-id :pending-unread ids))
          ((eq tag elfeed-protocol-ttrss-star-tag)
-          (elfeed-protocol-ttrss-mark-unstarred-multi host-url ids))
+          (elfeed-protocol-append-pending-ids proto-id :pending-unstarred ids)
+          (elfeed-protocol-remove-pending-ids proto-id :pending-starred ids))
          ((eq tag elfeed-protocol-ttrss-publish-tag)
-          (elfeed-protocol-ttrss-mark-unpublished-multi host-url ids))))))))
+          (elfeed-protocol-append-pending-ids proto-id :pending-unpublished ids)
+          (elfeed-protocol-remove-pending-ids proto-id :pending-published ids))))))))
 
 (defun elfeed-protocol-ttrss-pre-tag (host-url entries &rest tags)
   "Sync unread, starred and published states before tags added.
@@ -636,7 +664,9 @@ target entry objects.  TAGS is the tags are adding now."
     (let* ((entries-modified (cl-loop for entry in entries
                                       unless (elfeed-tagged-p tag entry)
                                       collect entry)))
-      (elfeed-protocol-ttrss-sync-tag-multi host-url entries-modified tag 'add))))
+      (elfeed-protocol-ttrss-append-pending-ids host-url entries-modified tag 'add)))
+  (unless elfeed-protocol-lazy-sync
+    (elfeed-protocol-ttrss-sync-pending-ids host-url)))
 
 (defun elfeed-protocol-ttrss-pre-untag (host-url entries &rest tags)
   "Sync unread, starred and published states before tags removed.
@@ -646,7 +676,9 @@ target entry objects.  TAGS is the tags are removing now."
     (let* ((entries-modified (cl-loop for entry in entries
                                       when (elfeed-tagged-p tag entry)
                                       collect entry)))
-      (elfeed-protocol-ttrss-sync-tag-multi host-url entries-modified tag 'remove))))
+      (elfeed-protocol-ttrss-append-pending-ids host-url entries-modified tag 'remove)))
+  (unless elfeed-protocol-lazy-sync
+    (elfeed-protocol-ttrss-sync-pending-ids host-url)))
 
 (defun elfeed-protocol-ttrss-update-subfeed (host-url feed-url &optional callback)
   "Update entries under special sub feed in Tiny Tiny RSS.

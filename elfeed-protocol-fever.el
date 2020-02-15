@@ -358,6 +358,7 @@ result entries as argument."
      ((eq action 'init)
       (elfeed-protocol-fever-set-update-mark proto-id 'update -1)
       (elfeed-protocol-fever-set-update-mark proto-id 'update-older -1)
+      (elfeed-protocol-clean-pending-ids proto-id)
       (elfeed-protocol-fever-with-fetch
        url-starred "POST" data-base
        (elfeed-protocol-fever--get-entries host-url (map-elt result 'saved_item_ids) nil 'update-star callback)
@@ -366,6 +367,7 @@ result entries as argument."
         (elfeed-protocol-fever--get-entries host-url (map-elt result 'unread_item_ids) t 'update callback))))
      ;; update older or latest entries
      ((or (eq action 'update) (eq action 'update-older))
+      (elfeed-protocol-fever-sync-pending-ids host-url)
       (elfeed-protocol-fever--get-entries host-url arg t action callback))
      ;; update starred entries
      ((eq action 'update-star)
@@ -440,26 +442,45 @@ HOST-URL is the host name of Fever server.  ID is the target entry id."
   (elfeed-protocol-fever--write-item
    host-url id elfeed-protocol-fever-api-item-state-unsaved))
 
-(defun elfeed-protocol-fever-sync-tag (host-url entry tag action)
+(defun elfeed-protocol-fever-sync-pending-ids (host-url)
+  "Sync pending read/unread/starred/unstarred entry states to Fever server.
+HOST-URL is the host name of Fever server."
+  (let* ((proto-id (elfeed-protocol-fever-id host-url))
+         (pending-read-ids (elfeed-protocol-get-pending-ids proto-id :pending-read))
+         (pending-unread-ids (elfeed-protocol-get-pending-ids proto-id :pending-unread))
+         (pending-starred-ids (elfeed-protocol-get-pending-ids proto-id :pending-starred))
+         (pending-unstarred-ids (elfeed-protocol-get-pending-ids proto-id :pending-unstarred)))
+    (dolist (id pending-read-ids) (elfeed-protocol-fever-mark-read host-url id))
+    (dolist (id pending-unread-ids) (elfeed-protocol-fever-mark-unread host-url id))
+    (dolist (id pending-starred-ids) (elfeed-protocol-fever-mark-starred host-url id))
+    (dolist (id pending-unstarred-ids) (elfeed-protocol-fever-mark-unstarred host-url id))
+    (elfeed-protocol-clean-pending-ids proto-id)))
+
+(defun elfeed-protocol-fever-append-pending-id (host-url entry tag action)
   "Append read/unread/starred/unstarred ids to pending list.
 HOST-URL is the host name of Fever server.  ENTRY is the target entry object.
 TAG is the action tag, for example unread and `elfeed-protocol-fever-star-tag',
 ACTION could be add or remove."
   (when (elfeed-protocol-fever-entry-p entry)
-    (let* ((id (elfeed-meta entry :id)))
+    (let* ((proto-id (elfeed-protocol-fever-id host-url))
+           (id (elfeed-meta entry :id)))
       (cond
        ((eq action 'add)
         (cond
          ((eq tag 'unread)
-          (elfeed-protocol-fever-mark-unread host-url id))
+          (elfeed-protocol-append-pending-ids proto-id :pending-unread (list id))
+          (elfeed-protocol-remove-pending-ids proto-id :pending-read (list id)))
          ((eq tag elfeed-protocol-fever-star-tag)
-          (elfeed-protocol-fever-mark-starred host-url id))))
+          (elfeed-protocol-append-pending-ids proto-id :pending-starred (list id))
+          (elfeed-protocol-remove-pending-ids proto-id :pending-unstarred (list id)))))
        ((eq action 'remove)
         (cond
          ((eq tag 'unread)
-          (elfeed-protocol-fever-mark-read host-url id))
+          (elfeed-protocol-append-pending-ids proto-id :pending-read (list id))
+          (elfeed-protocol-remove-pending-ids proto-id :pending-unread (list id)))
          ((eq tag elfeed-protocol-fever-star-tag)
-          (elfeed-protocol-fever-mark-unstarred host-url id))))))))
+          (elfeed-protocol-append-pending-ids proto-id :pending-unstarred (list id))
+          (elfeed-protocol-remove-pending-ids proto-id :pending-starred (list id)))))))))
 
 (defun elfeed-protocol-fever-pre-tag (host-url entries &rest tags)
   "Sync unread and starred states before tags added.
@@ -468,7 +489,9 @@ target entry objects.  TAGS is the tags are adding now."
   (dolist (tag tags)
     (cl-loop for entry in entries
              unless (elfeed-tagged-p tag entry)
-             do (elfeed-protocol-fever-sync-tag host-url entry tag 'add))))
+             do (elfeed-protocol-fever-append-pending-id host-url entry tag 'add)))
+  (unless elfeed-protocol-lazy-sync
+    (elfeed-protocol-fever-sync-pending-ids host-url)))
 
 (defun elfeed-protocol-fever-pre-untag (host-url entries &rest tags)
   "Sync unread and starred states before tags removed.
@@ -477,7 +500,9 @@ target entry objects.  TAGS is the tags are removing now."
   (dolist (tag tags)
     (cl-loop for entry in entries
              when (elfeed-tagged-p tag entry)
-             collect (elfeed-protocol-fever-sync-tag host-url entry tag 'remove))))
+             collect (elfeed-protocol-fever-append-pending-id host-url entry tag 'remove)))
+  (unless elfeed-protocol-lazy-sync
+    (elfeed-protocol-fever-sync-pending-ids host-url)))
 
 (defun elfeed-protocol-fever-update (host-or-subfeed-url &optional callback)
   "Fever protocol updater.

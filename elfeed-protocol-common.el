@@ -12,6 +12,10 @@
 (defvar elfeed-protocol-log-trace nil
   "Show more logs than debug level.")
 
+(defvar elfeed-protocol-lazy-sync nil
+  "If not nil, will synchronize read/unread/starred/unstarred states to remote
+server in next update operation.")
+
 (defun elfeed-protocol-feed-p (url-or-feed)
   "Check if a URL-OR-FEED contain extra protocol."
   (let ((feed-url (if (elfeed-feed-p url-or-feed)
@@ -221,6 +225,61 @@ PROTO-ID is the target protocol feed id.  If not initialized, just return -1."
   "Set last entry id to elfeed db.
 PROTO-ID is the target protocol feed id.  LAST-ENTRY-ID is the target value."
   (elfeed-protocol-set-feed-meta-data proto-id :last-entry-id last-entry-id))
+
+(defun elfeed-protocol-get-pending-ids (proto-id key)
+  "Get read/unread/starred/unstarred pending ids that to synchronize later.
+PROTO-ID is the target protocol feed id.  KEY could be :pending-read,
+:pending-unread, :pending-starred, :pending-unstarred, :pending-published and
+:pending-unpublished."
+  (interactive (list (completing-read "Protocol Feed: " (elfeed-protocol-feed-list))
+                     (intern (completing-read
+                              "Key name: "
+                              '(:pending-read :pending-unread :pending-starred :pending-unstarred
+                                              :pending-published :pending-unpublished)))))
+  (let* ((pending-ids (elfeed-protocol-get-feed-meta-data proto-id key)))
+    (if (> (length pending-ids) 0)
+        pending-ids
+      nil)))
+(defun elfeed-protocol-set-pending-ids (proto-id key ids)
+  "Set read/unread/starred/unstarred pending ids that to synchronize later.
+PROTO-ID is the target protocol feed id.  KEY could be :pending-read,
+:pending-unread, :pending-starred, :pending-unstarred, :pending-published and
+:pending-unpublished. IDS is the id list."
+  (interactive (list (completing-read "Protocol Feed: " (elfeed-protocol-feed-list))
+                     (intern (completing-read
+                              "Key name: "
+                              '(:pending-read :pending-unread :pending-starred :pending-unstarred
+                                              :pending-published :pending-unpublished)))))
+  (elfeed-protocol-set-feed-meta-data proto-id key ids))
+
+(defun elfeed-protocol-append-pending-ids (proto-id key ids)
+  "Append pending read/unread/starred/unstarred ids that to synchronize later.
+PROTO-ID is the target protocol feed id.  KEY could be :pending-read,
+:pending-unread, :pending-starred and :pending-unstarred. IDS is the id list to
+append."
+  (let* ((pending-ids (elfeed-protocol-get-pending-ids proto-id key)))
+    (dolist (id ids)
+      (add-to-list 'pending-ids id t))
+    (elfeed-protocol-set-pending-ids proto-id key pending-ids)))
+(defun elfeed-protocol-remove-pending-ids (proto-id key ids)
+  "Remove pending read/unread/starred/unstarred ids that to synchronize later.
+PROTO-ID is the target protocol feed id.  KEY could be :pending-read,
+:pending-unread, :pending-starred and :pending-unstarred. IDS is the id list to
+remove."
+  (let* ((pending-ids (elfeed-protocol-get-pending-ids proto-id key)))
+    (dolist (id ids)
+      (setq pending-ids (delete id pending-ids)))
+    (elfeed-protocol-set-pending-ids proto-id key pending-ids)))
+
+(defun elfeed-protocol-clean-pending-ids (proto-id)
+  "Clean pending read/unread/starred/unstarred entry states.
+PROTO-ID is the target protocol feed id."
+  (elfeed-protocol-set-pending-ids proto-id :pending-read nil)
+  (elfeed-protocol-set-pending-ids proto-id :pending-unread nil)
+  (elfeed-protocol-set-pending-ids proto-id :pending-starred nil)
+  (elfeed-protocol-set-pending-ids proto-id :pending-unstarred nil)
+  (elfeed-protocol-set-pending-ids proto-id :pending-published nil)
+  (elfeed-protocol-set-pending-ids proto-id :pending-unpublished nil))
 
 (defun elfeed-protocol-generate-ids-str (separate start end)
   "Generate article ids string from START id to END id.

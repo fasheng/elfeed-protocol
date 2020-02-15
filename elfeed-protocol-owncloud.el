@@ -319,6 +319,7 @@ nil, will call it with the result entries as argument."
       (elfeed-protocol-set-last-modified proto-id 0)
       (elfeed-protocol-set-first-entry-id proto-id -1)
       (elfeed-protocol-set-last-entry-id proto-id -1)
+      (elfeed-protocol-clean-pending-ids proto-id)
       (setq url-opt url-init-unread))
      ;; update entries since last modified
      ((eq action 'update-since-time)
@@ -331,9 +332,10 @@ nil, will call it with the result entries as argument."
       (setq url-opt (concat host-url
                             (format elfeed-protocol-owncloud-api-update-subfeed arg
                                     elfeed-protocol-owncloud-maxsize)))))
+    (elfeed-protocol-owncloud-sync-pending-ids host-url)
     (elfeed-protocol-owncloud-with-fetch url-opt nil
       (elfeed-protocol-owncloud--parse-entries host-url mark-state callback)
-      (run-hook-with-args 'elfeed-update-hooks url-opt))
+      (run-hook-with-args 'elfeed-update-hooks host-url))
     (when (eq action 'init)
       ;; initial sync, fetch starred entries
       (elfeed-protocol-owncloud-with-fetch url-init-starred nil
@@ -465,13 +467,28 @@ with format (list (cons feed-id guid-hash))."
     (when items
       (elfeed-protocol-owncloud-with-fetch url data))))
 
-(defun elfeed-protocol-owncloud-sync-tag-multi (host-url entries tag action)
+(defun elfeed-protocol-owncloud-sync-pending-ids (host-url)
+  "Sync pending read/unread/starred/unstarred entry states to ownCloud server.
+HOST-URL is the host name of ownCloud server."
+  (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
+         (pending-read-ids (elfeed-protocol-get-pending-ids proto-id :pending-read))
+         (pending-unread-ids (elfeed-protocol-get-pending-ids proto-id :pending-unread))
+         (pending-starred-ids (elfeed-protocol-get-pending-ids proto-id :pending-starred))
+         (pending-unstarred-ids (elfeed-protocol-get-pending-ids proto-id :pending-unstarred)))
+    (when pending-read-ids (elfeed-protocol-owncloud-mark-read-multi host-url pending-read-ids))
+    (when pending-unread-ids (elfeed-protocol-owncloud-mark-unread-multi host-url pending-unread-ids))
+    (when pending-starred-ids (elfeed-protocol-owncloud-mark-starred-multi host-url pending-starred-ids))
+    (when pending-unstarred-ids (elfeed-protocol-owncloud-mark-unstarred-multi host-url pending-unstarred-ids))
+    (elfeed-protocol-clean-pending-ids proto-id)))
+
+(defun elfeed-protocol-owncloud-append-pending-ids (host-url entries tag action)
   "Sync unread and starred tag states to ownCloud server.
 HOST-URL is the host name of ownCloud server.  ENTRIES is the target
 entry objects.  TAG is the action tag, for example unread and
 `elfeed-protocol-owncloud-star-tag', ACTION could be add or remove."
   (when entries
-    (let* ((ids (cl-loop for entry in entries collect
+    (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
+           (ids (cl-loop for entry in entries collect
                          (when (elfeed-protocol-owncloud-entry-p entry)
                            (elfeed-meta entry :id))))
            (star-ids (cl-loop for entry in entries collect
@@ -482,15 +499,19 @@ entry objects.  TAG is the action tag, for example unread and
        ((eq action 'add)
         (cond
          ((eq tag 'unread)
-          (elfeed-protocol-owncloud-mark-unread-multi host-url ids))
+          (elfeed-protocol-append-pending-ids proto-id :pending-unread ids)
+          (elfeed-protocol-remove-pending-ids proto-id :pending-read ids))
          ((eq tag elfeed-protocol-owncloud-star-tag)
-          (elfeed-protocol-owncloud-mark-starred-multi host-url star-ids))))
+          (elfeed-protocol-append-pending-ids proto-id :pending-starred star-ids)
+          (elfeed-protocol-remove-pending-ids proto-id :pending-unstarred star-ids))))
        ((eq action 'remove)
         (cond
          ((eq tag 'unread)
-          (elfeed-protocol-owncloud-mark-read-multi host-url ids))
+          (elfeed-protocol-append-pending-ids proto-id :pending-read ids)
+          (elfeed-protocol-remove-pending-ids proto-id :pending-unread ids))
          ((eq tag elfeed-protocol-owncloud-star-tag)
-          (elfeed-protocol-owncloud-mark-unstarred-multi host-url star-ids))))))))
+          (elfeed-protocol-append-pending-ids proto-id :pending-unstarred star-ids)
+          (elfeed-protocol-remove-pending-ids proto-id :pending-starred star-ids))))))))
 
 (defun elfeed-protocol-owncloud-pre-tag (host-url entries &rest tags)
   "Sync unread, starred states before tags added.
@@ -500,7 +521,9 @@ entry objects.  TAGS is the tags are adding now."
     (let* ((entries-modified (cl-loop for entry in entries
                                       unless (elfeed-tagged-p tag entry)
                                       collect entry)))
-      (elfeed-protocol-owncloud-sync-tag-multi host-url entries-modified tag 'add))))
+      (elfeed-protocol-owncloud-append-pending-ids host-url entries-modified tag 'add)))
+  (unless elfeed-protocol-lazy-sync
+    (elfeed-protocol-owncloud-sync-pending-ids host-url)))
 
 (defun elfeed-protocol-owncloud-pre-untag (host-url entries &rest tags)
   "Sync unread, starred states before tags removed.
@@ -510,7 +533,9 @@ objects.  TAGS is the tags are removing now."
     (let* ((entries-modified (cl-loop for entry in entries
                                       when (elfeed-tagged-p tag entry)
                                       collect entry)))
-      (elfeed-protocol-owncloud-sync-tag-multi host-url entries-modified tag 'remove))))
+      (elfeed-protocol-owncloud-append-pending-ids host-url entries-modified tag 'remove)))
+  (unless elfeed-protocol-lazy-sync
+    (elfeed-protocol-owncloud-sync-pending-ids host-url)))
 
 (defun elfeed-protocol-owncloud-update-subfeed (host-url feed-url &optional callback)
   "Update sub feed in ownCloud News.
