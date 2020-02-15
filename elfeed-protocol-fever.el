@@ -280,8 +280,8 @@ argument.  Return parsed entries."
                                                                :id id
                                                                :guid-hash guid-hash
                                                                :feed-id feed-id)))))
-                         (when unread (setq unread-num (1+ unread-num 1)))
-                         (when starred (setq starred-num (1+ starred-num 1)))
+                         (when unread (setq unread-num (1+ unread-num)))
+                         (when starred (setq starred-num (1+ starred-num)))
 
                          ;; force override unread and star tags without repeat sync operation
                          (when original
