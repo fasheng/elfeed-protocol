@@ -40,8 +40,11 @@ then the published state in Tiny Tiny RSS will be synced, too."
   :group 'elfeed-protocol
   :type 'symbol)
 
-(defcustom elfeed-protocol-ttrss-fetch-tags t
-  "Determine if fetch entry tags from Tiny Tiny RSS."
+(defcustom elfeed-protocol-ttrss-fetch-tags nil
+  "Determine if fetch entry tags from Tiny Tiny RSS.
+For we use getArticle instead of getHeadlines to fetch entries, and getArticle
+do not provide tags item any more. So this variable only works when fetching
+entries in first time."
   :group 'elfeed-protocol
   :type 'boolean)
 

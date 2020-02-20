@@ -43,6 +43,7 @@
       (let* ((proto-url "ttrss+https://user:pass@myhost.com")
              (host-url (elfeed-protocol-url proto-url))
              (proto-id (elfeed-protocol-ttrss-id host-url))
+             (elfeed-protocol-ttrss-fetch-tags t)
              (elfeed-feeds (list (list proto-url
                                        :autotags
                                        '(("http://tt-rss.org/forum/rss.php" tag1)))))
