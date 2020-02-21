@@ -259,7 +259,7 @@ PROTO-ID is the target protocol feed id.  KEY could be :pending-read,
 append."
   (let* ((pending-ids (elfeed-protocol-get-pending-ids proto-id key)))
     (dolist (id ids)
-      (cl-pushnew id 'pending-ids))
+      (cl-pushnew id pending-ids))
     (elfeed-protocol-set-pending-ids proto-id key pending-ids)))
 (defun elfeed-protocol-remove-pending-ids (proto-id key ids)
   "Remove pending read/unread/starred/unstarred ids that to synchronize later.
