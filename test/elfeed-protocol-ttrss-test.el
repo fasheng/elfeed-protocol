@@ -70,9 +70,13 @@
             (should (equal
                      (elfeed-entry-tags entry2)
                      '(ttrss_tag2 ttrss_tag1 publish star tag1 unread)))
-            )
-          )
-        ))))
+            (should (string=
+                     (cdr (elfeed-entry-id entry1))
+                     "SHA1:aeb92f1daca1aadd1e58ca9b8c820fab48703ef2"))
+            (should (string=
+                     (cdr (elfeed-entry-id entry2))
+                     "urn:sha1:0b36197f75b63a54cf6152972f18f704479380d3"))
+            ))))))
 
 (ert-deftest elfeed-protocol-ttrss-parse-no-feed-id-entries ()
   (with-fixture elfeed-protocol-ttrss-fixture-feeds
@@ -101,5 +105,4 @@
             (should (equal
                      (elfeed-entry-tags entry1)
                      '(star tag1 unread)))
-            )
-          )))))
+            ))))))

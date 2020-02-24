@@ -315,9 +315,13 @@ it with the result entries as argument.  Return parsed entries."
                                           ('tags ttrss-tags) ; attachments
                                           ('feed_id feed-id)
                                           ('feed_title feed-title)
-                                          )
+                                          ('guid guid-hash))
                                      headline)
-                                    (guid-hash (elfeed-generate-id (format "%s%s%s%s" title entry-url pub-date body)))
+                                    (guid-hash
+                                     ;; use bulit-in guid hash if exists, or just generate one
+                                     (if (null guid-hash)
+                                         (elfeed-generate-id (format "%s%s%s%s" title entry-url pub-date body))
+                                       guid-hash))
                                     (feed-id
                                      (if (null feed-id)
                                          (elfeed-protocol-ttrss--get-subfeed-id-by-title host-url feed-title)
