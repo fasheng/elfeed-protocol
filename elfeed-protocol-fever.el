@@ -12,6 +12,12 @@
 
 ;;; Code:
 
+(defcustom elfeed-protocol-fever-maxsize 50
+  "Maximize entries size for each request.
+Fever API limit a maximum of 50, so set bigger than 50 just invalid."
+  :group 'elfeed-protocol
+  :type 'integer)
+
 (defcustom elfeed-protocol-fever-star-tag 'star
   "Default star tag for Fever entry.
 If one entry set or remove the tag,
@@ -22,7 +28,6 @@ then the starred state in Fever will be synced, too."
 (defvar elfeed-protocol-fever-feeds (make-hash-table :test 'equal)
   "Feed list from Fever, will be filled before updating operation.")
 
-(defconst elfeed-protocol-fever-maxsize 50)
 (defconst elfeed-protocol-fever-api-base "?api")
 (defconst elfeed-protocol-fever-api-feeds (concat elfeed-protocol-fever-api-base "&feeds"))
 (defconst elfeed-protocol-fever-api-items (concat elfeed-protocol-fever-api-base "&items"))
