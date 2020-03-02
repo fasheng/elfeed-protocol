@@ -218,7 +218,7 @@ of item ids to request.  MARK-STATE UPDATE-ACTION CALLBACK will send to
     (cl-loop for sub-ids in split-ids do
              (elfeed-log 'debug "elfeed-protocol-fever: get entries %s" sub-ids)
              (elfeed-protocol-fever-with-fetch
-              url "POST" (concat data-base "&with_ids=" sub-ids)
+              (concat url "&with_ids=" sub-ids) "POST" data-base
               (elfeed-protocol-fever--parse-entries host-url (map-elt result 'items) mark-state update-action callback)
               (run-hook-with-args 'elfeed-update-hooks host-url)))))
 
