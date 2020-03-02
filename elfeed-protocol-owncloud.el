@@ -147,7 +147,8 @@ HOST-URL is the host name of ownCloud server."
                       (when (eq id feed-id)
                         (throw 'found url))))))))
     (unless url
-      (elfeed-log 'error "elfeed-protocol-owncloud: no subfeed for feed id %s" feed-id))
+      (setq url elfeed-protocol-unknown-feed-url)
+      (elfeed-log 'warn "elfeed-protocol-owncloud: no subfeed for feed id %s, fallback to unknown feed" feed-id))
     url))
 
 (defun elfeed-protocol-owncloud--get-subfeed-id (host-url feed-url)
@@ -565,6 +566,7 @@ result entries as argument"
                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
   (let* ((host-url (elfeed-protocol-host-url host-or-subfeed-url))
          (subfeed-url (elfeed-protocol-subfeed-url host-or-subfeed-url)))
+    (elfeed-protocol-add-unknown-feed proto-id) ; add unknown feed for fallback
     (elfeed-protocol-owncloud-sync-pending-ids host-url)
     (if subfeed-url (elfeed-protocol-owncloud-update-subfeed host-url subfeed-url callback)
       (let* ((proto-id (elfeed-protocol-owncloud-id host-url))

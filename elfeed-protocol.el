@@ -191,8 +191,7 @@ ORIG-FUNC and URL-OR-FEED are the needed arguments."
                                              :pre-untag 'elfeed-protocol-owncloud-pre-untag))
   (elfeed-protocol-register "ttrss" (list :update 'elfeed-protocol-ttrss-update
                                           :pre-tag 'elfeed-protocol-ttrss-pre-tag
-                                          :pre-untag 'elfeed-protocol-ttrss-pre-untag))
-  )
+                                          :pre-untag 'elfeed-protocol-ttrss-pre-untag)))
 
 ;;;###autoload
 (defun elfeed-protocol-disable ()

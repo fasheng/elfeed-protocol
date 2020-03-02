@@ -186,7 +186,8 @@ http request.  Return `elfeed-protocol-fever-feeds'."
                       (when (eq id feed-id)
                         (throw 'found url))))))))
     (unless url
-      (elfeed-log 'error "elfeed-protocol-fever: no subfeed for feed id %s" feed-id))
+      (setq url elfeed-protocol-unknown-feed-url)
+      (elfeed-log 'warn "elfeed-protocol-fever: no subfeed for feed id %s, fallback to unknown feed" feed-id))
     url))
 
 (defun elfeed-protocol-fever--get-subfeed-id (host-url feed-url)
@@ -528,6 +529,7 @@ argument"
                ","
                (1+ last-entry-id)
                (+ last-entry-id elfeed-protocol-fever-maxsize))))
+    (elfeed-protocol-add-unknown-feed proto-id) ; add unknown feed for fallback
     (elfeed-protocol-fever-sync-pending-ids host-url)
     (elfeed-protocol-fever-fetch-prepare
      host-url

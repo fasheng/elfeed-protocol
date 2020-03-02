@@ -16,6 +16,19 @@
   "If not nil, will synchronize read/unread/starred/unstarred states to remote
 server in next update operation.")
 
+(defconst elfeed-protocol-unknown-feed-url "unknown-feed")
+(defconst elfeed-protocol-unknown-feed-title "Unknown Feed")
+
+(defun elfeed-protocol-add-unknown-feed (proto-id)
+  "Add unknown feed for fallback."
+  (let* ((feed-url elfeed-protocol-unknown-feed-url)
+         (feed-id (elfeed-protocol-format-subfeed-id
+                   proto-id feed-url))
+         (feed-title elfeed-protocol-unknown-feed-title)
+         (feed-db (elfeed-db-get-feed feed-id)))
+    (setf (elfeed-feed-url feed-db) feed-id
+          (elfeed-feed-title feed-db) feed-title)))
+
 (defun elfeed-protocol-feed-p (url-or-feed)
   "Check if a URL-OR-FEED contain extra protocol."
   (let ((feed-url (if (elfeed-feed-p url-or-feed)

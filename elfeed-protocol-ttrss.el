@@ -238,7 +238,8 @@ result JSON content by http request.  Return
                       (when (eq id feed-id)
                         (throw 'found url))))))))
     (unless url
-      (elfeed-log 'error "elfeed-protocol-ttrss: no subfeed for feed id %s" feed-id))
+      (setq url elfeed-protocol-unknown-feed-url)
+      (elfeed-log 'warn "elfeed-protocol-ttrss: no subfeed for feed id %s, fallback to unknown feed" feed-id))
     url))
 
 (defun elfeed-protocol-ttrss--get-subfeed-id (host-url feed-url)
@@ -718,6 +719,7 @@ result entries as argument"
                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
   (let* ((host-url (elfeed-protocol-host-url host-or-subfeed-url))
          (feed-url (elfeed-protocol-subfeed-url host-or-subfeed-url)))
+    (elfeed-protocol-add-unknown-feed proto-id) ; add unknown feed for fallback
     (elfeed-protocol-ttrss-sync-pending-ids host-url)
     (if feed-url (elfeed-protocol-ttrss-update-subfeed host-url feed-url callback)
       (let* ((proto-id (elfeed-protocol-ttrss-id host-url))

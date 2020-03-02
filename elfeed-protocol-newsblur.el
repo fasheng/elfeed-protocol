@@ -168,7 +168,8 @@ result JSON content by http request.  Return
                       (when (eq id feed-id)
                         (throw 'found url))))))))
     (unless url
-      (elfeed-log 'error "elfeed-protocol-newsblur: no subfeed for feed id %s" feed-id))
+      (setq url elfeed-protocol-unknown-feed-url)
+      (elfeed-log 'warn "elfeed-protocol-newsblur: no subfeed for feed id %s, fallback to unknown feed" feed-id))
     url))
 
 (defun elfeed-protocol-newsblur--get-subfeed-id (host-url feed-url)
@@ -485,6 +486,7 @@ nil will call it with the result entries as argument"
          (feed-url (elfeed-protocol-subfeed-url host-or-subfeed-url))
          (proto-id (elfeed-protocol-newsblur-id host-url))
          (last-modified (elfeed-protocol-get-last-modified proto-id)))
+    (elfeed-protocol-add-unknown-feed proto-id) ; add unknown feed for fallback
     (elfeed-protocol-newsblur-sync-pending-ids host-url)
     (if feed-url (elfeed-protocol-newsblur-update-subfeed host-url feed-url callback)
       (elfeed-protocol-newsblur-fetch-prepare
