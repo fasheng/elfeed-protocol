@@ -2,6 +2,7 @@
 - emacs version: `???`
 - elfeed version: `???`
 - elfeed-protocol version: `???`
+- curl version: `???`
 - server version: `???` (docker image and tag)
 - is variable `elfeed-protocol-xxx-feeds` empty: `yes/no`
 
