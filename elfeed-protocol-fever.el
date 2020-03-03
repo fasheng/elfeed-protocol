@@ -213,13 +213,13 @@ of item ids to request.  MARK-STATE UPDATE-ACTION CALLBACK will send to
 `elfeed-protocol-fever--parse-entries'."
   (let* ((url (concat (elfeed-protocol-fever--get-api-url host-url)
                       elfeed-protocol-fever-api-items))
-         (data-base (elfeed-protocol-fever--build-data host-url))
+         (data (elfeed-protocol-fever--build-data host-url))
          (split-ids (elfeed-protocol-split-ids-sub-size
                      "," ids elfeed-protocol-fever-maxsize)))
     (cl-loop for sub-ids in split-ids do
              (elfeed-log 'debug "elfeed-protocol-fever: get entries %s" sub-ids)
              (elfeed-protocol-fever-with-fetch
-              (concat url "&with_ids=" sub-ids) "POST" data-base
+              (concat url "&with_ids=" sub-ids) "POST" data
               (elfeed-protocol-fever--parse-entries host-url (map-elt result 'items) mark-state update-action callback)
               (run-hook-with-args 'elfeed-update-hooks host-url)))))
 
@@ -356,7 +356,7 @@ result entries as argument."
                               elfeed-protocol-fever-api-saved-item-ids))
          (url-unread (concat (elfeed-protocol-fever--get-api-url host-url)
                              elfeed-protocol-fever-api-unread-item-ids))
-         (data-base (elfeed-protocol-fever--build-data host-url)))
+         (data (elfeed-protocol-fever--build-data host-url)))
     (unless elfeed--inhibit-update-init-hooks
       (run-hooks 'elfeed-update-init-hooks))
     (cond
@@ -366,10 +366,10 @@ result entries as argument."
       (elfeed-protocol-fever-set-update-mark proto-id 'update-older -1)
       (elfeed-protocol-clean-pending-ids proto-id)
       (elfeed-protocol-fever-with-fetch
-       url-starred "POST" data-base
+       url-starred "POST" data
        (elfeed-protocol-fever--get-entries host-url (map-elt result 'saved_item_ids) nil 'update-star callback)
        (elfeed-protocol-fever-with-fetch
-        url-unread "POST" data-base
+        url-unread "POST" data
         (elfeed-protocol-fever--get-entries host-url (map-elt result 'unread_item_ids) t 'update callback))))
      ;; update older or latest entries
      ((or (eq action 'update) (eq action 'update-older))
@@ -377,7 +377,7 @@ result entries as argument."
      ;; update starred entries
      ((eq action 'update-star)
       (elfeed-protocol-fever-with-fetch
-       url-starred "POST" data-base
+       url-starred "POST" data
        (elfeed-protocol-fever--get-entries host-url (map-elt result 'saved_item_ids) nil action callback))))))
 
 (defun elfeed-protocol-fever-reinit (host-url)
