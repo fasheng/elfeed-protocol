@@ -718,7 +718,8 @@ result entries as argument"
   (interactive (list (elfeed-protocol-url
                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
   (let* ((host-url (elfeed-protocol-host-url host-or-subfeed-url))
-         (feed-url (elfeed-protocol-subfeed-url host-or-subfeed-url)))
+         (feed-url (elfeed-protocol-subfeed-url host-or-subfeed-url))
+         (proto-id (elfeed-protocol-ttrss-id host-url)))
     (elfeed-protocol-add-unknown-feed proto-id) ; add unknown feed for fallback
     (elfeed-protocol-ttrss-sync-pending-ids host-url)
     (if feed-url (elfeed-protocol-ttrss-update-subfeed host-url feed-url callback)

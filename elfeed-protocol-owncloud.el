@@ -565,7 +565,8 @@ result entries as argument"
   (interactive (list (elfeed-protocol-url
                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
   (let* ((host-url (elfeed-protocol-host-url host-or-subfeed-url))
-         (subfeed-url (elfeed-protocol-subfeed-url host-or-subfeed-url)))
+         (subfeed-url (elfeed-protocol-subfeed-url host-or-subfeed-url))
+         (proto-id (elfeed-protocol-owncloud-id host-url)))
     (elfeed-protocol-add-unknown-feed proto-id) ; add unknown feed for fallback
     (elfeed-protocol-owncloud-sync-pending-ids host-url)
     (if subfeed-url (elfeed-protocol-owncloud-update-subfeed host-url subfeed-url callback)
