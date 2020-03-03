@@ -32,3 +32,7 @@ FIXTURE-PATH inserted into a temporary buffer."
      (insert-file-contents ,fixture-path)
      (goto-char (point-min))
      ,@body))
+
+(defun dump-elfeed-log ()
+  "Print *elfeed-log* buffer content."
+  (with-current-buffer "*elfeed-log*" (message "%s" (buffer-string))))
