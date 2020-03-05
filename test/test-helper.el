@@ -19,7 +19,10 @@
           (elfeed-db-directory temp-dir)
           (elfeed-new-entry-hook nil)
           (elfeed-db-update-hook nil)
+          (elfeed-log-level 'debug)
           (elfeed-initial-tags '(unread)))
+     (when (get-buffer elfeed-log-buffer-name)
+       (kill-buffer elfeed-log-buffer-name))
      (unwind-protect
          (progn ,@body)
        (delete-directory temp-dir :recursive))))
@@ -35,4 +38,4 @@ FIXTURE-PATH inserted into a temporary buffer."
 
 (defun dump-elfeed-log ()
   "Print *elfeed-log* buffer content."
-  (with-current-buffer "*elfeed-log*" (message "%s" (buffer-string))))
+  (with-current-buffer elfeed-log-buffer-name (message "%s" (buffer-string))))
