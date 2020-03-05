@@ -124,6 +124,7 @@ right place that `json-read' could execute.  Return
                     (feed-db (elfeed-db-get-feed feed-id)))
                (setf (elfeed-feed-url feed-db) feed-id
                      (elfeed-feed-title feed-db) feed-title)))
+    (elfeed-log 'debug "elfeed-protocol-owncloud: found %s feeds" (length feeds))
     elfeed-protocol-owncloud-feeds))
 
 (defun elfeed-protocol-owncloud--update-feed-list (host-url)

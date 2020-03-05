@@ -153,6 +153,7 @@ result JSON content by http request.  Return
                     (feed-db (elfeed-db-get-feed feed-id)))
                (setf (elfeed-feed-url feed-db) feed-id
                      (elfeed-feed-title feed-db) feed-title)))
+    (elfeed-log 'debug "elfeed-protocol-newsblur: found %s feeds" (length feeds))
     elfeed-protocol-newsblur-feeds))
 
 (defun elfeed-protocol-newsblur--get-subfeed-url (host-url feed-id)

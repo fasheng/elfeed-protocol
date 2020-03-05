@@ -171,6 +171,7 @@ http request.  Return `elfeed-protocol-fever-feeds'."
                     (feed-db (elfeed-db-get-feed feed-id)))
                (setf (elfeed-feed-url feed-db) feed-id
                      (elfeed-feed-title feed-db) feed-title)))
+    (elfeed-log 'debug "elfeed-protocol-fever: found %s feeds" (length feeds))
     elfeed-protocol-fever-feeds))
 
 (defun elfeed-protocol-fever--get-subfeed-url (host-url feed-id)

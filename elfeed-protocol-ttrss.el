@@ -223,6 +223,7 @@ result JSON content by http request.  Return
                     (feed-db (elfeed-db-get-feed feed-id)))
                (setf (elfeed-feed-url feed-db) feed-id
                      (elfeed-feed-title feed-db) feed-title)))
+    (elfeed-log 'debug "elfeed-protocol-ttrss: found %s feeds" (length feeds))
     elfeed-protocol-ttrss-feeds))
 
 (defun elfeed-protocol-ttrss--get-subfeed-url (host-url feed-id)
