@@ -34,7 +34,7 @@ then the starred state in NewsBlur will be synced, too."
 
 (defconst elfeed-protocol-newsblur-api-login "/api/login")
 (defconst elfeed-protocol-newsblur-api-reader-feeds "/reader/feeds")
-(defconst elfeed-protocol-newsblur-api-reader-river-stories "/reader/river_stories?include_story_content=true&read_filter=all&order=newest&include_hidden=true&page=%s")
+(defconst elfeed-protocol-newsblur-api-reader-river-stories "/reader/river_stories?include_story_content=true&read_filter=unread&order=newest&include_hidden=true&page=%s")
 (defconst elfeed-protocol-newsblur-api-reader-feed "/reader/feed/%s??include_story_content=true&read_filter=all&order=newest&include_hidden=true&page=%s")
 (defconst elfeed-protocol-newsblur-api-reader-starred-stories "/reader/starred_stories?page=%s")
 (defconst elfeed-protocol-newsblur-api-reader-mark-story-read "/reader/mark_story_hashes_as_read")
