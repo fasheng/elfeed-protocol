@@ -48,6 +48,8 @@
 ;;                        ("owncloud+https://user@myhost.com"
 ;;                         :password "password"
 ;;                         :autotags '(("example.com" comic)))))
+;;
+;;   ;; enable elfeed-protocol
 ;;   (elfeed-protocol-enable)
 
 ;;; Code:

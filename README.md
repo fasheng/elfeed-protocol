@@ -54,6 +54,8 @@ Setup elfeed-protocol, then switch to search view and and press G to update entr
                      ("owncloud+https://user@myhost.com"
                       :password "password"
                       :autotags '(("example.com" comic)))))
+
+;; enable elfeed-protocol
 (elfeed-protocol-enable)
 ```
 
@@ -236,6 +238,14 @@ before reporting issues:
 ```
 
 # Q&A
+
+1. when I run elfeed-update I get the error: `elfeed-feeds malformed, bad entry`
+
+   Don't forget to enable elfeed-protocol at first:
+    ```emacs-lisp
+   (elfeed-protocol-enable)
+    ```
+
 1. Not working if my password contains special characters like `@#$/:`.
 
    Use format 2 instead in previous example for complex password:
