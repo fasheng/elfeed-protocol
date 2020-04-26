@@ -75,11 +75,10 @@ FEED-URL, just return nil."
   (let* ((urlobj (url-generic-parse-url url))
          (user (url-user urlobj))
          (password (if (url-password urlobj) (url-password urlobj) nil)))
-    (if password
-        (replace-regexp-in-string
-         (concat "\\(" (regexp-quote user) "\\(:" (regexp-quote password)
-                 "\\)?@\\).*\\'") "" url nil nil 1)
-      url)))
+    (replace-regexp-in-string
+     (concat "\\(" (regexp-quote (if user user ""))
+             "\\(:" (regexp-quote (if password password ""))
+             "\\)?@\\).*\\'") "" url nil nil 1)))
 
 (defun elfeed-protocol-entry-protocol-id (entry)
   "Return protocol url id for specific ENTRY."

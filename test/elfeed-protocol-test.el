@@ -14,6 +14,18 @@
     (should (eq (elfeed-protocol-update-func "owncloud") nil))
     ))
 
+(ert-deftest elfeed-protocol-common ()
+  (should (string=
+           (elfeed-protocol-no-auth-url "https://myhost.com")
+           "https://myhost.com"))
+  (should (string=
+           (elfeed-protocol-no-auth-url "https://user1@myhost.com")
+           "https://myhost.com"))
+  (should (string=
+           (elfeed-protocol-no-auth-url "https://user1:pass1@myhost.com")
+           "https://myhost.com"))
+  )
+
 (ert-deftest elfeed-protocol-meta-data ()
   (with-elfeed-test
    (let* ((elfeed-feeds '("owncloud+https://user1:pass1@myhost.com:443"
