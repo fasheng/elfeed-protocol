@@ -64,7 +64,7 @@ feed properties.  Will set content type to json if PUT-JSON is not nil."
       (elfeed-log 'error "elfeed-protocol-owncloud: missing username or password"))
     (push `("Authorization" .
             ,(concat "Basic " (base64-encode-string
-                               (concat user ":" password))))
+                               (concat user ":" password) t)))
           headers)
     (when put-json
       (push `("Content-Type" . "application/json") headers))
