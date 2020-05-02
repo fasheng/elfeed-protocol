@@ -103,15 +103,14 @@ Example:
    defined in `elfeed-protocol-ttrss-star-tag` which default value is
    `star`
 
-**NOTE**: For elfeed don't provide cookie argument for curl request,
-user must setup `elfeed-curl-extra-arguments` like the following
-example.
+**NOTE**: A file for storing session cookies has to be specified via
+`elfeed-curl-extra-arguments` like in the following example.
 
 Example:
 ```emacs-lisp
 (setq elfeed-protocol-newsblur-maxpages 20)
-(setq elfeed-curl-extra-arguments '("-c" "/tmp/newsblur-cookie"
-                                    "-b" "/tmp/newsblur-cookie"))
+(setq elfeed-curl-extra-arguments '("--cookie-jar" "/tmp/newsblur-cookie"
+                                    "--cookie" "/tmp/newsblur-cookie"))
 (setq elfeed-feeds (list
                     "newsblur+https://user1:pass1@newsblur.com"
                     (list "newsblur+https://user2@newsblur.com"
