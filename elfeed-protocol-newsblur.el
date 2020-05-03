@@ -123,7 +123,7 @@ after login."
       (when callback (funcall callback)))))
 
 (defun elfeed-protocol-newsblur--update-feed-list (host-url &optional callback)
-  "Update Tiny Tiny RSS server feeds list.
+  "Update NewsBlur server feeds list.
 HOST-URL is the host name of NewsBlur server.  Will call CALLBACK at
 end with argument NEED-LOGIN."
   (elfeed-log 'debug "elfeed-protocol-newsblur: update feed list")
