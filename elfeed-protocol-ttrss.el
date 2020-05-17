@@ -160,7 +160,7 @@ BODY expressions after login.  The success session id will saved to
                                       ("sid" . ,elfeed-protocol-ttrss-sid))))
          (elfeed-log 'debug "elfeed-protocol-ttrss: check is logged in")
          (elfeed-protocol-ttrss-with-fetch
-           ,host-url "GET" (json-encode-alist data-list-isloggedin)
+           ,host-url "POST" (json-encode-alist data-list-isloggedin)
            (if (eq (map-elt content 'status) ':json-false)
                (elfeed-protocol-ttrss--login
                 ,host-url
@@ -189,7 +189,7 @@ server url, and will call CALLBACK after login."
                       ("password" . ,password)))
          (data (json-encode-alist data-list)))
     (elfeed-protocol-ttrss-with-fetch
-      host-url "GET" data
+      host-url "POST" data
       (setq elfeed-protocol-ttrss-sid (map-elt content 'session_id))
       (when callback (funcall callback)))))
 
@@ -203,7 +203,7 @@ at end."
                       ("cat_id" . "-3")))
          (data (json-encode-alist data-list)))
     (elfeed-protocol-ttrss-with-fetch
-      host-url "GET" data
+      host-url "POST" data
       (elfeed-protocol-ttrss--parse-feeds host-url content)
       (when callback (funcall callback)))))
 
@@ -479,10 +479,10 @@ not nil, will call it with the result entries as argument."
       (elfeed-protocol-ttrss-set-update-mark proto-id 'update-star -1)
       (elfeed-protocol-clean-pending-ids proto-id)
       (elfeed-protocol-ttrss-with-fetch
-        host-url "GET" (json-encode-alist data-list-starred)
+        host-url "POST" (json-encode-alist data-list-starred)
         (elfeed-protocol-ttrss--parse-entries host-url content t 'update-star callback)
         (elfeed-protocol-ttrss-with-fetch
-          host-url "GET" (json-encode-alist data-list-unread)
+          host-url "POST" (json-encode-alist data-list-unread)
           (elfeed-protocol-ttrss--parse-entries host-url content t 'update callback)
           (run-hook-with-args 'elfeed-update-hooks host-url))))
      ;; update older or latest entries
@@ -491,7 +491,7 @@ not nil, will call it with the result entries as argument."
                                   ("sid" . ,elfeed-protocol-ttrss-sid)
                                   ("article_id" . ,arg))))
         (elfeed-protocol-ttrss-with-fetch
-          host-url "GET" (json-encode-alist data-list-article)
+          host-url "POST" (json-encode-alist data-list-article)
           (elfeed-protocol-ttrss--parse-entries host-url content t action callback)
           (run-hook-with-args 'elfeed-update-hooks host-url))))
      ;; update starred entries
@@ -499,7 +499,7 @@ not nil, will call it with the result entries as argument."
       (let* ((data-list-skip (append data-list-starred
                                      `(("skip" . ,arg)))))
         (elfeed-protocol-ttrss-with-fetch
-               host-url "GET" (json-encode-alist data-list-skip)
+               host-url "POST" (json-encode-alist data-list-skip)
                (elfeed-protocol-ttrss--parse-entries host-url content t action callback)
                (run-hook-with-args 'elfeed-update-hooks host-url))))
      ;; update entries for special sub feed
@@ -510,7 +510,7 @@ not nil, will call it with the result entries as argument."
                                        ("view_mode" .
                                         ,elfeed-protocol-ttrss-api-view-mode-all-articles)))))
         (elfeed-protocol-ttrss-with-fetch
-          host-url "GET" (json-encode-alist data-list-feed)
+          host-url "POST" (json-encode-alist data-list-feed)
           (elfeed-protocol-ttrss--parse-entries host-url content nil 'update callback)
           (run-hook-with-args 'elfeed-update-hooks host-url)))))))
 
