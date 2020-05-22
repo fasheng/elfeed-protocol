@@ -319,6 +319,7 @@ it with the result entries as argument.  Return parsed entries."
                                           ('feed_title feed-title)
                                           ('guid guid-hash))
                                      headline)
+                                    (id (if (stringp id) (string-to-number id) id))
                                     (guid-hash
                                      ;; use bulit-in guid hash if exists, or just generate one
                                      (if (null guid-hash)
