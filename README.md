@@ -144,8 +144,6 @@ Example:
 ## ttrss (Tiny Tiny RSS, requires version: 1.7.6)
 1. Fetch articles by the entry ID
 1. Fetch articles for special feed
-1. Fetch tags in remote, only works for first time update operation,
-   more detail to see variable `elfeed-protocol-ttrss-fetch-tags`
 1. Support sync unread, starred and published tags, the starred tag
    name defined in `elfeed-protocol-ttrss-star-tag` which default
    value is `star`, and the published tag name defined in
