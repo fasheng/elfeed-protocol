@@ -43,7 +43,6 @@
       (let* ((proto-url "ttrss+https://user:pass@myhost.com")
              (host-url (elfeed-protocol-url proto-url))
              (proto-id (elfeed-protocol-ttrss-id host-url))
-             (elfeed-protocol-ttrss-fetch-tags t)
              (elfeed-feeds (list (list proto-url
                                        :autotags
                                        '(("http://tt-rss.org/forum/rss.php" tag1)))))
@@ -69,7 +68,7 @@
                      '(tag1)))
             (should (equal
                      (elfeed-entry-tags entry2)
-                     '(ttrss_tag2 ttrss_tag1 publish star tag1 unread)))
+                     '(publish star tag1 unread)))
             (should (string=
                      (cdr (elfeed-entry-id entry1))
                      "SHA1:aeb92f1daca1aadd1e58ca9b8c820fab48703ef2"))
