@@ -248,6 +248,8 @@ argument.  Return parsed entries."
                                           author ('created_on_time pub-date) ('html body)
                                           ('feed_id feed-id))
                                      item)
+                                    (id (if (stringp id) (string-to-number id) id))
+                                    (feed-id (if (stringp feed-id) (string-to-number feed-id) feed-id))
                                     (guid-hash (elfeed-generate-id (format "%s%s%s%s" title entry-url pub-date body)))
                                     (feed-url
                                      (if (null feed-id)

@@ -10,6 +10,15 @@
       "site_url": "http://tt-rss.org",
       "is_spark": 0,
       "last_updated_on_time": 1581325594
+    },
+    {
+      "id": 2,
+      "favicon_id": 1,
+      "title": "FreshRSS releases",
+      "url": "https://github.com/FreshRSS/FreshRSS/releases.atom",
+      "site_url": "https://github.com/FreshRSS/FreshRSS/",
+      "is_spark": 0,
+      "last_updated_on_time": 1581325594
     }
   ],
   "feeds_groups": [

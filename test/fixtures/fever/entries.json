@@ -24,6 +24,28 @@
       "is_saved": 1,
       "is_read": 0,
       "created_on_time": 1576367760
+    },
+    {
+      "id": "3",
+      "feed_id": 2,
+      "title": "FreshRSS 1.13.1",
+      "author": "",
+      "html": "content3",
+      "url": "https://github.com/FreshRSS/FreshRSS/releases/tag/1.13.1",
+      "is_saved": 0,
+      "is_read": 1,
+      "created_on_time": 1548515100
+    },
+    {
+      "id": 4,
+      "feed_id": "2",
+      "title": "Cloned FreshRSS 1.13.1",
+      "author": "",
+      "html": "content4",
+      "url": "https://github.com/FreshRSS/FreshRSS/releases/tag/1.13.1",
+      "is_saved": 0,
+      "is_read": 1,
+      "created_on_time": 1548515100
     }
   ],
   "last_refreshed_on_time": "1581326728"
