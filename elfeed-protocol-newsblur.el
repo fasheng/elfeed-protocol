@@ -146,10 +146,11 @@ result JSON content by http request.  Return
          (feeds (map-elt content 'feeds)))
     (puthash proto-id feeds elfeed-protocol-newsblur-feeds)
     (cl-loop for feed in feeds do
-             (let* ((feed-url (map-elt feed 'feed_link))
+             (let* ((fixed-feed (cdr feed))
+                    (feed-url (map-elt fixed-feed 'feed_link))
                     (feed-id (elfeed-protocol-format-subfeed-id
                               proto-id feed-url))
-                    (feed-title (map-elt feed 'feed_title))
+                    (feed-title (map-elt fixed-feed 'feed_title))
                     (feed-db (elfeed-db-get-feed feed-id)))
                (setf (elfeed-feed-url feed-db) feed-id
                      (elfeed-feed-title feed-db) feed-title)))
@@ -164,8 +165,9 @@ result JSON content by http request.  Return
                        (length (length feeds)))
                   (dotimes (i length)
                     (let* ((feed (elt feeds i))
-                           (id (map-elt feed 'id))
-                           (url (map-elt feed 'feed_link)))
+                           (fixed-feed (cdr feed))
+                           (id (map-elt fixed-feed 'id))
+                           (url (map-elt fixed-feed 'feed_link)))
                       (when (eq id feed-id)
                         (throw 'found url))))))))
     (unless url
@@ -181,8 +183,9 @@ result JSON content by http request.  Return
                       (length (length feeds)))
                  (dotimes (i length)
                    (let* ((feed (elt feeds i))
-                          (id (map-elt feed 'id))
-                          (url (map-elt feed 'feed_link)))
+                          (fixed-feed (cdr feed))
+                          (id (map-elt fixed-feed 'id))
+                          (url (map-elt fixed-feed 'feed_link)))
                      (when (string= url feed-url)
                        (throw 'found id))))))))
     (unless id
