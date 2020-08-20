@@ -6,7 +6,7 @@ all: install build test clean
 
 # init cask environment
 init:
-	EMACS=$(EMACS) $(CASK) install
+	EMACS=$(EMACS) $(CASK) install --verbose
 
 build:
 	EMACS=$(EMACS) $(CASK) build
