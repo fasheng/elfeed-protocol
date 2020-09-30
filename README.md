@@ -273,6 +273,11 @@ before reporting issues:
 
           M-x elfeed-protocol-owncloud-update-since-timestamp
 
+# Donation
+
+- BTC [3DMLQ8f4Ui5Adka9Y44MVM2cKT6yBVZdY5](https://www.blockchain.com/btc/address/3DMLQ8f4Ui5Adka9Y44MVM2cKT6yBVZdY5)
+- ETH [0x561c694EF2bf32C23759c4Abd7D132161DaE13F8](https://www.blockchain.com/eth/address/0x561c694EF2bf32C23759c4Abd7D132161DaE13F8)
+
 # License
 
 Released under the terms of the GNU GPLv3+.
