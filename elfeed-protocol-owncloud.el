@@ -205,6 +205,8 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
                                           author ('pubDate pub-date) body ('lastModified last-modified)
                                           ('enclosureMime enclosure-mime) ('enclosureLink enclosure-link))
                                      item)
+                                    (id (if (stringp id) (string-to-number id) id))
+                                    (feed-id (if (stringp feed-id) (string-to-number feed-id) feed-id))
                                     (feed-url (elfeed-protocol-owncloud--get-subfeed-url host-url feed-id))
                                     (unread (not (eq (map-elt item 'unread)
                                                      ':json-false)))
