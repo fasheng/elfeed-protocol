@@ -166,7 +166,7 @@ ORIG-FUNC and URL-OR-FEED are the needed arguments."
                       (elfeed-feed-id url-or-feed))
                 url-or-feed))
          (proto-autotags (when (elfeed-protocol-subfeed-p url)
-                           (let* ((proto-id (elfeed-protocol-host-url url))
+                           (let* ((proto-id (elfeed-protocol-type url))
                                   (subfeed-url (elfeed-protocol-subfeed-url url)))
                              (elfeed-protocol-feed-autotags proto-id subfeed-url)))))
     (if proto-autotags
