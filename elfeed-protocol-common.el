@@ -115,7 +115,7 @@ Which just concat PROTO-ID and FEED-URL, for example
                           (list (when (stringp (car feed)) (car feed)))
                           (string feed)))
              (feed-proto-id (elfeed-protocol-no-password-url feed-url)))
-        (when (string-match (concat "^" (regexp-quote feed-proto-id)) proto-id)
+        (when (string-match (concat "^" proto-id) feed-proto-id)
           (throw 'found feed))))))
 
 (defun elfeed-protocol-meta-url (proto-id)
