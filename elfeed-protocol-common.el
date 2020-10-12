@@ -178,7 +178,10 @@ Will try to get password in url, password filed, passowrd file and
 
 (defun elfeed-protocol-meta-autotags (proto-id)
   "Get :autotags property data in `elfeed-feeds` for PROTO-ID."
-  (elfeed-protocol-meta-data proto-id :autotags))
+  (let ((autotags (elfeed-protocol-meta-data proto-id :autotags)))
+    (if (eq (car autotags) 'quote)
+        (eval autotags)
+      autotags)))
 
 (defun elfeed-protocol-feed-autotags (proto-id url-or-feed)
   "Return autotags for protocol feed.
