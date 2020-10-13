@@ -53,7 +53,7 @@ Setup elfeed-protocol, then switch to search view and and press G to update entr
                      ;; use autotags
                      ("owncloud+https://user@myhost.com"
                       :password "password"
-                      :autotags '(("example.com" comic)))))
+                      :autotags (("example.com" comic)))))
 
 ;; enable elfeed-protocol
 (elfeed-protocol-enable)
