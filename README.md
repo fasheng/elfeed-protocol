@@ -236,7 +236,7 @@ before reporting issues:
 
 # Q&A
 
-1. when I run elfeed-update I get the error: `elfeed-feeds malformed, bad entry`
+1. When I run elfeed-update I get the error: `elfeed-feeds malformed, bad entry`
 
    Don't forget to enable elfeed-protocol at first:
     ```emacs-lisp
@@ -250,6 +250,20 @@ before reporting issues:
     ;; format 2, for password with special characters
     ("owncloud+https://user@myhost.com"
      :password "password/with|special@characters:")
+    ```
+
+1. How to fetch my older headlines in server?
+
+   `fever`, `owncloud` and `ttrss` protocol provide method to fetch
+   older headlines. And the update operations could not executed in
+   the same time, so `run-at-time` with some delays(for example 15s)
+   will help you:
+    ```emacs-lisp
+    (setq my-elfeed-update-timer
+          (run-at-time 15 15
+                       (lambda () (when (= elfeed-curl-queue-active 0)
+                                    (elfeed-protocol-ttrss-update-older "ttrss+https://user@host")))))
+    (cancel-timer my-elfeed-update-timer)
     ```
 
 1. Sometimes emacs may be blocked if the parsing downloaded articles
