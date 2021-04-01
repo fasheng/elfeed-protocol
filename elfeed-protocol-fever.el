@@ -29,6 +29,8 @@ then the starred state in Fever will be synced, too."
   "Feed list from Fever, will be filled before updating operation.")
 
 (defconst elfeed-protocol-fever-api-base "?api")
+(defconst elfeed-protocol-fever-api-auth-ok 1)
+(defconst elfeed-protocol-fever-api-auth-failed 0)
 (defconst elfeed-protocol-fever-api-feeds (concat elfeed-protocol-fever-api-base "&feeds"))
 (defconst elfeed-protocol-fever-api-items (concat elfeed-protocol-fever-api-base "&items"))
 (defconst elfeed-protocol-fever-api-saved-item-ids (concat elfeed-protocol-fever-api-base "&saved_item_ids"))
@@ -131,9 +133,9 @@ operation finished."
 Will eval rest BODY expressions at end."
   (declare (indent defun))
   `(let* ((result (json-read))
-          (errmsg (map-elt result 'error)))
-     (if errmsg
-         (elfeed-log 'error "elfeed-protocol-fever: %s" errmsg)
+          (api-auth (map-elt result 'auth)))
+     (if (eq api-auth elfeed-protocol-fever-api-auth-failed)
+         (elfeed-log 'error "elfeed-protocol-fever: authentication failed, wrong username or password")
        ,@body)))
 
 (defmacro elfeed-protocol-fever-fetch-prepare (host-url &rest body)
