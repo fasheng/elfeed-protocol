@@ -15,10 +15,11 @@ before reporting issues:
 (setq elfeed-log-level 'debug)
 (toggle-debug-on-error)
 
-;; for more logs
+;; for more logs if necessary
 (setq elfeed-protocol-log-trace t)
-(setq elfeed-protocol-owncloud-maxsize 10)
-(setq elfeed-protocol-ttrss-maxsize 10)
+(setq elfeed-protocol-fever-maxsize 5)
+(setq elfeed-protocol-owncloud-maxsize 5)
+(setq elfeed-protocol-ttrss-maxsize 5)
 (setq elfeed-protocol-newsblur-maxpages 1)
 ```
 
