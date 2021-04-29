@@ -40,8 +40,16 @@ then the published state in Tiny Tiny RSS will be synced, too."
   :group 'elfeed-protocol
   :type 'symbol)
 
+(defcustom elfeed-protocol-ttrss-fetch-category-as-tag t
+  "If true, tag the Tiny Tiny RSS feed category to feed item."
+  :group 'elfeed-protocol
+  :type 'boolean)
+
 (defvar elfeed-protocol-ttrss-feeds (make-hash-table :test 'equal)
   "Feed list from Tiny Tiny RSS, will be filled before updating operation.")
+
+(defvar elfeed-protocol-ttrss-categories (make-hash-table :test 'equal)
+  "Category list from Tiny Tiny RSS, will be used to tag entries with their TTRSS category.")
 
 (defconst elfeed-protocol-ttrss-api-base "/api/")
 (defconst elfeed-protocol-ttrss-api-max-limit 200)
@@ -185,6 +193,41 @@ server url, and will call CALLBACK after login."
       (setq elfeed-protocol-ttrss-sid (map-elt content 'session_id))
       (when callback (funcall callback)))))
 
+(defun elfeed-protocol-ttrss--parse-categories (host-url content)
+  "Parse the feeds JSON buffer and cache the result.
+HOST-URL is the host name of Tiny Tiny RSS server.  CONTENT is the
+result JSON content by http request.  Return cached
+`elfeed-protocol-ttrss-categories'."
+  (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
+         (categories content))
+    (puthash proto-id categories elfeed-protocol-ttrss-categories)
+    elfeed-protocol-ttrss-categories))
+
+(defun elfeed-protocol-ttrss--update-categories-list (host-url &optional callback)
+  "Update Tiny Tiny RSS server categories list.
+HOST-URL is the host name of Tiny Tiny RSS server.  Will call CALLBACK
+at end."
+  (elfeed-log 'debug "elfeed-protocol-ttrss: update cagetory list")
+  (let* ((data-list `(("op" . "getCategories")
+                      ("sid" . ,elfeed-protocol-ttrss-sid)))
+         (data (json-encode-alist data-list)))
+    (elfeed-log 'debug data)
+    (elfeed-protocol-ttrss-with-fetch
+      host-url "POST" data
+      (elfeed-protocol-ttrss--parse-categories host-url content)
+      (when callback (funcall callback)))))
+
+(defun elfeed-protocol-ttrss--get-category-name (host-url category-id)
+  "Return category name from HOST-URL (symbol) for CATEGORY-ID."
+  (elfeed-log 'debug "elfeed-protocol-ttrss: Fetching category name for id %s" category-id)
+  (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
+         (categories (gethash proto-id elfeed-protocol-ttrss-categories))
+         (category (cl-some (lambda (category)
+                              (let ((id (cdr (assoc 'id category)))
+                                    (category-name (cdr (assoc 'title category))))
+                                (if (eq id category-id) (intern category-name)))) categories)))
+    category))
+
 (defun elfeed-protocol-ttrss--update-feed-list (host-url &optional callback)
   "Update Tiny Tiny RSS server feeds list.
 HOST-URL is the host name of Tiny Tiny RSS server.  Will call CALLBACK
@@ -193,11 +236,15 @@ at end."
   (let* ((data-list `(("op" . "getFeeds")
                       ("sid" . ,elfeed-protocol-ttrss-sid)
                       ("cat_id" . "-3")))
-         (data (json-encode-alist data-list)))
-    (elfeed-protocol-ttrss-with-fetch
-      host-url "POST" data
-      (elfeed-protocol-ttrss--parse-feeds host-url content)
-      (when callback (funcall callback)))))
+         (data (json-encode-alist data-list))
+         (parse-feeds (lambda ()
+                        (elfeed-protocol-ttrss-with-fetch
+                          host-url "POST" data
+                          (elfeed-protocol-ttrss--parse-feeds host-url content)
+                          (when callback (funcall callback))))))
+    (if elfeed-protocol-ttrss-fetch-category-as-tag
+        (elfeed-protocol-ttrss--update-categories-list host-url parse-feeds)
+      (funcall parse-feeds))))
 
 (defun elfeed-protocol-ttrss--parse-feeds (host-url content)
   "Parse the feeds JSON buffer and fill results to db.
@@ -250,6 +297,21 @@ result JSON content by http request.  Return
     (unless id
       (elfeed-log 'error "elfeed-protocol-ttrss: no subfeed for feed url %s" feed-url))
     id))
+
+(defun elfeed-protocol-ttrss--get-subfeed-category-id (host-url feed-id)
+  "Get sub feed category id the ttrss protocol feed HOST-URL and FEED-ID."
+  (let* ((category-id
+          (catch 'found
+            (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
+                   (feeds (gethash proto-id elfeed-protocol-ttrss-feeds))
+                   (length (length feeds)))
+              (dotimes (i length)
+                (let* ((feed (elt feeds i))
+                       (id (map-elt feed 'id))
+                       (category-id (map-elt feed 'cat_id)))
+                  (when (eq id feed-id)
+                    (throw 'found category-id))))))))
+    category-id))
 
 (defun elfeed-protocol-ttrss--get-subfeed-id-by-title (host-url feed-title)
   "Get sub feed id the ttrss protocol feed HOST-URL and FEED-TITLE."
@@ -340,11 +402,15 @@ it with the result entries as argument.  Return parsed entries."
                                     (autotags (elfeed-protocol-feed-autotags proto-id feed-url))
                                     (fixtags (elfeed-normalize-tags
                                               autotags elfeed-initial-tags))
+                                    (category-id (elfeed-protocol-ttrss--get-subfeed-category-id host-url feed-id))
+                                    (category-name (elfeed-protocol-ttrss--get-category-name host-url category-id))
                                     (tags (progn
                                             (unless unread
                                               (setq fixtags (delete 'unread fixtags)))
                                             (when starred
                                               (push elfeed-protocol-ttrss-star-tag fixtags))
+                                            (when category-name
+                                              (push category-name fixtags))
                                             (when published
                                               (push elfeed-protocol-ttrss-publish-tag fixtags))
                                             fixtags))

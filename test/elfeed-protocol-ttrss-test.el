@@ -13,6 +13,9 @@
 (defvar elfeed-protocol-ttrss-fixture-no-feed-id-entries
   (concat elfeed-protocol-ttrss-fixture-dir "entries-no-feed-id.json"))
 
+(defvar elfeed-protocol-ttrss-fixture-categories
+  (concat elfeed-protocol-ttrss-fixture-dir "categories.json"))
+
 (ert-deftest elfeed-protocol-ttrss-parse-feeds ()
   (with-fixture elfeed-protocol-ttrss-fixture-feeds
     (with-elfeed-test
@@ -65,10 +68,10 @@
                      "PDO is coming, here's what you need to know"))
             (should (equal
                      (elfeed-entry-tags entry1)
-                     '(tag1)))
+                     '(Emacs tag1)))
             (should (equal
                      (elfeed-entry-tags entry2)
-                     '(publish star tag1 unread)))
+                     '(publish Emacs star tag1 unread)))
             (should (string=
                      (cdr (elfeed-entry-id entry1))
                      "SHA1:aeb92f1daca1aadd1e58ca9b8c820fab48703ef2"))
@@ -103,5 +106,22 @@
                      "Pictures not shown in some feeds with figure block"))
             (should (equal
                      (elfeed-entry-tags entry1)
-                     '(star tag1 unread)))
+                     '(Emacs star tag1 unread)))
             ))))))
+
+(ert-deftest elfeed-protocol-ttrss-parse-categories ()
+  (with-fixture elfeed-protocol-ttrss-fixture-categories
+    (with-elfeed-test
+      (let* ((proto-url "ttrss+https://user:pass@myhost.com")
+             (host-url (elfeed-protocol-url proto-url))
+             (proto-id (elfeed-protocol-ttrss-id host-url))
+             (elfeed-feeds `((,proto-url
+                              :autotags
+                              '(("http://tt-rss.org/forum/rss.php" tag1)))))
+             (elfeed-protocol-ttrss-categories (elfeed-protocol-ttrss--parse-result
+                                                 (elfeed-protocol-ttrss--parse-categories
+                                                  host-url content))))
+        (should (gethash proto-id elfeed-protocol-ttrss-categories))
+        (should (string-equal
+                 (elfeed-protocol-ttrss--get-category-name host-url 2)
+                 "Emacs"))))))
