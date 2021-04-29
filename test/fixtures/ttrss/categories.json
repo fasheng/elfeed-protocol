@@ -1,0 +1,18 @@
+{
+  "seq": 0,
+  "status": 0,
+  "content": [
+    {
+      "id": 1,
+      "title": "News",
+      "unread": 0,
+      "order_id": 0
+    },
+    {
+      "id": 2,
+      "title": "Emacs",
+      "unread": 0,
+      "order_id": 0
+    }
+ ]
+}
