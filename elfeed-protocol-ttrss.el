@@ -193,6 +193,19 @@ server url, and will call CALLBACK after login."
       (setq elfeed-protocol-ttrss-sid (map-elt content 'session_id))
       (when callback (funcall callback)))))
 
+(defun elfeed-protocol-ttrss--update-categories-list (host-url &optional callback)
+  "Update Tiny Tiny RSS server categories list.
+HOST-URL is the host name of Tiny Tiny RSS server.  Will call CALLBACK
+at end."
+  (elfeed-log 'debug "elfeed-protocol-ttrss: update cagetory list")
+  (let* ((data-list `(("op" . "getCategories")
+                      ("sid" . ,elfeed-protocol-ttrss-sid)))
+         (data (json-encode-alist data-list)))
+    (elfeed-protocol-ttrss-with-fetch
+      host-url "POST" data
+      (elfeed-protocol-ttrss--parse-categories host-url content)
+      (when callback (funcall callback)))))
+
 (defun elfeed-protocol-ttrss--parse-categories (host-url content)
   "Parse the feeds JSON buffer and cache the result.
 HOST-URL is the host name of Tiny Tiny RSS server.  CONTENT is the
@@ -202,20 +215,6 @@ result JSON content by http request.  Return cached
          (categories content))
     (puthash proto-id categories elfeed-protocol-ttrss-categories)
     elfeed-protocol-ttrss-categories))
-
-(defun elfeed-protocol-ttrss--update-categories-list (host-url &optional callback)
-  "Update Tiny Tiny RSS server categories list.
-HOST-URL is the host name of Tiny Tiny RSS server.  Will call CALLBACK
-at end."
-  (elfeed-log 'debug "elfeed-protocol-ttrss: update cagetory list")
-  (let* ((data-list `(("op" . "getCategories")
-                      ("sid" . ,elfeed-protocol-ttrss-sid)))
-         (data (json-encode-alist data-list)))
-    (elfeed-log 'debug data)
-    (elfeed-protocol-ttrss-with-fetch
-      host-url "POST" data
-      (elfeed-protocol-ttrss--parse-categories host-url content)
-      (when callback (funcall callback)))))
 
 (defun elfeed-protocol-ttrss--get-category-name (host-url category-id)
   "Return category name from HOST-URL (symbol) for CATEGORY-ID."
@@ -399,11 +398,11 @@ it with the result entries as argument.  Return parsed entries."
                                     (original (elfeed-db-get-entry full-id))
                                     (original-date (and original
                                                         (elfeed-entry-date original)))
+                                    (category-id (elfeed-protocol-ttrss--get-subfeed-category-id host-url feed-id))
+                                    (category-name (elfeed-protocol-ttrss--get-category-name host-url category-id))
                                     (autotags (elfeed-protocol-feed-autotags proto-id feed-url))
                                     (fixtags (elfeed-normalize-tags
                                               autotags elfeed-initial-tags))
-                                    (category-id (elfeed-protocol-ttrss--get-subfeed-category-id host-url feed-id))
-                                    (category-name (elfeed-protocol-ttrss--get-category-name host-url category-id))
                                     (tags (progn
                                             (unless unread
                                               (setq fixtags (delete 'unread fixtags)))
