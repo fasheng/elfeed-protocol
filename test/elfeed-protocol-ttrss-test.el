@@ -51,8 +51,7 @@
                  (elfeed-protocol-format-subfeed-id proto-id "http://tt-rss.org/forum/rss.php")))
         (should (string=
                  (elfeed-feed-title test-feed)
-                 "Tiny Tiny RSS: Forum"))
-        ))))
+                 "Tiny Tiny RSS: Forum"))))))
 
 (ert-deftest elfeed-protocol-ttrss-parse-entries ()
   (with-fixture elfeed-protocol-ttrss-fixture-categories
@@ -124,5 +123,4 @@
                      "Pictures not shown in some feeds with figure block"))
             (should (equal
                      (elfeed-entry-tags entry1)
-                     '(Emacs star tag1 unread)))
-            ))))))
+                     '(Emacs star tag1 unread)))))))))

@@ -23,8 +23,7 @@
                      (elfeed-protocol-format-subfeed-id proto-id feed1-url)))
              (feed2-url (elfeed-protocol-owncloud--get-subfeed-url url 2))
              (feed2 (elfeed-db-get-feed
-                     (elfeed-protocol-format-subfeed-id proto-id feed2-url)))
-             )
+                     (elfeed-protocol-format-subfeed-id proto-id feed2-url))))
         (should (string=
                  feed1-url
                  "http://www.example.com/feed/"))
@@ -42,9 +41,7 @@
                  "Feed 1"))
         (should (string=
                  (elfeed-feed-title feed2)
-                 "Feed 2"))
-        ))
-    ))
+                 "Feed 2"))))))
 
 (ert-deftest elfeed-protocol-owncloud-parse-entries ()
   (with-fixture elfeed-protocol-owncloud-fixture-feeds
@@ -73,6 +70,4 @@
                      '(tag1)))
             (should (equal
                      (elfeed-entry-tags entry2)
-                     '(star tag2 unread)))
-            )
-          )))))
+                     '(star tag2 unread)))))))))

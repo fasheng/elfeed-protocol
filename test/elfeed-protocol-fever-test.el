@@ -31,8 +31,7 @@
                  (elfeed-protocol-format-subfeed-id proto-id "http://tt-rss.org/forum/rss.php")))
         (should (string=
                  (elfeed-feed-title test-feed)
-                 "Tiny Tiny RSS: Forum"))
-        ))))
+                 "Tiny Tiny RSS: Forum"))))))
 
 (ert-deftest elfeed-protocol-fever-parse-entries ()
   (with-fixture elfeed-protocol-fever-fixture-feeds
@@ -82,5 +81,4 @@
                      '(freshrss)))
             (should (equal
                      (elfeed-entry-tags entry4)
-                     '(freshrss)))
-          ))))))
+                     '(freshrss)))))))))

@@ -31,8 +31,7 @@
                  (elfeed-protocol-format-subfeed-id proto-id "http://anildash.com/")))
         (should (string=
                  (elfeed-feed-title test-feed)
-                 "Anil Dash"))
-        ))))
+                 "Anil Dash"))))))
 
 (ert-deftest elfeed-protocol-newsblur-parse-entries ()
   (with-fixture elfeed-protocol-newsblur-fixture-feeds
@@ -65,6 +64,4 @@
                      '(tag1)))
             (should (equal
                      (elfeed-entry-tags entry2)
-                     `(hyperloop ,(intern "fundings & exits") star unread)))
-            )
-          )))))
+                     `(hyperloop ,(intern "fundings & exits") star unread)))))))))
