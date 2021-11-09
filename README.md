@@ -44,7 +44,7 @@ Setup elfeed-protocol, then switch to search view and and press G to update entr
 
                      ;; format 5, for password in gnome-keyring
                      ("owncloud+https://user@myhost.com"
-j                      :password (shell-command-to-string "echo -n `secret-tool lookup attribute value`"))
+                      :password (shell-command-to-string "echo -n `secret-tool lookup attribute value`"))
 
                      ;; format 6, for password in pass(1), using password-store.el
                      ("owncloud+https://user@myhost.com"
