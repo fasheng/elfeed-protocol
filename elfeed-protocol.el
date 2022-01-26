@@ -57,10 +57,6 @@
 (require 'cl-lib)
 (require 'elfeed)
 (require 'elfeed-protocol-common)
-(require 'elfeed-protocol-fever)
-(require 'elfeed-protocol-newsblur)
-(require 'elfeed-protocol-owncloud)
-(require 'elfeed-protocol-ttrss)
 
 (defgroup elfeed-protocol ()
   "Provide extra protocol for elfeed."
@@ -77,6 +73,18 @@ For example,
   (elfeed-protocol-unregister \"owncloud\")"
   :group 'elfeed-protocol
   :type '(repeat (cons string symbol)))
+
+(defcustom elfeed-protocol-enabled-protocols '(fever newsblur owncloud ttrss)
+  "Protocols that should always be loaded together when elfeed-protocol-enable.
+
+You can also use this system to load external packages (i.e. neither elfeed-protocol
+core protocols, nor external protocols).  Just add symbols
+to the end of the list.  If the package is called elfeed-protocol-xyz.el, then you need
+to add the symbol `xyz', and the package must have a call to:
+
+(provide \\='elfeed-protocol-xyz)"
+  :group 'elfeed-protocol
+  :type '(repeat symbol))
 
 (defun elfeed-protocol-update-func (proto-type)
   "Get update function for special PROTO-TYPE."
@@ -182,18 +190,15 @@ ORIG-FUNC and URL-OR-FEED are the needed arguments."
   (advice-add 'elfeed-feed-autotags :around #'elfeed-protocol-advice-feed-autotags)
   (add-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
   (add-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove)
-  (elfeed-protocol-register "fever" (list :update 'elfeed-protocol-fever-update
-                                          :pre-tag 'elfeed-protocol-fever-pre-tag
-                                          :pre-untag 'elfeed-protocol-fever-pre-untag))
-  (elfeed-protocol-register "newsblur" (list :update 'elfeed-protocol-newsblur-update
-                                             :pre-tag 'elfeed-protocol-newsblur-pre-tag
-                                             :pre-untag 'elfeed-protocol-newsblur-pre-untag))
-  (elfeed-protocol-register "owncloud" (list :update 'elfeed-protocol-owncloud-update
-                                             :pre-tag 'elfeed-protocol-owncloud-pre-tag
-                                             :pre-untag 'elfeed-protocol-owncloud-pre-untag))
-  (elfeed-protocol-register "ttrss" (list :update 'elfeed-protocol-ttrss-update
-                                          :pre-tag 'elfeed-protocol-ttrss-pre-tag
-                                          :pre-untag 'elfeed-protocol-ttrss-pre-untag)))
+  (dolist (protocol elfeed-protocol-enabled-protocols)
+    (let ((feature (intern (concat "elfeed-protocol-" (symbol-name protocol)))))
+      (if (require feature nil t)
+          (elfeed-protocol-register
+           (symbol-name protocol)
+           (list :update (intern (concat (symbol-name feature) "-update"))
+                 :pre-tag (intern (concat (symbol-name feature) "-pre-tag"))
+                 :pre-untag (intern (concat (symbol-name feature) "-pre-untag"))))
+        (error "Problems while trying to load feature `%s'" feature)))))
 
 ;;;###autoload
 (defun elfeed-protocol-disable ()
@@ -204,10 +209,8 @@ ORIG-FUNC and URL-OR-FEED are the needed arguments."
   (advice-remove 'elfeed-feed-autotags #'elfeed-protocol-advice-feed-autotags)
   (remove-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
   (remove-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove)
-  (elfeed-protocol-unregister "fever")
-  (elfeed-protocol-unregister "newsblur")
-  (elfeed-protocol-unregister "owncloud")
-  (elfeed-protocol-unregister "ttrss"))
+  (dolist (protocol elfeed-protocol-enabled-protocols)
+    (elfeed-protocol-unregister (symbol-name protocol))))
 
 (provide 'elfeed-protocol)
 
