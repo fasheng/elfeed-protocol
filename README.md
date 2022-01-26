@@ -267,6 +267,41 @@ before reporting issues:
    (cancel-timer my-elfeed-update-timer)
    ```
 
+1. Why the articles still are unread even they were mark read in other client?
+
+   Well, only ownCloud News API support two-way synchronization for it
+   fetch articles with modified time. And other API only fetch
+   articles id by id. So your issue just the desired result~
+
+   However here is a workaround. For example fever, you could reset
+   the update mark so it will re-fetch the last 1000 articles in
+   following updates and will sync the read state:
+
+   ```emacs-lisp
+   (let* ((proto-id "fever+https://user@miniflux-host")
+          (last-id (elfeed-protocol-fever-get-update-mark proto-id 'update)))
+     (elfeed-protocol-fever-set-update-mark  proto-id 'update (- last-id 1000)))
+   ```
+
+   And Fever limit 50 max size for per request, so update timer may help you:
+
+   ```emacs-lisp
+   (run-at-time 300 300
+                (lambda () (when (= elfeed-curl-queue-active 0)
+                             (elfeed-update))))
+   ```
+
+   Or you could use elfeed-untag-1 mark all selected articles as
+   read(will not call curl process) then elfeed-protocol-fever-reinit
+   fetch all unread articles:
+
+   ```emacs-lisp
+   (cl-loop for entry in (elfeed-search-selected)
+            do (elfeed-untag-1 entry 'unread))
+   ```
+
+   Hope helps.
+
 1. Sometimes emacs may be blocked if the parsing downloaded articles
    is too large, for example >50MB.
 
