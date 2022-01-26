@@ -240,18 +240,18 @@ before reporting issues:
 1. When I run elfeed-update I get the error: `elfeed-feeds malformed, bad entry`
 
    Don't forget to enable elfeed-protocol at first:
-    ```emacs-lisp
+   ```emacs-lisp
    (elfeed-protocol-enable)
-    ```
+   ```
 
 1. Not working if my password contains special characters like `@#$/:`.
 
    Use format 2 instead in previous example for complex password:
-    ```emacs-lisp
-    ;; format 2, for password with special characters
-    ("owncloud+https://user@myhost.com"
-     :password "password/with|special@characters:")
-    ```
+   ```emacs-lisp
+   ;; format 2, for password with special characters
+   ("owncloud+https://user@myhost.com"
+    :password "password/with|special@characters:")
+   ```
 
 1. How to fetch my older headlines in server?
 
@@ -259,13 +259,13 @@ before reporting issues:
    older headlines. And the update operations could not executed in
    the same time, so `run-at-time` with some delays(for example 15s)
    will help you:
-    ```emacs-lisp
-    (setq my-elfeed-update-timer
-          (run-at-time 15 15
-                       (lambda () (when (= elfeed-curl-queue-active 0)
-                                    (elfeed-protocol-ttrss-update-older "ttrss+https://user@host")))))
-    (cancel-timer my-elfeed-update-timer)
-    ```
+   ```emacs-lisp
+   (setq my-elfeed-update-timer
+         (run-at-time 15 15
+                      (lambda () (when (= elfeed-curl-queue-active 0)
+                                   (elfeed-protocol-ttrss-update-older "ttrss+https://user@host")))))
+   (cancel-timer my-elfeed-update-timer)
+   ```
 
 1. Sometimes emacs may be blocked if the parsing downloaded articles
    is too large, for example >50MB.
