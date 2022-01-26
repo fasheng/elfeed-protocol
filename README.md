@@ -56,6 +56,7 @@ Setup elfeed-protocol, then switch to search view and and press G to update entr
                       :autotags (("example.com" comic)))))
 
 ;; enable elfeed-protocol
+(setq elfeed-protocol-enabled-protocols '(fever newsblur owncloud ttrss))
 (elfeed-protocol-enable)
 ```
 
