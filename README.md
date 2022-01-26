@@ -291,9 +291,9 @@ before reporting issues:
                              (elfeed-update))))
    ```
 
-   Or you could use elfeed-untag-1 mark all selected articles as
-   read(will not call curl process) then elfeed-protocol-fever-reinit
-   fetch all unread articles:
+   Or you could use =elfeed-untag-1= mark all selected articles as
+   read(will not call curl process) then execute
+   =elfeed-protocol-fever-reinit= fetch all unread articles:
 
    ```emacs-lisp
    (cl-loop for entry in (elfeed-search-selected)
