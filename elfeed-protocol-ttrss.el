@@ -257,7 +257,7 @@ result JSON content by http request.  Return
              (let* ((feed-url (map-elt feed 'feed_url))
                     (feed-id (elfeed-protocol-format-subfeed-id
                               proto-id feed-url))
-                    (feed-title (map-elt feed 'title))
+                    (feed-title (elfeed-cleanup (map-elt feed 'title)))
                     (feed-db (elfeed-db-get-feed feed-id)))
                (setf (elfeed-feed-url feed-db) feed-id
                      (elfeed-feed-title feed-db) feed-title)))

@@ -18,7 +18,7 @@
     {
       "id": 2,
       "url": "http://www.example2.com/rss.jsp",
-      "title": "Feed 2",
+      "title": "Feed\n2",
       "faviconLink": "",
       "added": 1492784045,
       "folderId": 12,

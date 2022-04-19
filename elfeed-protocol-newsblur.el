@@ -150,7 +150,7 @@ result JSON content by http request.  Return
                     (feed-url (map-elt fixed-feed 'feed_link))
                     (feed-id (elfeed-protocol-format-subfeed-id
                               proto-id feed-url))
-                    (feed-title (map-elt fixed-feed 'feed_title))
+                    (feed-title (elfeed-cleanup (map-elt fixed-feed 'feed_title)))
                     (feed-db (elfeed-db-get-feed feed-id)))
                (setf (elfeed-feed-url feed-db) feed-id
                      (elfeed-feed-title feed-db) feed-title)))
