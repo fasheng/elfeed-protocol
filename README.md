@@ -76,7 +76,9 @@ after advice for `elfeed`:
 # Protocol Details
 
 ## fever (Fever)
-1. Fetch articles by the entry ID
+1. Fetch articles with the entry ID one by one by default. For some
+   service that don't provide valid entry ID like FressRSS, just set
+   `elfeed-protocol-fever-update-unread-only` to t as a workaround
 1. Support sync unread, starred(saved) tags, the starred tag name
    defined in `elfeed-protocol-fever-star-tag` which default value is
    `star`
@@ -89,6 +91,7 @@ Fever plugin, it is `https://your-ttrss-server/plugins/fever/`.
 
 Example:
 ```emacs-lisp
+(setq elfeed-protocol-fever-update-unread-only nil)
 (setq elfeed-feeds (list
                     (list "fever+https://user@myhost.com"
                           :api-url "https://myhost.com/plugins/fever/"

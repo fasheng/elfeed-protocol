@@ -25,6 +25,14 @@ then the starred state in Fever will be synced, too."
   :group 'elfeed-protocol
   :type 'symbol)
 
+(defcustom elfeed-protocol-fever-update-unread-only nil
+  "Determine default update method for Fever.
+If t will update unread items only, and if nil will update since last entry
+id. For some service that don't provide valid item id like FressRSS, just set to
+t as a workaround."
+  :group 'elfeed-protocol
+  :type 'boolean)
+
 (defvar elfeed-protocol-fever-feeds (make-hash-table :test 'equal)
   "Feed list from Fever, will be filled before updating operation.")
 
@@ -352,9 +360,9 @@ always required so could find the related protocol feed id correctly, for
 example \"https://user:pass@myhost.com\". ACTION could be init, update,
 update-older and update-star. For init, will fetch unread, starred and latest
 entries. For update and update-older, will fetch entries with article ids, the
-ARG is the ids. For update-star, will fetch starred entries after the skipped
-count, the ARG is the skip count.  If CALLBACK is not nil, will call it with the
-result entries as argument."
+ARG is the ids. For update-unread, will fetch all unread entries. For
+update-star, will fetch all starred entries.  If CALLBACK is not nil, will call
+it with the result entries as argument."
   (elfeed-log 'debug "elfeed-protocol-fever: update entries with action %s, arg %s" action arg)
   (let* ((proto-id (elfeed-protocol-fever-id host-url))
          (url-starred (concat (elfeed-protocol-fever--get-api-url host-url)
@@ -379,6 +387,11 @@ result entries as argument."
      ;; update older or latest entries
      ((or (eq action 'update) (eq action 'update-older))
       (elfeed-protocol-fever--get-entries host-url arg t action callback))
+     ;; update unread entries
+     ((eq action 'update-unread)
+      (elfeed-protocol-fever-with-fetch
+        url-unread "POST" data
+        (elfeed-protocol-fever--get-entries host-url (map-elt result 'unread_item_ids) nil action callback)))
      ;; update starred entries
      ((eq action 'update-star)
       (elfeed-protocol-fever-with-fetch
@@ -539,7 +552,9 @@ argument"
     (elfeed-protocol-fever-fetch-prepare
      host-url
      (if (>= last-entry-id 0)
-         (elfeed-protocol-fever--do-update host-url 'update ids callback)
+         (if elfeed-protocol-fever-update-unread-only
+             (elfeed-protocol-fever--do-update host-url 'update-unread nil callback)
+           (elfeed-protocol-fever--do-update host-url 'update ids callback))
        (elfeed-protocol-fever--do-update host-url 'init nil callback)))))
 
 (provide 'elfeed-protocol-fever)
