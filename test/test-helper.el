@@ -1,3 +1,4 @@
+(load-file "elfeed-protocol-common.el")
 (load-file "elfeed-protocol-fever.el")
 (load-file "elfeed-protocol-newsblur.el")
 (load-file "elfeed-protocol-owncloud.el")
