@@ -136,8 +136,14 @@ PROP could be :password, :autotags etc."
 (defun elfeed-protocol-meta-user (proto-id)
   "Get user property data in `elfeed-feeds` for PROTO-ID."
   (let* ((proto-url (elfeed-protocol-meta-url proto-id))
-         (urlobj (url-generic-parse-url (elfeed-protocol-url proto-url))))
-    (url-user urlobj)))
+         (urlobj (url-generic-parse-url (elfeed-protocol-url proto-url)))
+         (user (url-user urlobj))
+         (host (url-host urlobj))
+         (host-list (split-string host "@")))
+    (if (>= (length host-list) 2)
+        (concat user "@" (nth 0 host-list))
+      user)
+    ))
 
 (defun elfeed-protocol-meta-password (proto-id)
   "Get password property data in `elfeed-feeds` for PROTO-ID.

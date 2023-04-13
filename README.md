@@ -30,15 +30,16 @@ Setup elfeed-protocol, then switch to search view and and press G to update entr
                      ;; format 1
                      "owncloud+https://user:pass@myhost.com"
 
-                     ;; format 2, for password with special characters
-                     ("owncloud+https://user@myhost.com"
+                     ;; format 2, for username or password with special characters
+                     ("owncloud+https://user@domain.com@myhost.com"
                       :password "password/with|special@characters:")
 
                      ;; format 3, for password in file
                      ("owncloud+https://user@myhost.com"
                       :password-file "~/.password")
 
-                     ;; format 4, for password in .authinfo, ensure (auth-source-search :host "myhost.com" :port "443" :user "user4") exists
+                     ;; format 4, for password in .authinfo,
+                     ;; ensure (auth-source-search :host "myhost.com" :port "443" :user "user4") exists
                      ("owncloud+https://user@myhost.com"
                       :use-authinfo t)
 
