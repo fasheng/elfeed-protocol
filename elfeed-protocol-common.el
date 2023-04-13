@@ -140,15 +140,13 @@ PROP could be :password, :autotags etc."
     (url-user urlobj)))
 
 (defun elfeed-protocol-meta-password (proto-id)
-  "Get :password property data in `elfeed-feeds` for PROTO-ID.
-Will try to get password in url, password filed, passowrd file and
+  "Get password property data in `elfeed-feeds` for PROTO-ID.
+Will try to get password from :password filed, url, passowrd file and
 .authinfo one by one."
   (let* ((proto-url (elfeed-protocol-meta-url proto-id))
          (urlobj (url-generic-parse-url (elfeed-protocol-url proto-url)))
          (meta-pass (elfeed-protocol-meta-data proto-id :password)))
     (cond
-     ((url-password urlobj) (url-password urlobj))
-
      ((and meta-pass (stringp meta-pass))
       meta-pass)
 
@@ -157,6 +155,8 @@ Will try to get password in url, password filed, passowrd file and
 
      ((and meta-pass (listp meta-pass) (functionp (car meta-pass)))
       (eval meta-pass))
+
+     ((url-password urlobj) (url-password urlobj))
 
      ((elfeed-protocol-meta-data proto-id :password-file)
       (elfeed-protocol-get-string-from-file
@@ -336,7 +336,8 @@ ids. SUB-SIZE is the item size to split for each request."
                                  when (listp feed) collect (car feed)
                                  else collect feed)))
     (cl-loop for url in feed-url-list
-             when (elfeed-protocol-type url) collect url)))
+             when (elfeed-protocol-type url)
+             collect url)))
 
 (defun elfeed-protocol-normal-feed-list ()
   "Get normal none protocol feed list."
