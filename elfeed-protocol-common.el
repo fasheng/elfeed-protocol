@@ -142,8 +142,7 @@ PROP could be :password, :autotags etc."
          (host-list (split-string host "@")))
     (if (>= (length host-list) 2)
         (concat user "@" (nth 0 host-list))
-      user)
-    ))
+      user)))
 
 (defun elfeed-protocol-meta-password (proto-id)
   "Get password property data in `elfeed-feeds` for PROTO-ID.
@@ -352,6 +351,14 @@ ids. SUB-SIZE is the item size to split for each request."
                                  else collect feed)))
     (cl-loop for url in feed-url-list
              unless (elfeed-protocol-type url) collect url)))
+
+(defun elfeed-protocol-build-meta-author (author)
+  "Build author meta data for different elfeed version.
+Since elfeed 3.2.0, elfeed use :authors instead of :author"
+  (when author
+    (if (version< elfeed-version "3.2.0")
+        (list :author author)
+      (list :authors (list (list :name author))))))
 
 (provide 'elfeed-protocol-common)
 

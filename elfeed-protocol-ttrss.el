@@ -425,8 +425,7 @@ it with the result entries as argument.  Return parsed entries."
                                                ;; :enclosures nil ;; ;;TODO: fill attachments
                                                :content body
                                                :content-type 'html
-                                               :meta `(,@(when author
-                                                           (list :author author))
+                                               :meta `(,@(elfeed-protocol-build-meta-author author)
                                                        ,@(list :protocol-id proto-id
                                                                :id id
                                                                :guid-hash guid-hash

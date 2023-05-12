@@ -70,6 +70,12 @@
             (should (string=
                      (elfeed-entry-title entry4)
                      "Cloned FreshRSS 1.13.1"))
+            (should (string=
+                     (plist-get (nth 0 (elfeed-meta entry1 :authors)) :name)
+                     "author1"))
+            (should (string=
+                     (plist-get (nth 0 (elfeed-meta entry2 :authors)) :name)
+                     "author2"))
             (should (equal
                      (elfeed-entry-tags entry1)
                      '(ttrss)))

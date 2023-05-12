@@ -65,6 +65,12 @@
             (should (string=
                      (elfeed-entry-title entry2)
                      "Entry 2"))
+            (should (string=
+                     (plist-get (nth 0 (elfeed-meta entry1 :authors)) :name)
+                     "author1 <author1@www.example.com>"))
+            (should (string=
+                     (plist-get (nth 0 (elfeed-meta entry2 :authors)) :name)
+                     "author2 <author2@www.example.com>"))
             (should (equal
                      (elfeed-entry-tags entry1)
                      '(tag1)))

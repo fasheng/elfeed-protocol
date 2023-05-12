@@ -242,8 +242,7 @@ http://myhost.com/items?type=3&batchSize=-1, and import the entries by calling
                                                :enclosures enclosures
                                                :content body
                                                :content-type 'html
-                                               :meta `(,@(when author
-                                                           (list :author author))
+                                               :meta `(,@(elfeed-protocol-build-meta-author author)
                                                        ,@(list :protocol-id proto-id
                                                                :id id
                                                                :guid-hash guid-hash

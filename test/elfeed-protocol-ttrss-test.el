@@ -84,6 +84,12 @@
                   (should (string=
                            (elfeed-entry-title entry2)
                            "PDO is coming, here's what you need to know"))
+                  (should (string=
+                           (plist-get (nth 0 (elfeed-meta entry1 :authors)) :name)
+                           "@author1"))
+                  (should (string=
+                           (plist-get (nth 0 (elfeed-meta entry2 :authors)) :name)
+                           "@author2"))
                   (should (equal
                            (elfeed-entry-tags entry1)
                            '(Emacs tag1)))

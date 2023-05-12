@@ -258,8 +258,7 @@ the result entries as argument.  Return parsed entries."
                                                ;; :enclosures nil ;TODO: fill image-urls mime
                                                :content body
                                                :content-type 'html
-                                               :meta `(,@(when author
-                                                           (list :author author))
+                                               :meta `(,@(elfeed-protocol-build-meta-author author)
                                                        ,@(list :protocol-id proto-id
                                                                :id id
                                                                :guid-hash guid-hash

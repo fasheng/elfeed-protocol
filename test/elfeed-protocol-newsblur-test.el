@@ -59,6 +59,12 @@
             (should (string=
                      (elfeed-entry-title entry2)
                      "Jessica Jones’ second season gets its first teaser"))
+            (should (string=
+                     (plist-get (nth 0 (elfeed-meta entry1 :authors)) :name)
+                     "pearphp"))
+            (should (string=
+                     (plist-get (nth 0 (elfeed-meta entry2 :authors)) :name)
+                     "Andrew Liptak"))
             (should (equal
                      (elfeed-entry-tags entry1)
                      '(tag1)))
