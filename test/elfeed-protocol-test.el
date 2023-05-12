@@ -32,7 +32,6 @@
                            :password "pass2/with|special@characters:")))
           (proto-id1 "owncloud+https://user1@myhost.com:443")
           (proto-id2 "owncloud+https://user2@domain.com@myhost.com"))
-     (message "HAAH: %S" (elfeed-protocol-feed-list)) ;TODO
      (should (string=
               (elfeed-protocol-type "owncloud+https://user1:pass1@myhost.com:443")
               "owncloud"))
