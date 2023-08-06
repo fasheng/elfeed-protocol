@@ -65,13 +65,15 @@ To make `elfeed-org` tag rules works together with `elfeed-protocol`, just add a
 after advice for `elfeed`:
 
 ```emacs-lisp
+(defvar elfeed-protocol-orig-feeds nil
+  "Store original content of `elfeed-feeds'.")
 (defadvice elfeed (after configure-elfeed-feeds activate)
   "Make elfeed-org autotags rules works with elfeed-protocol."
-  (setq elfeed-protocol-tags elfeed-feeds)
+  (setq elfeed-protocol-orig-feeds elfeed-feeds)
   (setq elfeed-feeds (list
                       (list "owncloud+https://user@myhost.com"
                             :password '(password-store-get "owncloud/app-pass")
-                            :autotags elfeed-protocol-tags))))
+                            :autotags elfeed-protocol-orig-feeds))))
 ```
 
 # Protocol Details
