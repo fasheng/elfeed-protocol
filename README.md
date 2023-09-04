@@ -66,7 +66,7 @@ after advice for `elfeed`:
 
 ```emacs-lisp
 (defvar elfeed-protocol-orig-feeds nil
-  "Store original content of `elfeed-feeds'.")
+  "Store original content of elfeed-feeds.")
 (defadvice elfeed (after configure-elfeed-feeds activate)
   "Make elfeed-org autotags rules works with elfeed-protocol."
   (setq elfeed-protocol-orig-feeds elfeed-feeds)
@@ -79,6 +79,16 @@ after advice for `elfeed`:
 # Protocol Details
 
 ## fever (Fever)
+Example:
+```emacs-lisp
+(setq elfeed-protocol-fever-update-unread-only nil)
+(setq elfeed-feeds (list
+                    (list "fever+https://user@myhost.com"
+                          :api-url "https://myhost.com/plugins/fever/"
+                          :password "password/with|special@characters:"
+                          :autotags '(("example.com" comic)))))
+```
+
 1. Fetch articles with the entry ID one by one by default. For some
    service that don't provide valid entry ID like FressRSS, just set
    `elfeed-protocol-fever-update-unread-only` to t as a workaround
@@ -91,16 +101,6 @@ after advice for `elfeed`:
 
 **NOTE**: User must provide Fever API URL manually. For Tiny Tiny RSS
 Fever plugin, it is `https://your-ttrss-server/plugins/fever/`.
-
-Example:
-```emacs-lisp
-(setq elfeed-protocol-fever-update-unread-only nil)
-(setq elfeed-feeds (list
-                    (list "fever+https://user@myhost.com"
-                          :api-url "https://myhost.com/plugins/fever/"
-                          :password "password/with|special@characters:"
-                          :autotags '(("example.com" comic)))))
-```
 
 ## newsblur (NewsBlur)
 1. Fetch articles from recent pages
