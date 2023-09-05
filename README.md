@@ -12,9 +12,11 @@ including
 
 # Installation through MELPA
 
-    ;; Install through package manager
-    M-x package-install <ENTER>
-    elfeed-protocol <ENTER>
+```
+;; Install through package manager
+M-x package-install <ENTER>
+elfeed-protocol <ENTER>
+```
 
 # Initialization
 Setup elfeed-protocol, then switch to search view and and press G to update entries:
@@ -25,7 +27,113 @@ Setup elfeed-protocol, then switch to search view and and press G to update entr
 (elfeed-set-timeout 36000)
 (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
 
-;; setup extra protocol feeds
+;; setup elfeed-feeds
+(setq elfeed-feeds (list
+                    (list "owncloud+https://user@myhost.com"
+                          :password "my-password")))
+
+;; enable elfeed-protocol
+(setq elfeed-protocol-enabled-protocols '(fever newsblur owncloud ttrss))
+(elfeed-protocol-enable)
+```
+
+# Protocol Details
+
+## fever (Fever)
+1. Fetch articles with the entry ID one by one by default. For some
+   service that don't provide valid entry ID like FressRSS, just set
+   `elfeed-protocol-fever-update-unread-only` to t as a workaround
+1. Support sync unread, starred(saved) tags, the starred tag name
+   defined in `elfeed-protocol-fever-star-tag` which default value is
+   `star`
+1. Support multiple fetching methods:
+   - `elfeed-protocol-fever-update-older`
+   - `elfeed-protocol-fever-update-star`
+
+**NOTE**: User must provide Fever API URL manually. For Tiny Tiny RSS
+Fever plugin, it is `https://your-ttrss-server/plugins/fever/`.
+
+Example:
+```emacs-lisp
+(setq elfeed-protocol-fever-update-unread-only nil)
+(setq elfeed-feeds (list
+                    (list "fever+https://user@myhost.com"
+                          :api-url "https://myhost.com/plugins/fever/"
+                          :password "my-password")))
+```
+
+## newsblur (NewsBlur)
+1. Fetch articles from recent pages
+1. Fetch articles for special feed
+1. Fetch tags in remote
+1. Support sync unread, starred(saved) tags, the starred tag name
+   defined in `elfeed-protocol-ttrss-star-tag` which default value is
+   `star`
+
+**NOTE**: A file for storing session cookies has to be specified via
+`elfeed-curl-extra-arguments` like in the following example.
+
+Example:
+```emacs-lisp
+(setq elfeed-protocol-newsblur-maxpages 20)
+(setq elfeed-curl-extra-arguments '("--cookie-jar" "/tmp/newsblur-cookie"
+                                    "--cookie" "/tmp/newsblur-cookie"))
+(setq elfeed-feeds (list
+                    (list "newsblur+https://user@newsblur.com"
+                          :password "my-password")))
+```
+
+## owncloud (ownCloud News)
+1. Fetch articles with the modified time by default
+1. Fetch articles for special feed
+1. Support sync unread and starred tags, the starred tag name defined
+   in `elfeed-protocol-owncloud-star-tag` which default value is `star`. For
+   example, if user add `star` tag to one article, the star stat will
+   be sync to server, too
+1. Support multiple fetching methods:
+   - `elfeed-protocol-owncloud-update-since-timestamp`
+   - `elfeed-protocol-owncloud-update-since-id`
+   - `elfeed-protocol-owncloud-update-older`
+
+Example:
+```emacs-lisp
+(setq elfeed-protocol-owncloud-maxsize 1000)
+(setq elfeed-protocol-owncloud-update-with-modified-time t)
+(setq elfeed-feeds (list
+                    (list "owncloud+https://user@myhost.com"
+                          :password "my-password")))
+```
+
+## ttrss (Tiny Tiny RSS, requires version: 1.7.6)
+1. Fetch articles by the entry ID
+1. Fetch articles for special feed
+1. Fetch category as tag
+1. Support sync unread, starred and published tags, the starred tag
+   name defined in `elfeed-protocol-ttrss-star-tag` which default
+   value is `star`, and the published tag name defined in
+   `elfeed-protocol-ttrss-publish-tag` which default value is
+   `publish`
+1. Support multiple fetching methods:
+   - `elfeed-protocol-ttrss-update-older`
+   - `elfeed-protocol-ttrss-update-star`
+
+**NOTE**: For Tiny Tiny RSS only allow fetch Maximize 200 entries each
+time, so if your own much more starred entries, just run
+`elfeed-protocol-ttrss-update-star` manually to fetch them all
+
+Example:
+```emacs-lisp
+(setq elfeed-protocol-ttrss-maxsize 200) ; bigger than 200 is invalid
+(setq elfeed-feeds (list
+                    (list "ttrss+https://user@myhost.com"
+                          :password "my-password")))
+```
+
+# Extra settings
+
+## All example formats for elfeed-feeds
+
+```emacs-lisp
 (setq elfeed-feeds '(
                      ;; format 1
                      "owncloud+https://user:pass@myhost.com"
@@ -55,11 +163,9 @@ Setup elfeed-protocol, then switch to search view and and press G to update entr
                      ("owncloud+https://user@myhost.com"
                       :password "password"
                       :autotags (("example.com" comic)))))
-
-;; enable elfeed-protocol
-(setq elfeed-protocol-enabled-protocols '(fever newsblur owncloud ttrss))
-(elfeed-protocol-enable)
 ```
+
+## Work with elfeed-org
 
 To make `elfeed-org` tag rules works together with `elfeed-protocol`, just add a
 after advice for `elfeed`:
@@ -74,105 +180,6 @@ after advice for `elfeed`:
                       (list "owncloud+https://user@myhost.com"
                             :password '(password-store-get "owncloud/app-pass")
                             :autotags elfeed-protocol-orig-feeds))))
-```
-
-# Protocol Details
-
-## fever (Fever)
-1. Fetch articles with the entry ID one by one by default. For some
-   service that don't provide valid entry ID like FressRSS, just set
-   `elfeed-protocol-fever-update-unread-only` to t as a workaround
-1. Support sync unread, starred(saved) tags, the starred tag name
-   defined in `elfeed-protocol-fever-star-tag` which default value is
-   `star`
-1. Support multiple fetching methods:
-   - `elfeed-protocol-fever-update-older`
-   - `elfeed-protocol-fever-update-star`
-
-**NOTE**: User must provide Fever API URL manually. For Tiny Tiny RSS
-Fever plugin, it is `https://your-ttrss-server/plugins/fever/`.
-
-Example:
-```emacs-lisp
-(setq elfeed-protocol-fever-update-unread-only nil)
-(setq elfeed-feeds (list
-                    (list "fever+https://user@myhost.com"
-                          :api-url "https://myhost.com/plugins/fever/"
-                          :password "password/with|special@characters:"
-                          :autotags '(("example.com" comic)))))
-```
-
-## newsblur (NewsBlur)
-1. Fetch articles from recent pages
-1. Fetch articles for special feed
-1. Fetch tags in remote
-1. Support sync unread, starred(saved) tags, the starred tag name
-   defined in `elfeed-protocol-ttrss-star-tag` which default value is
-   `star`
-
-**NOTE**: A file for storing session cookies has to be specified via
-`elfeed-curl-extra-arguments` like in the following example.
-
-Example:
-```emacs-lisp
-(setq elfeed-protocol-newsblur-maxpages 20)
-(setq elfeed-curl-extra-arguments '("--cookie-jar" "/tmp/newsblur-cookie"
-                                    "--cookie" "/tmp/newsblur-cookie"))
-(setq elfeed-feeds (list
-                    "newsblur+https://user1:pass1@newsblur.com"
-                    (list "newsblur+https://user2@newsblur.com"
-                          :password "password/with|special@characters:"
-                          :autotags '(("example.com" comic)))))
-```
-
-## owncloud (ownCloud News)
-1. Fetch articles with the modified time by default
-1. Fetch articles for special feed
-1. Support sync unread and starred tags, the starred tag name defined
-   in `elfeed-protocol-owncloud-star-tag` which default value is `star`. For
-   example, if user add `star` tag to one article, the star stat will
-   be sync to server, too
-1. Support multiple fetching methods:
-   - `elfeed-protocol-owncloud-update-since-timestamp`
-   - `elfeed-protocol-owncloud-update-since-id`
-   - `elfeed-protocol-owncloud-update-older`
-
-Example:
-```emacs-lisp
-(setq elfeed-protocol-owncloud-maxsize 1000)
-(setq elfeed-protocol-owncloud-update-with-modified-time t)
-(setq elfeed-feeds (list
-                    "owncloud+https://user1:pass1@myhost.com"
-                    (list "owncloud+https://user2@myhost.com"
-                          :password "password/with|special@characters:"
-                          :autotags '(("example.com" comic)))))
-```
-
-## ttrss (Tiny Tiny RSS, requires version: 1.7.6)
-1. Fetch articles by the entry ID
-1. Fetch articles for special feed
-1. Fetch category as tag
-1. Support sync unread, starred and published tags, the starred tag
-   name defined in `elfeed-protocol-ttrss-star-tag` which default
-   value is `star`, and the published tag name defined in
-   `elfeed-protocol-ttrss-publish-tag` which default value is
-   `publish`
-1. Support multiple fetching methods:
-   - `elfeed-protocol-ttrss-update-older`
-   - `elfeed-protocol-ttrss-update-star`
-
-**NOTE**: For Tiny Tiny RSS only allow fetch Maximize 200 entries each
-time, so if your own much more starred entries, just run
-`elfeed-protocol-ttrss-update-star` manually to fetch them all
-
-Example:
-```emacs-lisp
-(setq elfeed-protocol-ttrss-maxsize 200) ; bigger than 200 is invalid
-(setq elfeed-feeds (list
-                    "ttrss+https://user1:pass1@myhost.com"
-                    (list "ttrss+https://user2@myhost.com"
-                          :password "password/with|special@characters:"
-                          :autotags '(("example.com" comic)))))
 ```
 
 # Run Unit-Tests
