@@ -50,8 +50,22 @@ Setup elfeed-protocol, then switch to search view and and press G to update entr
    - `elfeed-protocol-fever-update-older`
    - `elfeed-protocol-fever-update-star`
 
-**NOTE**: User must provide Fever API URL manually. For Tiny Tiny RSS
-Fever plugin, it is `https://your-ttrss-server/plugins/fever/`.
+**NOTE**: Many self-hosted RSS server provide Fever API, and user must
+provide the URL manually. Here is a list of Fever API URLs I collected
+for some popular RSS servers:
+
+- Tiny Tiny RSS's Fever plugin
+  ```
+  https://your-ttrss-server/plugins/fever/
+  ```
+- FreshRSS
+  ```
+  https://your-freshrss-server/api/fever.php
+  ```
+- miniflux
+  ```
+  https://your-miniflux-server/fever/
+  ```
 
 Example:
 ```emacs-lisp
