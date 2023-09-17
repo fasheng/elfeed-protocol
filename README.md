@@ -32,9 +32,8 @@ Setup elfeed-protocol, then switch to search view and and press G to update entr
 (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
 
 ;; setup feeds
-(setq elfeed-protocol-feeds (list
-                             (list "owncloud+https://user@myhost.com"
-                                   :password "my-password")))
+(setq elfeed-protocol-feeds '(("owncloud+https://user@myhost.com"
+                               :password "my-password")))
 
 ;; enable elfeed-protocol
 (setq elfeed-protocol-enabled-protocols '(fever newsblur owncloud ttrss))
@@ -74,10 +73,9 @@ for some popular RSS servers:
 Example:
 ```emacs-lisp
 (setq elfeed-protocol-fever-update-unread-only nil)
-(setq elfeed-protocol-feeds (list
-                             (list "fever+https://user@myhost.com"
-                                   :api-url "https://myhost.com/plugins/fever/"
-                                   :password "my-password")))
+(setq elfeed-protocol-feeds '(("fever+https://user@myhost.com"
+                               :api-url "https://myhost.com/plugins/fever/"
+                               :password "my-password")))
 ```
 
 ## newsblur (NewsBlur)
@@ -96,9 +94,8 @@ Example:
 (setq elfeed-protocol-newsblur-maxpages 20)
 (setq elfeed-curl-extra-arguments '("--cookie-jar" "/tmp/newsblur-cookie"
                                     "--cookie" "/tmp/newsblur-cookie"))
-(setq elfeed-protocol-feeds (list
-                             (list "newsblur+https://user@newsblur.com"
-                                   :password "my-password")))
+(setq elfeed-protocol-feeds '(("newsblur+https://user@newsblur.com"
+                               :password "my-password")))
 ```
 
 ## owncloud (ownCloud News)
@@ -117,9 +114,8 @@ Example:
 ```emacs-lisp
 (setq elfeed-protocol-owncloud-maxsize 1000)
 (setq elfeed-protocol-owncloud-update-with-modified-time t)
-(setq elfeed-protocol-feeds (list
-                             (list "owncloud+https://user@myhost.com"
-                                   :password "my-password")))
+(setq elfeed-protocol-feeds '(("owncloud+https://user@myhost.com"
+                               :password "my-password")))
 ```
 
 ## ttrss (Tiny Tiny RSS, requires version: 1.7.6)
@@ -142,9 +138,8 @@ time, so if your own much more starred entries, just run
 Example:
 ```emacs-lisp
 (setq elfeed-protocol-ttrss-maxsize 200) ; bigger than 200 is invalid
-(setq elfeed-protocol-feeds (list
-                             (list "ttrss+https://user@myhost.com"
-                                   :password "my-password")))
+(setq elfeed-protocol-feeds '(("ttrss+https://user@myhost.com"
+                               :password "my-password")))
 ```
 
 # Extra settings
@@ -155,7 +150,7 @@ Example:
 (setq elfeed-protocol-feeds '(
                               ;; same format with elfeed-fedds
                               "http://foo/"
-                              ("http://baz/" comic))
+                              ("http://baz/" comic)
 
                               ;; format 1
                               "owncloud+https://user:pass@myhost.com"

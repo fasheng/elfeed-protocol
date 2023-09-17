@@ -20,9 +20,8 @@
 ;;   (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
 ;;
 ;;   ;; setup extra protocol feeds
-;;   (setq elfeed-protocol-feeds (list
-;;                                (list "owncloud+https://user@myhost.com"
-;;                                      :password "my-password")))
+;;   (setq elfeed-protocol-feeds '(("owncloud+https://user@myhost.com"
+;;                                  :password "my-password")))
 ;;
 ;;   ;; enable elfeed-protocol
 ;;   (elfeed-protocol-enable)
@@ -42,7 +41,7 @@
 Similar with `elfeed-feeds'. For example:
 
   (setq elfeed-protocol-feeds '(\"http://foo/\"
-                                (\"http://baz/\" comic))
+                                (\"http://baz/\" comic)
                                 \"fever+https://user:pass@myhost1.com\"
                                 (\"newsblur+https://user@myhost2.com\"
                                  :password \"password\")
