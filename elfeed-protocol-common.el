@@ -108,9 +108,9 @@ Which just concat PROTO-ID and FEED-URL, for example
   (eq 'string (type-of (elfeed-protocol-subfeed-url url))))
 
 (defun elfeed-protocol-meta-feed (proto-id)
-  "Get meta protocol feed object in `elfeed-feeds' for PROTO-ID."
+  "Get meta protocol feed object in `elfeed-protocol-feeds' for PROTO-ID."
   (catch 'found
-    (dolist (feed elfeed-feeds)
+    (dolist (feed elfeed-protocol-feeds)
       (let* ((feed-url (cl-typecase feed
                           (list (when (stringp (car feed)) (car feed)))
                           (string feed)))
@@ -119,7 +119,7 @@ Which just concat PROTO-ID and FEED-URL, for example
           (throw 'found feed))))))
 
 (defun elfeed-protocol-meta-url (proto-id)
-  "Get meta protocol feed url in `elfeed-feeds' for PROTO-ID."
+  "Get meta protocol feed url in `elfeed-protocol-feeds' for PROTO-ID."
   (let* ((feed (elfeed-protocol-meta-feed proto-id))
          (feed-url (cl-typecase feed
                      (list (when (stringp (car feed)) (car feed)))
@@ -127,14 +127,14 @@ Which just concat PROTO-ID and FEED-URL, for example
     feed-url))
 
 (defun elfeed-protocol-meta-data (proto-id prop)
-  "Get meta property data in `elfeed-feeds` for PROTO-ID.
+  "Get meta property data in `elfeed-protocol-feeds` for PROTO-ID.
 PROP could be :password, :autotags etc."
   (let* ((feed (elfeed-protocol-meta-feed proto-id))
          (proto-props (when (listp feed) (cdr feed))))
     (plist-get proto-props prop)))
 
 (defun elfeed-protocol-meta-user (proto-id)
-  "Get user property data in `elfeed-feeds` for PROTO-ID."
+  "Get user property data in `elfeed-protocol-feeds` for PROTO-ID."
   (let* ((proto-url (elfeed-protocol-meta-url proto-id))
          (urlobj (url-generic-parse-url (elfeed-protocol-url proto-url)))
          (user (url-user urlobj))
@@ -145,9 +145,9 @@ PROP could be :password, :autotags etc."
       user)))
 
 (defun elfeed-protocol-meta-password (proto-id)
-  "Get password property data in `elfeed-feeds` for PROTO-ID.
-Will try to get password from :password filed, url, passowrd file and
-.authinfo one by one."
+  "Get password property data in `elfeed-protocol-feeds` for PROTO-ID.
+Will try to get password from :password filed, url, passowrd file and .authinfo
+one by one."
   (let* ((proto-url (elfeed-protocol-meta-url proto-id))
          (urlobj (url-generic-parse-url (elfeed-protocol-url proto-url)))
          (meta-pass (elfeed-protocol-meta-data proto-id :password)))
@@ -182,7 +182,7 @@ Will try to get password from :password filed, url, passowrd file and
     (buffer-string)))
 
 (defun elfeed-protocol-meta-autotags (proto-id)
-  "Get :autotags property data in `elfeed-feeds` for PROTO-ID."
+  "Get :autotags property data in `elfeed-protocol-feeds` for PROTO-ID."
   (let ((autotags (elfeed-protocol-meta-data proto-id :autotags)))
     (if (eq (car autotags) 'quote)
         (eval autotags)
@@ -190,11 +190,19 @@ Will try to get password from :password filed, url, passowrd file and
 
 (defun elfeed-protocol-feed-autotags (proto-id url-or-feed)
   "Return autotags for protocol feed.
-Similar with `elfeed-feed-autotags' but `elfeed-feeds' overrode by `:autotags'
-item in protocol properties.  PROTO-ID is the protocol id and URL-OR-FEED is the
-traget child feed url under protocol feed"
-  (let ((elfeed-feeds (elfeed-protocol-meta-autotags proto-id)))
-    (elfeed-feed-autotags url-or-feed)))
+Similar with `elfeed-feed-autotags' but `elfeed-feeds' will be overrode by
+`:autotags' item that exists in protocol properties. Besides, it query autotags
+for both normal feed url and full subfeed url that with PROTO-ID as prefix.
+PROTO-ID is the protocol id and URL-OR-FEED is the traget child feed url under
+protocol feed"
+  (let* ((meta-autotags (elfeed-protocol-meta-autotags proto-id))
+         (elfeed-feeds (if meta-autotags meta-autotags elfeed-feeds))
+         (autotags-subfeed (elfeed-feed-autotags url-or-feed))
+         (autotags-subfeed-id (elfeed-feed-autotags
+                               (elfeed-protocol-format-subfeed-id proto-id url-or-feed))))
+    (if autotags-subfeed
+        autotags-subfeed
+      autotags-subfeed-id)))
 
 (defun elfeed-protocol-get-feed-meta-data (proto-id key)
   "Get meta data in feed db.
@@ -337,7 +345,7 @@ ids. SUB-SIZE is the item size to split for each request."
 
 (defun elfeed-protocol-feed-list ()
   "Get protocol feed list."
-  (let* ((feed-url-list (cl-loop for feed in elfeed-feeds
+  (let* ((feed-url-list (cl-loop for feed in elfeed-protocol-feeds
                                  when (listp feed) collect (car feed)
                                  else collect feed)))
     (cl-loop for url in feed-url-list
@@ -346,7 +354,7 @@ ids. SUB-SIZE is the item size to split for each request."
 
 (defun elfeed-protocol-normal-feed-list ()
   "Get normal none protocol feed list."
-  (let* ((feed-url-list (cl-loop for feed in elfeed-feeds
+  (let* ((feed-url-list (cl-loop for feed in elfeed-protocol-feeds
                                  when (listp feed) collect (car feed)
                                  else collect feed)))
     (cl-loop for url in feed-url-list

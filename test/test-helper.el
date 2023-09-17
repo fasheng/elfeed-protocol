@@ -16,6 +16,7 @@
           (elfeed-db-entries nil)
           (elfeed-db-index nil)
           (elfeed-feeds nil)
+          (elfeed-protocol-feeds nil)
           (temp-dir (make-temp-file "elfeed-test-" t))
           (elfeed-db-directory temp-dir)
           (elfeed-new-entry-hook nil)

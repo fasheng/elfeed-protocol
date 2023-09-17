@@ -10,6 +10,10 @@ including
 [Nextcloud/ownCloud News](https://nextcloud.com/),
 [Tiny Tiny RSS](https://tt-rss.org/fox/tt-rss) and even more.
 
+**NOTE:** Since version `0.9.0` , elfeed-protocol use variable
+`elfeed-protocol-feeds` instead of `elfeed-feeds` to fix conflict
+issues to extensions that modify or require `elfeed-feeds`.
+
 # Installation through MELPA
 
 ```
@@ -27,10 +31,10 @@ Setup elfeed-protocol, then switch to search view and and press G to update entr
 (elfeed-set-timeout 36000)
 (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
 
-;; setup elfeed-feeds
-(setq elfeed-feeds (list
-                    (list "owncloud+https://user@myhost.com"
-                          :password "my-password")))
+;; setup feeds
+(setq elfeed-protocol-feeds (list
+                             (list "owncloud+https://user@myhost.com"
+                                   :password "my-password")))
 
 ;; enable elfeed-protocol
 (setq elfeed-protocol-enabled-protocols '(fever newsblur owncloud ttrss))
@@ -70,10 +74,10 @@ for some popular RSS servers:
 Example:
 ```emacs-lisp
 (setq elfeed-protocol-fever-update-unread-only nil)
-(setq elfeed-feeds (list
-                    (list "fever+https://user@myhost.com"
-                          :api-url "https://myhost.com/plugins/fever/"
-                          :password "my-password")))
+(setq elfeed-protocol-feeds (list
+                             (list "fever+https://user@myhost.com"
+                                   :api-url "https://myhost.com/plugins/fever/"
+                                   :password "my-password")))
 ```
 
 ## newsblur (NewsBlur)
@@ -92,9 +96,9 @@ Example:
 (setq elfeed-protocol-newsblur-maxpages 20)
 (setq elfeed-curl-extra-arguments '("--cookie-jar" "/tmp/newsblur-cookie"
                                     "--cookie" "/tmp/newsblur-cookie"))
-(setq elfeed-feeds (list
-                    (list "newsblur+https://user@newsblur.com"
-                          :password "my-password")))
+(setq elfeed-protocol-feeds (list
+                             (list "newsblur+https://user@newsblur.com"
+                                   :password "my-password")))
 ```
 
 ## owncloud (ownCloud News)
@@ -113,9 +117,9 @@ Example:
 ```emacs-lisp
 (setq elfeed-protocol-owncloud-maxsize 1000)
 (setq elfeed-protocol-owncloud-update-with-modified-time t)
-(setq elfeed-feeds (list
-                    (list "owncloud+https://user@myhost.com"
-                          :password "my-password")))
+(setq elfeed-protocol-feeds (list
+                             (list "owncloud+https://user@myhost.com"
+                                   :password "my-password")))
 ```
 
 ## ttrss (Tiny Tiny RSS, requires version: 1.7.6)
@@ -138,63 +142,55 @@ time, so if your own much more starred entries, just run
 Example:
 ```emacs-lisp
 (setq elfeed-protocol-ttrss-maxsize 200) ; bigger than 200 is invalid
-(setq elfeed-feeds (list
-                    (list "ttrss+https://user@myhost.com"
-                          :password "my-password")))
+(setq elfeed-protocol-feeds (list
+                             (list "ttrss+https://user@myhost.com"
+                                   :password "my-password")))
 ```
 
 # Extra settings
 
-## All example formats for elfeed-feeds
+## All example formats for elfeed-protocol-feeds
 
 ```emacs-lisp
-(setq elfeed-feeds '(
-                     ;; format 1
-                     "owncloud+https://user:pass@myhost.com"
+(setq elfeed-protocol-feeds '(
+                              ;; same format with elfeed-fedds
+                              "http://foo/"
+                              ("http://baz/" comic))
 
-                     ;; format 2, for username or password with special characters
-                     ("owncloud+https://user@domain.com@myhost.com"
-                      :password "password/with|special@characters:")
+                              ;; format 1
+                              "owncloud+https://user:pass@myhost.com"
 
-                     ;; format 3, for password in file
-                     ("owncloud+https://user@myhost.com"
-                      :password-file "~/.password")
+                              ;; format 2, for username or password with special characters
+                              ("owncloud+https://user@domain.com@myhost.com"
+                               :password "password/with|special@characters:")
 
-                     ;; format 4, for password in .authinfo,
-                     ;; ensure (auth-source-search :host "myhost.com" :port "443" :user "user4") exists
-                     ("owncloud+https://user@myhost.com"
-                      :use-authinfo t)
+                              ;; format 3, for password in file
+                              ("owncloud+https://user@myhost.com"
+                               :password-file "~/.password")
 
-                     ;; format 5, for password in gnome-keyring
-                     ("owncloud+https://user@myhost.com"
-                      :password (shell-command-to-string "echo -n `secret-tool lookup attribute value`"))
+                              ;; format 4, for password in .authinfo,
+                              ;; ensure (auth-source-search :host "myhost.com" :port "443" :user "user4") exists
+                              ("owncloud+https://user@myhost.com"
+                               :use-authinfo t)
 
-                     ;; format 6, for password in pass(1), using password-store.el
-                     ("owncloud+https://user@myhost.com"
-                      :password (password-store-get "owncloud/app-pass"))
+                              ;; format 5, for password in gnome-keyring
+                              ("owncloud+https://user@myhost.com"
+                               :password (shell-command-to-string "echo -n `secret-tool lookup attribute value`"))
 
-                     ;; use autotags
-                     ("owncloud+https://user@myhost.com"
-                      :password "password"
-                      :autotags (("example.com" comic)))))
+                              ;; format 6, for password in pass(1), using password-store.el
+                              ("owncloud+https://user@myhost.com"
+                               :password (password-store-get "owncloud/app-pass"))
+
+                              ;; use autotags
+                              ("owncloud+https://user@myhost.com"
+                               :password "password"
+                               :autotags (("example.com" comic)))))
 ```
 
 ## Work with elfeed-org
 
-To make `elfeed-org` tag rules works together with `elfeed-protocol`, just add a
-after advice for `elfeed`:
-
-```emacs-lisp
-(defvar elfeed-protocol-orig-feeds nil
-  "Store original content of `elfeed-feeds'.")
-(defadvice elfeed (after configure-elfeed-feeds activate)
-  "Make elfeed-org autotags rules works with elfeed-protocol."
-  (setq elfeed-protocol-orig-feeds elfeed-feeds)
-  (setq elfeed-feeds (list
-                      (list "owncloud+https://user@myhost.com"
-                            :password '(password-store-get "owncloud/app-pass")
-                            :autotags elfeed-protocol-orig-feeds))))
-```
+Since version `0.9.0`, elfeed-protocol could work together with
+elfeed-org without any aditional setup.
 
 # Run Unit-Tests
 
@@ -225,7 +221,7 @@ make package-lint
 3.  Setup `elfeed-protocol`
 
     ```emacs-lisp
-    (setq elfeed-feeds '("owncloud+http://<admin>:<password>@localhost"))
+    (setq elfeed-protocol-feeds '("owncloud+http://<admin>:<password>@localhost"))
     ```
 
 ## Tiny Tiny RSS
@@ -243,7 +239,7 @@ make package-lint
 3.  Setup `elfeed-protocol`
 
     ```emacs-lisp
-    (setq elfeed-feeds '("ttrss+http://admin:password@localhost"))
+    (setq elfeed-protocol-feeds '("ttrss+http://admin:password@localhost"))
     ```
 
 # Report Issues
@@ -265,7 +261,7 @@ before reporting issues:
 
 # Q&A
 
-1. When I run elfeed-update I get the error: `elfeed-feeds malformed, bad entry`
+1. When I run elfeed-update I get the error: `elfeed-protocol-feeds malformed, bad entry`
 
    Don't forget to enable elfeed-protocol at first:
    ```emacs-lisp

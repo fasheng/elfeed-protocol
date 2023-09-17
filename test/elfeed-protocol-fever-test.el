@@ -16,7 +16,7 @@
       (let* ((proto-url "fever+https://user:pass@myhost.com")
              (host-url (elfeed-protocol-url proto-url))
              (proto-id (elfeed-protocol-fever-id host-url))
-             (elfeed-feeds (list proto-url))
+             (elfeed-protocol-feeds (list proto-url))
              (elfeed-protocol-fever-feeds (elfeed-protocol-fever--parse-result
                                            (elfeed-protocol-fever--parse-feeds
                                             host-url (map-elt result 'feeds))))
@@ -39,7 +39,7 @@
       (let* ((proto-url "fever+https://user:pass@myhost.com")
              (host-url (elfeed-protocol-url proto-url))
              (proto-id (elfeed-protocol-fever-id host-url))
-             (elfeed-feeds (list (list proto-url
+             (elfeed-protocol-feeds (list (list proto-url
                                        :autotags
                                        '(("http://tt-rss.org/forum/rss.php" ttrss)
                                          ("https://github.com/FreshRSS/FreshRSS/releases.atom" freshrss)))))

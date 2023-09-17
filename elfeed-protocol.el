@@ -20,9 +20,9 @@
 ;;   (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
 ;;
 ;;   ;; setup extra protocol feeds
-;;   (setq elfeed-feeds (list
-;;                       (list "owncloud+https://user@myhost.com"
-;;                             :password "my-password")))
+;;   (setq elfeed-protocol-feeds (list
+;;                                (list "owncloud+https://user@myhost.com"
+;;                                      :password "my-password")))
 ;;
 ;;   ;; enable elfeed-protocol
 ;;   (elfeed-protocol-enable)
@@ -36,6 +36,25 @@
 (defgroup elfeed-protocol ()
   "Provide extra protocol for elfeed."
   :group 'comm)
+
+(defcustom elfeed-protocol-feeds ()
+  "List of all feeds that elfeed-protocol should follow.
+Similar with `elfeed-feeds'. For example:
+
+  (setq elfeed-protocol-feeds '(\"http://foo/\"
+                                (\"http://baz/\" comic))
+                                \"fever+https://user:pass@myhost1.com\"
+                                (\"newsblur+https://user@myhost2.com\"
+                                 :password \"password\")
+                                (\"owncloud+https://user@myhost3.com\"
+                                 :password-file \"~/.password\")
+                                (\"ttrss+https://user@myhost4.com\"
+                                 :use-authinfo t)
+                                (\"fever+https://user@myhost5.com\"
+                                 :password (password-store-get \"fever/app-pass\"))))"
+  :group 'elfeed-protocol
+  :type '(repeat (choice string
+                         (cons string (repeat symbol)))))
 
 (defcustom elfeed-protocol-list ()
   "List of all registered extra protocols in Elfeed.
@@ -136,25 +155,13 @@ ORIG-FUNC and URL are the needed arguments."
     (funcall orig-func url)))
 
 (defun elfeed-protocol-advice-feed-list ()
-  "Advice for `elfeed-feed-list' to avoid error checking on protocol feeds."
-  (cl-loop for feed in elfeed-feeds
+  "Advice for `elfeed-feed-list' to avoid error checking on protocol feeds and use
+`elfeed-protocol-feeds' instead of `elfeed-feeds'."
+  (when (eq (length elfeed-protocol-feeds) 0)
+    (elfeed-log 'warn "elfeed-protocol: elfeed-protocol-feeds is empty, please setup it instead of elfeed-feeds since 0.9.0"))
+  (cl-loop for feed in elfeed-protocol-feeds
            when (listp feed) collect (car feed)
            else collect feed))
-
-(defun elfeed-protocol-advice-feed-autotags (orig-func url-or-feed)
-  "Advice for `elfeed-feed-autotags` to get protocol feed autotags correctly.
-ORIG-FUNC and URL-OR-FEED are the needed arguments."
-  (let* ((url (if (elfeed-feed-p url-or-feed)
-                  (or (elfeed-feed-url url-or-feed)
-                      (elfeed-feed-id url-or-feed))
-                url-or-feed))
-         (proto-autotags (when (elfeed-protocol-subfeed-p url)
-                           (let* ((proto-id (elfeed-protocol-host-url url))
-                                  (subfeed-url (elfeed-protocol-subfeed-url url)))
-                             (elfeed-protocol-feed-autotags proto-id subfeed-url)))))
-    (if proto-autotags
-        proto-autotags
-      (funcall orig-func url))))
 
 ;;;###autoload
 (defun elfeed-protocol-enable ()
@@ -162,7 +169,6 @@ ORIG-FUNC and URL-OR-FEED are the needed arguments."
   (interactive)
   (advice-add 'elfeed-feed-list :override #'elfeed-protocol-advice-feed-list)
   (advice-add 'elfeed-update-feed :around #'elfeed-protocol-advice-update-feed)
-  (advice-add 'elfeed-feed-autotags :around #'elfeed-protocol-advice-feed-autotags)
   (add-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
   (add-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove)
   (dolist (protocol elfeed-protocol-enabled-protocols)
@@ -181,7 +187,6 @@ ORIG-FUNC and URL-OR-FEED are the needed arguments."
   (interactive)
   (advice-remove 'elfeed-feed-list #'elfeed-protocol-advice-feed-list)
   (advice-remove 'elfeed-update-feed #'elfeed-protocol-advice-update-feed)
-  (advice-remove 'elfeed-feed-autotags #'elfeed-protocol-advice-feed-autotags)
   (remove-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
   (remove-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove)
   (dolist (protocol elfeed-protocol-enabled-protocols)

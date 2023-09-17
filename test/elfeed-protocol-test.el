@@ -26,7 +26,7 @@
 
 (ert-deftest elfeed-protocol-meta-data ()
   (with-elfeed-test
-   (let* ((elfeed-feeds '("owncloud+https://user1:pass1@myhost.com:443"
+   (let* ((elfeed-protocol-feeds '("owncloud+https://user1:pass1@myhost.com:443"
                           ("owncloud+https://user2@domain.com@myhost.com"
                            ;; :user "user2@domain.com"
                            :password "pass2/with|special@characters:")))
