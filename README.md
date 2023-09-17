@@ -187,6 +187,27 @@ Example:
 Since version `0.9.0`, elfeed-protocol could work together with
 elfeed-org without any aditional setup.
 
+## Work with elfeed-summary
+
+To fix `0 / 0` zero count issue for all feeds, just active the
+following advice for `rmh-elfeed-org-export-feed`:
+
+```emacs-lisp
+(defun elfeed-protocol-advice-rmh-elfeed-org-export-feed (headline)
+  "Advice for `rmh-elfeed-org-export-feed', add elfeed-protocol ID as suffix for each feeds."
+  (let* ((url (car headline))
+         (proto-id (car (elfeed-protocol-feed-list))))
+    (when proto-id
+      (setcar headline (elfeed-protocol-format-subfeed-id proto-id url)))))
+(advice-add 'rmh-elfeed-org-export-feed :before #'elfeed-protocol-advice-rmh-elfeed-org-export-feed)
+```
+
+Besides, don't use `elfeed-summary-update` to fetach articles,
+use `elfeed-update` instead:
+```emacs-lisp
+(define-key elfeed-summary-mode-map (kbd "R") #'elfeed-update)
+```
+
 # Run Unit-Tests
 
 Install `cask` system package firstly, and then run following commands
