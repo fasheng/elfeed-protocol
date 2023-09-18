@@ -194,7 +194,7 @@ following advice for `rmh-elfeed-org-export-feed`:
 
 ```emacs-lisp
 (defun elfeed-protocol-advice-rmh-elfeed-org-export-feed (headline)
-  "Advice for `rmh-elfeed-org-export-feed', add elfeed-protocol ID as suffix for each feeds."
+ "Advice for `rmh-elfeed-org-export-feed', add elfeed-protocol ID as suffix for each feed."
   (let* ((url (car headline))
          (proto-id (car (elfeed-protocol-feed-list))))
     (when proto-id
@@ -203,7 +203,7 @@ following advice for `rmh-elfeed-org-export-feed`:
 ```
 
 Besides, don't use `elfeed-summary-update` to fetach articles,
-use `elfeed-update` instead:
+use `elfeed-update` instead, and press `r` to refresh UI manually:
 ```emacs-lisp
 (define-key elfeed-summary-mode-map (kbd "R") #'elfeed-update)
 ```
