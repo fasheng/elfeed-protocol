@@ -138,6 +138,7 @@ time, so if your own much more starred entries, just run
 Example:
 ```emacs-lisp
 (setq elfeed-protocol-ttrss-maxsize 200) ; bigger than 200 is invalid
+(setq elfeed-protocol-ttrss-fetch-category-as-tag t)
 (setq elfeed-protocol-feeds '(("ttrss+https://user@myhost.com"
                                :password "my-password")))
 ```
