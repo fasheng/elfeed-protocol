@@ -236,14 +236,14 @@ at end."
                       ("sid" . ,elfeed-protocol-ttrss-sid)
                       ("cat_id" . "-3")))
          (data (json-encode-alist data-list))
-         (parse-feeds (lambda ()
-                        (elfeed-protocol-ttrss-with-fetch
-                          host-url "POST" data
-                          (elfeed-protocol-ttrss--parse-feeds host-url content)
-                          (when callback (funcall callback))))))
+         (parse-feeds-func (lambda ()
+                             (elfeed-protocol-ttrss-with-fetch
+                               host-url "POST" data
+                               (elfeed-protocol-ttrss--parse-feeds host-url content)
+                               (when callback (funcall callback))))))
     (if elfeed-protocol-ttrss-fetch-category-as-tag
-        (elfeed-protocol-ttrss--update-categories-list host-url parse-feeds)
-      (funcall parse-feeds))))
+        (elfeed-protocol-ttrss--update-categories-list host-url parse-feeds-func)
+      (funcall parse-feeds-func))))
 
 (defun elfeed-protocol-ttrss--parse-feeds (host-url content)
   "Parse the feeds JSON buffer and fill results to db.
