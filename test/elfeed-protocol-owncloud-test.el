@@ -17,7 +17,8 @@
              (proto-url (concat "owncloud+" url))
              (proto-id (elfeed-protocol-owncloud-id url))
              (elfeed-protocol-feeds (list proto-url))
-             (elfeed-protocol-owncloud-feeds (elfeed-protocol-owncloud--parse-feeds url))
+             (elfeed-protocol-owncloud-feeds (elfeed-protocol-owncloud--parse-result
+                                               (elfeed-protocol-owncloud--parse-feeds url result)))
              (feed1-url (elfeed-protocol-owncloud--get-subfeed-url url 1))
              (feed1 (elfeed-db-get-feed
                      (elfeed-protocol-format-subfeed-id proto-id feed1-url)))
@@ -52,9 +53,11 @@
              (elfeed-protocol-feeds (list (list proto-url :autotags
                                        '(("http://www.example.com/feed/" tag1)
                                          ("http://www.example2.com/rss.jsp" tag2)))))
-             (elfeed-protocol-owncloud-feeds (elfeed-protocol-owncloud--parse-feeds url)))
+             (elfeed-protocol-owncloud-feeds (elfeed-protocol-owncloud--parse-result
+                                               (elfeed-protocol-owncloud--parse-feeds url result))))
         (with-fixture elfeed-protocol-owncloud-fixture-entries
-          (let* ((entries (elfeed-protocol-owncloud--parse-entries url))
+          (let* ((entries (elfeed-protocol-owncloud--parse-result
+                            (elfeed-protocol-owncloud--parse-entries url result)))
                  (entry1 (elt entries 0))
                  (entry2 (elt entries 1)))
             (should (elfeed-protocol-owncloud-entry-p entry1))
