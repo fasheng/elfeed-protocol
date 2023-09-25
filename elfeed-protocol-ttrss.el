@@ -45,11 +45,11 @@ then the published state in Tiny Tiny RSS will be synced, too."
   :group 'elfeed-protocol
   :type 'boolean)
 
-(defvar elfeed-protocol-ttrss-feeds (make-hash-table :test 'equal)
-  "Feed list from Tiny Tiny RSS, will be filled before updating operation.")
-
 (defvar elfeed-protocol-ttrss-categories (make-hash-table :test 'equal)
   "Category list from Tiny Tiny RSS, will be used to tag entries with their TTRSS category.")
+
+(defvar elfeed-protocol-ttrss-feeds (make-hash-table :test 'equal)
+  "Feed list from Tiny Tiny RSS, will be filled before updating operation.")
 
 (defconst elfeed-protocol-ttrss-api-base "/api/")
 (defconst elfeed-protocol-ttrss-api-max-limit 200)
@@ -217,14 +217,14 @@ result JSON content by http request.  Return cached
     elfeed-protocol-ttrss-categories))
 
 (defun elfeed-protocol-ttrss--get-category-name (host-url category-id)
-  "Return category name from HOST-URL (symbol) for CATEGORY-ID."
+  "Return category name from HOST-URL for CATEGORY-ID."
   (elfeed-log 'debug "elfeed-protocol-ttrss: Fetching category name for id %s" category-id)
   (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
          (categories (gethash proto-id elfeed-protocol-ttrss-categories))
          (category (cl-some (lambda (category)
                               (let ((id (cdr (assoc 'id category)))
                                     (category-name (cdr (assoc 'title category))))
-                                (if (eq id category-id) (intern category-name)))) categories)))
+                                (if (eq id category-id) category-name))) categories)))
     category))
 
 (defun elfeed-protocol-ttrss--update-feed-list (host-url &optional callback)
@@ -398,8 +398,10 @@ it with the result entries as argument.  Return parsed entries."
                                     (original (elfeed-db-get-entry full-id))
                                     (original-date (and original
                                                         (elfeed-entry-date original)))
-                                    (category-id (elfeed-protocol-ttrss--get-subfeed-category-id host-url feed-id))
-                                    (category-name (elfeed-protocol-ttrss--get-category-name host-url category-id))
+                                    (category-name (when elfeed-protocol-ttrss-fetch-category-as-tag
+                                                     (elfeed-protocol-ttrss--get-category-name
+                                                      host-url
+                                                      (elfeed-protocol-ttrss--get-subfeed-category-id host-url feed-id))))
                                     (autotags (elfeed-protocol-feed-autotags proto-id feed-url))
                                     (fixtags (elfeed-normalize-tags
                                               autotags elfeed-initial-tags))
@@ -409,7 +411,7 @@ it with the result entries as argument.  Return parsed entries."
                                             (when starred
                                               (push elfeed-protocol-ttrss-star-tag fixtags))
                                             (when category-name
-                                              (push category-name fixtags))
+                                              (push (intern category-name) fixtags))
                                             (when published
                                               (push elfeed-protocol-ttrss-publish-tag fixtags))
                                             fixtags))
