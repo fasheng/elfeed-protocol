@@ -11,8 +11,8 @@
   (concat elfeed-protocol-newsblur-fixture-dir "entries.json"))
 
 (ert-deftest elfeed-protocol-newsblur-parse-feeds ()
-  (with-fixture elfeed-protocol-newsblur-fixture-feeds
-    (with-elfeed-test
+  (with-elfeed-test
+    (with-fixture elfeed-protocol-newsblur-fixture-feeds
       (let* ((proto-url "newsblur+https://user:pass@newsblur.com")
              (host-url (elfeed-protocol-url proto-url))
              (proto-id (elfeed-protocol-newsblur-id host-url))
@@ -34,8 +34,8 @@
                  "Anil Dash"))))))
 
 (ert-deftest elfeed-protocol-newsblur-parse-entries ()
-  (with-fixture elfeed-protocol-newsblur-fixture-feeds
-    (with-elfeed-test
+  (with-elfeed-test
+    (with-fixture elfeed-protocol-newsblur-fixture-feeds
       (let* ((proto-url "newsblur+https://user:pass@myhost.com")
              (host-url (elfeed-protocol-url proto-url))
              (proto-id (elfeed-protocol-newsblur-id host-url))

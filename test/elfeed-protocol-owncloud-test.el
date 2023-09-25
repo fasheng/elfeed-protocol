@@ -2,17 +2,17 @@
 (require 'ert)
 (require 'elfeed)
 
-(defvar elfeed-protocol-owncloud-fixtures-dir (concat (file-name-directory load-file-name) "fixtures/owncloud/"))
+(defvar elfeed-protocol-owncloud-fixture-dir (concat (file-name-directory load-file-name) "fixtures/owncloud/"))
 
 (defvar elfeed-protocol-owncloud-fixture-feeds
-  (concat elfeed-protocol-owncloud-fixtures-dir "feeds.json"))
+  (concat elfeed-protocol-owncloud-fixture-dir "feeds.json"))
 
 (defvar elfeed-protocol-owncloud-fixture-entries
-  (concat elfeed-protocol-owncloud-fixtures-dir "entries.json"))
+  (concat elfeed-protocol-owncloud-fixture-dir "entries.json"))
 
 (ert-deftest elfeed-protocol-owncloud-parse-feeds ()
-  (with-fixture elfeed-protocol-owncloud-fixture-feeds
-    (with-elfeed-test
+  (with-elfeed-test
+    (with-fixture elfeed-protocol-owncloud-fixture-feeds
       (let* ((url "https://user:pass@myhost.com:443")
              (proto-url (concat "owncloud+" url))
              (proto-id (elfeed-protocol-owncloud-id url))
@@ -45,8 +45,8 @@
                  "Feed 2"))))))
 
 (ert-deftest elfeed-protocol-owncloud-parse-entries ()
-  (with-fixture elfeed-protocol-owncloud-fixture-feeds
-    (with-elfeed-test
+  (with-elfeed-test
+    (with-fixture elfeed-protocol-owncloud-fixture-feeds
       (let* ((url "https://user:pass@myhost.com:443")
              (proto-url (concat "owncloud+" url))
              (proto-id (elfeed-protocol-owncloud-id url))

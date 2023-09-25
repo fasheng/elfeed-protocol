@@ -22,7 +22,11 @@
           (elfeed-new-entry-hook nil)
           (elfeed-db-update-hook nil)
           (elfeed-log-level 'debug)
-          (elfeed-initial-tags '(unread)))
+          (elfeed-initial-tags '(unread))
+          (elfeed-protocol-fever-categories (make-hash-table :test 'equal))
+          (elfeed-protocol-fever-feeds (make-hash-table :test 'equal))
+          (elfeed-protocol-ttrss-categories (make-hash-table :test 'equal))
+          (elfeed-protocol-ttrss-feeds (make-hash-table :test 'equal)))
      (when (get-buffer elfeed-log-buffer-name)
        (kill-buffer elfeed-log-buffer-name))
      (unwind-protect
