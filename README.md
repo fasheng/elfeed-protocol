@@ -46,6 +46,7 @@ Setup elfeed-protocol, then switch to search view and and press G to update entr
 1. Fetch articles with the entry ID one by one by default. For some
    service that don't provide valid entry ID like FressRSS, just set
    `elfeed-protocol-fever-update-unread-only` to t as a workaround
+1. Fetch remote category as tag
 1. Support sync unread, starred(saved) tags, the starred tag name
    defined in `elfeed-protocol-fever-star-tag` which default value is
    `star`
@@ -73,6 +74,7 @@ for some popular RSS servers:
 Example:
 ```emacs-lisp
 (setq elfeed-protocol-fever-update-unread-only nil)
+(setq elfeed-protocol-fever-fetch-category-as-tag t)
 (setq elfeed-protocol-feeds '(("fever+https://user@myhost.com"
                                :api-url "https://myhost.com/plugins/fever/"
                                :password "my-password")))
@@ -121,7 +123,7 @@ Example:
 ## ttrss (Tiny Tiny RSS, requires version: 1.7.6)
 1. Fetch articles by the entry ID
 1. Fetch articles for special feed
-1. Fetch category as tag
+1. Fetch remote category as tag
 1. Support sync unread, starred and published tags, the starred tag
    name defined in `elfeed-protocol-ttrss-star-tag` which default
    value is `star`, and the published tag name defined in
