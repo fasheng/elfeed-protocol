@@ -33,12 +33,21 @@ t as a workaround."
   :group 'elfeed-protocol
   :type 'boolean)
 
+(defcustom elfeed-protocol-fever-fetch-category-as-tag t
+  "If true, tag the Fever feed category to feed item."
+  :group 'elfeed-protocol
+  :type 'boolean)
+
+(defvar elfeed-protocol-fever-categories (make-hash-table :test 'equal)
+  "Category list from Fever, will be used to tag entries with their Fever category.")
+
 (defvar elfeed-protocol-fever-feeds (make-hash-table :test 'equal)
   "Feed list from Fever, will be filled before updating operation.")
 
 (defconst elfeed-protocol-fever-api-base "?api")
 (defconst elfeed-protocol-fever-api-auth-ok 1)
 (defconst elfeed-protocol-fever-api-auth-failed 0)
+(defconst elfeed-protocol-fever-api-groups (concat elfeed-protocol-fever-api-base "&groups"))
 (defconst elfeed-protocol-fever-api-feeds (concat elfeed-protocol-fever-api-base "&feeds"))
 (defconst elfeed-protocol-fever-api-items (concat elfeed-protocol-fever-api-base "&items"))
 (defconst elfeed-protocol-fever-api-saved-item-ids (concat elfeed-protocol-fever-api-base "&saved_item_ids"))
@@ -154,6 +163,41 @@ BODY expressions at end."
   `(elfeed-protocol-fever--update-feed-list
     ,host-url (lambda () ,@body)))
 
+(defun elfeed-protocol-fever--update-categories-list (host-url &optional callback)
+  "Update Fever server categories list.
+HOST-URL is the host name of Fever server.  Will call CALLBACK at end."
+  (elfeed-log 'debug "elfeed-protocol-fever: update cagetory list")
+  (let* ((url (concat (elfeed-protocol-fever--get-api-url host-url)
+                      elfeed-protocol-fever-api-groups))
+         (data (elfeed-protocol-fever--build-data host-url)))
+    (elfeed-protocol-fever-with-fetch
+      url "POST" data
+      (elfeed-protocol-fever--parse-categories host-url result)
+      (when callback (funcall callback)))))
+
+(defun elfeed-protocol-fever--parse-categories (host-url content)
+  "Parse the feeds JSON buffer and cache the result.
+HOST-URL is the host name of Fever server.  CONTENT is the result JSON content
+by http request.  Return cached `elfeed-protocol-fever-categories'."
+  (let* ((proto-id (elfeed-protocol-fever-id host-url))
+         (categories (map-elt content 'groups)))
+    (puthash proto-id categories elfeed-protocol-fever-categories)
+    elfeed-protocol-fever-categories))
+
+(defun elfeed-protocol-fever--get-category-name (host-url category-id)
+  "Return category name from HOST-URL for CATEGORY-ID."
+  (let* ((proto-id (elfeed-protocol-fever-id host-url))
+         (categories (gethash proto-id elfeed-protocol-fever-categories))
+         (category (catch 'found
+                     (let* ((length (length categories)))
+                       (dotimes (i length)
+                         (let* ((item (elt categories i))
+                                (id (map-elt item 'id))
+                                (title (map-elt item 'title)))
+                           (when (eq id category-id)
+                             (throw 'found title))))))))
+    category))
+
 (defun elfeed-protocol-fever--update-feed-list (host-url &optional callback)
   "Update Fever server feeds list.
 HOST-URL is the host name of Fever server.  Will call CALLBACK
@@ -161,26 +205,46 @@ at end."
   (elfeed-log 'debug "elfeed-protocol-fever: update feed list")
   (let* ((url (concat (elfeed-protocol-fever--get-api-url host-url)
                       elfeed-protocol-fever-api-feeds))
-         (data (elfeed-protocol-fever--build-data host-url)))
-    (elfeed-protocol-fever-with-fetch
-      url "POST" data
-      (elfeed-protocol-fever--parse-feeds host-url (map-elt result 'feeds))
-      (when callback (funcall callback)))))
+         (data (elfeed-protocol-fever--build-data host-url))
+         (parse-feeds-func (lambda ()
+                             (elfeed-protocol-fever-with-fetch
+                               url "POST" data
+                               (elfeed-protocol-fever--parse-feeds host-url result)
+                               (when callback (funcall callback))))))
+    (if elfeed-protocol-fever-fetch-category-as-tag
+        (elfeed-protocol-fever--update-categories-list host-url parse-feeds-func)
+      (funcall parse-feeds-func))))
 
-(defun elfeed-protocol-fever--parse-feeds (host-url feeds)
+(defun elfeed-protocol-fever--parse-feeds (host-url content)
   "Parse the feeds JSON buffer and fill results to db.
-HOST-URL is the host name of Fever server.  FEEDS is the result JSON content by
+HOST-URL is the host name of Fever server.  CONTENT is the result JSON content by
 http request.  Return `elfeed-protocol-fever-feeds'."
-  (let* ((proto-id (elfeed-protocol-fever-id host-url)))
-    (puthash proto-id feeds elfeed-protocol-fever-feeds)
-    (cl-loop for feed across feeds do
-             (let* ((feed-url (map-elt feed 'url))
+  (let* ((proto-id (elfeed-protocol-fever-id host-url))
+         (feeds (map-elt content 'feeds))
+         (feeds_groups (map-elt content 'feeds_groups))
+         (get-group-id-func (lambda (feed-id)
+                              (catch 'found
+                                (let* ((length (length feeds_groups)))
+                                  (dotimes (i length)
+                                    (let* ((item (elt feeds_groups i))
+                                           (group-id (map-elt item 'group_id))
+                                           (feed-ids (split-string (map-elt item 'feed_ids) ",")))
+                                      (when (member (number-to-string feed-id) feed-ids)
+                                        (throw 'found group-id)))))))))
+    (dotimes (i (length feeds))
+             (let* ((feed (elt feeds i))
+                    (feed-url (map-elt feed 'url))
+                    (feed-meta-id (map-elt feed 'id))
                     (feed-id (elfeed-protocol-format-subfeed-id
                               proto-id feed-url))
                     (feed-title (elfeed-cleanup (map-elt feed 'title)))
                     (feed-db (elfeed-db-get-feed feed-id)))
                (setf (elfeed-feed-url feed-db) feed-id
-                     (elfeed-feed-title feed-db) feed-title)))
+                     (elfeed-feed-title feed-db) feed-title)
+               ;; fill group id to each feed
+               (when elfeed-protocol-fever-fetch-category-as-tag
+                 (setf (alist-get 'group_id (elt feeds i)) (funcall get-group-id-func feed-meta-id)))))
+    (puthash proto-id feeds elfeed-protocol-fever-feeds)
     (elfeed-log 'debug "elfeed-protocol-fever: found %s feeds" (length feeds))
     elfeed-protocol-fever-feeds))
 
@@ -216,6 +280,20 @@ http request.  Return `elfeed-protocol-fever-feeds'."
     (unless id
       (elfeed-log 'error "elfeed-protocol-fever: no subfeed for feed url %s" feed-url))
     id))
+
+(defun elfeed-protocol-fever--get-subfeed-category-id (host-url feed-id)
+  "Get sub feed category id for the ttrss protocol feed HOST-URL and FEED-ID."
+  (let* ((group-id (catch 'found
+                     (let* ((proto-id (elfeed-protocol-fever-id host-url))
+                            (feeds (gethash proto-id elfeed-protocol-fever-feeds))
+                            (length (length feeds)))
+                       (dotimes (i length)
+                         (let* ((feed (elt feeds i))
+                                (id (map-elt feed 'id))
+                                (group-id (map-elt feed 'group_id)))
+                           (when (eq id feed-id)
+                             (throw 'found group-id))))))))
+    group-id))
 
 (defun elfeed-protocol-fever--get-entries (host-url ids &optional mark-state update-action callback)
   "Get entries from Fever server.
@@ -273,6 +351,10 @@ argument.  Return parsed entries."
                                     (original (elfeed-db-get-entry full-id))
                                     (original-date (and original
                                                         (elfeed-entry-date original)))
+                                    (category-name (when elfeed-protocol-fever-fetch-category-as-tag
+                                                     (elfeed-protocol-fever--get-category-name
+                                                      host-url
+                                                      (elfeed-protocol-fever--get-subfeed-category-id host-url feed-id))))
                                     (autotags (elfeed-protocol-feed-autotags proto-id feed-url))
                                     (fixtags (elfeed-normalize-tags
                                               autotags elfeed-initial-tags))
@@ -281,6 +363,8 @@ argument.  Return parsed entries."
                                               (setq fixtags (delete 'unread fixtags)))
                                             (when starred
                                               (push elfeed-protocol-fever-star-tag fixtags))
+                                            (when category-name
+                                              (push (intern category-name) fixtags))
                                             fixtags))
                                     (db-entry (elfeed-entry--create
                                                :title (elfeed-cleanup title)

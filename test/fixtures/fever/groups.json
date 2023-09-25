@@ -1,0 +1,17 @@
+{
+  "api_version": 3,
+  "auth": 1,
+  "last_refreshed_on_time": 1695560965,
+  "groups": [
+    {
+      "id": 1,
+      "title": "Category 1"
+    }
+  ],
+  "feeds_groups": [
+    {
+      "group_id": 1,
+      "feed_ids": "1,4,154"
+    }
+  ]
+}
