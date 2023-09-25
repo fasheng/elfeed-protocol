@@ -114,6 +114,14 @@ Will eval rest BODY expressions at end."
   `(let* ((result (json-read)))
      ,@body))
 
+(defmacro elfeed-protocol-owncloud-fetch-prepare (host-url &rest body)
+  "Ensure logged in and feed list updated before expressions.
+HOST-URL is the host name of ownCloud server.  And will eval rest
+BODY expressions at end."
+  (declare (indent defun))
+  `(elfeed-protocol-owncloud--update-feed-list
+    ,host-url (lambda () ,@body)))
+
 (defun elfeed-protocol-owncloud--parse-feeds (host-url content)
   "Parse the feeds JSON buffer and fill results to db.
 HOST-URL is the host name of ownCloud server.  CONTENT is the result JSON
@@ -133,13 +141,15 @@ could execute.  Return `elfeed-protocol-owncloud-feeds'."
     (elfeed-log 'debug "elfeed-protocol-owncloud: found %s feeds" (length feeds))
     elfeed-protocol-owncloud-feeds))
 
-(defun elfeed-protocol-owncloud--update-feed-list (host-url)
+(defun elfeed-protocol-owncloud--update-feed-list (host-url &optional callback)
   "Update ownCloud News feed list.
-HOST-URL is the host name of ownCloud server."
+HOST-URL is the host name of ownCloud server.  Will call CALLBACK at end."
   (elfeed-log 'debug "elfeed-protocol-owncloud: update feed list")
   (elfeed-protocol-owncloud-with-fetch
     (concat host-url elfeed-protocol-owncloud-api-feeds)
-    nil (elfeed-protocol-owncloud--parse-feeds host-url result)))
+    nil
+    (elfeed-protocol-owncloud--parse-feeds host-url result)
+    (when callback (funcall callback))))
 
 (defun elfeed-protocol-owncloud--get-subfeed-url (host-url feed-id)
   "Get sub feed url for the ownCloud protocol feed HOST-URL and FEED-ID."
@@ -355,10 +365,9 @@ HOST-URL is the host name of ownCloud server.  This may take a long
 time, ensure `elfeed-curl-timeout' is big enough."
   (interactive (list (elfeed-protocol-url
                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
-  (elfeed-protocol-owncloud-with-fetch
-    (concat host-url elfeed-protocol-owncloud-api-feeds) nil
-    (elfeed-protocol-owncloud--parse-feeds host-url result)
-    (elfeed-protocol-owncloud--do-update host-url 'init)))
+  (elfeed-protocol-owncloud-fetch-prepare
+   host-url
+   (elfeed-protocol-owncloud--do-update host-url 'init)))
 
 (defun elfeed-protocol-owncloud-update-since-timestamp (host-url &optional timestamp)
   "Update entries since special timestamp.
@@ -369,10 +378,9 @@ point to 1 hours ago."
                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
   (unless timestamp
     (setq timestamp (- (time-to-seconds) (* 1 3600))))
-  (elfeed-protocol-owncloud-with-fetch
-    (concat host-url elfeed-protocol-owncloud-api-feeds) nil
-    (elfeed-protocol-owncloud--parse-feeds host-url result)
-    (elfeed-protocol-owncloud--do-update host-url 'update-since-time timestamp)))
+  (elfeed-protocol-owncloud-fetch-prepare
+   host-url
+   (elfeed-protocol-owncloud--do-update host-url 'update-since-time timestamp)))
 
 (defun elfeed-protocol-owncloud-update-since-id (host-url &optional id)
   "Fetch entries after special id.
@@ -380,10 +388,9 @@ HOST-URL is the host name of ownCloud server.  If ID not provide, will
 update since the last entry id."
   (interactive (list (elfeed-protocol-url
                       (completing-read "Protocol Feed: " (elfeed-protocol-feed-list)))))
-  (elfeed-protocol-owncloud-with-fetch
-    (concat host-url elfeed-protocol-owncloud-api-feeds) nil
-    (elfeed-protocol-owncloud--parse-feeds host-url result)
-    (elfeed-protocol-owncloud--do-update host-url 'update-since-id id)))
+  (elfeed-protocol-owncloud-fetch-prepare
+   host-url
+   (elfeed-protocol-owncloud--do-update host-url 'update-since-id id)))
 
 (defun elfeed-protocol-owncloud-update-older (host-url)
   "Fetch older entries which entry id less than :first-entry-id.
@@ -577,14 +584,13 @@ result entries as argument"
       (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
              (last-modified (elfeed-protocol-get-last-modified proto-id))
              (last-entry-id (elfeed-protocol-get-last-entry-id proto-id)))
-        (elfeed-protocol-owncloud-with-fetch
-          (concat host-url elfeed-protocol-owncloud-api-feeds) nil
-          (elfeed-protocol-owncloud--parse-feeds host-url result)
-          (if (> last-modified 0)
-              (if elfeed-protocol-owncloud-update-with-modified-time
-                  (elfeed-protocol-owncloud--do-update host-url 'update-since-time last-modified callback)
-                (elfeed-protocol-owncloud--do-update host-url 'update-since-id last-entry-id callback))
-            (elfeed-protocol-owncloud--do-update host-url 'init nil callback)))))))
+        (elfeed-protocol-owncloud-fetch-prepare
+         host-url
+         (if (> last-modified 0)
+             (if elfeed-protocol-owncloud-update-with-modified-time
+                 (elfeed-protocol-owncloud--do-update host-url 'update-since-time last-modified callback)
+               (elfeed-protocol-owncloud--do-update host-url 'update-since-id last-entry-id callback))
+           (elfeed-protocol-owncloud--do-update host-url 'init nil callback)))))))
 
 (provide 'elfeed-protocol-owncloud)
 
