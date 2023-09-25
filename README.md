@@ -103,6 +103,7 @@ Example:
 ## owncloud (ownCloud News)
 1. Fetch articles with the modified time by default
 1. Fetch articles for special feed
+1. Fetch remote category as tag
 1. Support sync unread and starred tags, the starred tag name defined
    in `elfeed-protocol-owncloud-star-tag` which default value is `star`. For
    example, if user add `star` tag to one article, the star stat will
@@ -116,6 +117,7 @@ Example:
 ```emacs-lisp
 (setq elfeed-protocol-owncloud-maxsize 1000)
 (setq elfeed-protocol-owncloud-update-with-modified-time t)
+(setq elfeed-protocol-owncloud-fetch-category-as-tag t)
 (setq elfeed-protocol-feeds '(("owncloud+https://user@myhost.com"
                                :password "my-password")))
 ```

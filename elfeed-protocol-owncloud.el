@@ -29,10 +29,19 @@ If t will update since last modified time, and if nil will update since last ent
   :group 'elfeed-protocol
   :type 'boolean)
 
+(defcustom elfeed-protocol-owncloud-fetch-category-as-tag t
+  "If true, tag the ownCloud News feed category to feed item."
+  :group 'elfeed-protocol
+  :type 'boolean)
+
+(defvar elfeed-protocol-owncloud-categories (make-hash-table :test 'equal)
+  "Category list from ownCloud News, will be used to tag entries with their ownCloud News category.")
+
 (defvar elfeed-protocol-owncloud-feeds (make-hash-table :test 'equal)
   "Feed list from ownCloud News, will be filled before updating operation.")
 
 (defconst elfeed-protocol-owncloud-api-base "/index.php/apps/news/api/v1-2")
+(defconst elfeed-protocol-owncloud-api-folders (concat elfeed-protocol-owncloud-api-base "/folders"))
 (defconst elfeed-protocol-owncloud-api-feeds (concat elfeed-protocol-owncloud-api-base "/feeds"))
 (defconst elfeed-protocol-owncloud-api-init-unread (concat elfeed-protocol-owncloud-api-base "/items?type=3&getRead=false&batchSize=%s"))
 (defconst elfeed-protocol-owncloud-api-init-starred (concat elfeed-protocol-owncloud-api-base "/items?type=2&getRead=true&batchSize=-1"))
@@ -127,6 +136,38 @@ BODY expressions at end."
   `(elfeed-protocol-owncloud--update-feed-list
     ,host-url (lambda () ,@body)))
 
+(defun elfeed-protocol-owncloud--update-categories-list (host-url &optional callback)
+  "Update ownCloud News server categories list.
+HOST-URL is the host name of ownCloud server.  Will call CALLBACK at end."
+  (elfeed-log 'debug "elfeed-protocol-owncloud: update cagetory list")
+  (elfeed-protocol-owncloud-with-fetch
+    (concat host-url elfeed-protocol-owncloud-api-folders)
+    nil (elfeed-protocol-owncloud--parse-categories host-url result)
+    (when callback (funcall callback))))
+
+(defun elfeed-protocol-owncloud--parse-categories (host-url content)
+  "Parse the feeds JSON buffer and cache the result.
+HOST-URL is the host name of ownCloud server.  CONTENT is the result JSON content
+by http request.  Return cached `elfeed-protocol-owncloud-categories'."
+  (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
+         (categories (map-elt content 'folders)))
+    (puthash proto-id categories elfeed-protocol-owncloud-categories)
+    elfeed-protocol-owncloud-categories))
+
+(defun elfeed-protocol-owncloud--get-category-name (host-url category-id)
+  "Return category name from HOST-URL for CATEGORY-ID."
+  (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
+         (categories (gethash proto-id elfeed-protocol-owncloud-categories))
+         (category (catch 'found
+                     (let* ((length (length categories)))
+                       (dotimes (i length)
+                         (let* ((item (elt categories i))
+                                (id (map-elt item 'id))
+                                (name (map-elt item 'name)))
+                           (when (eq id category-id)
+                             (throw 'found name))))))))
+    category))
+
 (defun elfeed-protocol-owncloud--parse-feeds (host-url content)
   "Parse the feeds JSON buffer and fill results to db.
 HOST-URL is the host name of ownCloud server.  CONTENT is the result JSON
@@ -150,11 +191,15 @@ could execute.  Return `elfeed-protocol-owncloud-feeds'."
   "Update ownCloud News feed list.
 HOST-URL is the host name of ownCloud server.  Will call CALLBACK at end."
   (elfeed-log 'debug "elfeed-protocol-owncloud: update feed list")
-  (elfeed-protocol-owncloud-with-fetch
-    (concat host-url elfeed-protocol-owncloud-api-feeds)
-    nil
-    (elfeed-protocol-owncloud--parse-feeds host-url result)
-    (when callback (funcall callback))))
+  (let* ((url (concat host-url elfeed-protocol-owncloud-api-feeds))
+         (parse-feeds-func (lambda ()
+                             (elfeed-protocol-owncloud-with-fetch
+                               url nil
+                               (elfeed-protocol-owncloud--parse-feeds host-url result)
+                               (when callback (funcall callback))))))
+    (if elfeed-protocol-owncloud-fetch-category-as-tag
+        (elfeed-protocol-owncloud--update-categories-list host-url parse-feeds-func)
+      (funcall parse-feeds-func))))
 
 (defun elfeed-protocol-owncloud--get-subfeed-url (host-url feed-id)
   "Get sub feed url for the ownCloud protocol feed HOST-URL and FEED-ID."
@@ -187,6 +232,22 @@ HOST-URL is the host name of ownCloud server.  Will call CALLBACK at end."
                        (throw 'found id))))))))
     (unless id
       (elfeed-log 'error "elfeed-protocol-owncloud: no subfeed for feed url %s" feed-url))
+    id))
+
+(defun elfeed-protocol-owncloud--get-subfeed-category-id (host-url feed-id)
+  "Get sub feed category id for the owncloud protocol feed HOST-URL and FEED-ID."
+  (let* ((id (catch 'found
+               (let* ((proto-id (elfeed-protocol-owncloud-id host-url))
+                      (feeds (gethash proto-id elfeed-protocol-owncloud-feeds))
+                      (length (length feeds)))
+                 (dotimes (i length)
+                   (let* ((feed (elt feeds i))
+                          (id (map-elt feed 'id))
+                          (folder-id (map-elt feed 'folderId)))
+                     (when (eq id feed-id)
+                       (throw 'found folder-id))))))))
+    (unless id
+      (elfeed-log 'error "elfeed-protocol-owncloud: no subfeed for feed id %s" feed-id))
     id))
 
 (defun elfeed-protocol-owncloud-entry-p (entry)
@@ -235,6 +296,10 @@ with the result entries as argument.  Return parsed entries."
                                     (original (elfeed-db-get-entry full-id))
                                     (original-date (and original
                                                         (elfeed-entry-date original)))
+                                    (category-name (when elfeed-protocol-owncloud-fetch-category-as-tag
+                                                     (elfeed-protocol-owncloud--get-category-name
+                                                      host-url
+                                                      (elfeed-protocol-owncloud--get-subfeed-category-id host-url feed-id))))
                                     (autotags (elfeed-protocol-feed-autotags proto-id feed-url))
                                     (fixtags (elfeed-normalize-tags
                                               autotags elfeed-initial-tags))
@@ -243,6 +308,8 @@ with the result entries as argument.  Return parsed entries."
                                               (setq fixtags (delete 'unread fixtags)))
                                             (when starred
                                               (push elfeed-protocol-owncloud-star-tag fixtags))
+                                            (when category-name
+                                              (push (intern category-name) fixtags))
                                             fixtags))
                                     (enclosures (when enclosure-link
                                                   (list (list enclosure-link
