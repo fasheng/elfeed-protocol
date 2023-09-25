@@ -218,7 +218,6 @@ result JSON content by http request.  Return cached
 
 (defun elfeed-protocol-ttrss--get-category-name (host-url category-id)
   "Return category name from HOST-URL for CATEGORY-ID."
-  (elfeed-log 'debug "elfeed-protocol-ttrss: Fetching category name for id %s" category-id)
   (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
          (categories (gethash proto-id elfeed-protocol-ttrss-categories))
          (category (cl-some (lambda (category)
