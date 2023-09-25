@@ -111,8 +111,13 @@ finished."
   "Parse owncloud api result JSON buffer.
 Will eval rest BODY expressions at end."
   (declare (indent defun))
-  `(let* ((result (json-read)))
-     ,@body))
+  `(let* ((result (json-read))
+          (message (map-elt result 'message)))
+     (if (and message (or
+                       (equal message "")
+                       (equal message "CORS requires basic auth")))
+         (elfeed-log 'error "elfeed-protocol-owncloud: authentication failed, wrong username or password")
+       ,@body)))
 
 (defmacro elfeed-protocol-owncloud-fetch-prepare (host-url &rest body)
   "Ensure logged in and feed list updated before expressions.
