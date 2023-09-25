@@ -176,7 +176,7 @@ result JSON content by http request.  Return
     url))
 
 (defun elfeed-protocol-newsblur--get-subfeed-id (host-url feed-url)
-  "Get sub feed id the newsblur protocol feed HOST-URL and FEED-URL."
+  "Get sub feed id for the newsblur protocol feed HOST-URL and FEED-URL."
   (let* ((id (catch 'found
                (let* ((proto-id (elfeed-protocol-newsblur-id host-url))
                       (feeds (gethash proto-id elfeed-protocol-newsblur-feeds))

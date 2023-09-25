@@ -282,7 +282,7 @@ result JSON content by http request.  Return
     url))
 
 (defun elfeed-protocol-ttrss--get-subfeed-id (host-url feed-url)
-  "Get sub feed id the ttrss protocol feed HOST-URL and FEED-URL."
+  "Get sub feed id for the ttrss protocol feed HOST-URL and FEED-URL."
   (let* ((id (catch 'found
                (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
                       (feeds (gethash proto-id elfeed-protocol-ttrss-feeds))
@@ -298,7 +298,7 @@ result JSON content by http request.  Return
     id))
 
 (defun elfeed-protocol-ttrss--get-subfeed-category-id (host-url feed-id)
-  "Get sub feed category id the ttrss protocol feed HOST-URL and FEED-ID."
+  "Get sub feed category id for the ttrss protocol feed HOST-URL and FEED-ID."
   (let* ((category-id
           (catch 'found
             (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
@@ -313,7 +313,7 @@ result JSON content by http request.  Return
     category-id))
 
 (defun elfeed-protocol-ttrss--get-subfeed-id-by-title (host-url feed-title)
-  "Get sub feed id the ttrss protocol feed HOST-URL and FEED-TITLE."
+  "Get sub feed id for the ttrss protocol feed HOST-URL and FEED-TITLE."
   (let* ((id (catch 'found
                (let* ((proto-id (elfeed-protocol-ttrss-id host-url))
                       (feeds (gethash proto-id elfeed-protocol-ttrss-feeds))

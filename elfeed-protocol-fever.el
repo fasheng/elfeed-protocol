@@ -202,7 +202,7 @@ http request.  Return `elfeed-protocol-fever-feeds'."
     url))
 
 (defun elfeed-protocol-fever--get-subfeed-id (host-url feed-url)
-  "Get sub feed id the fever protocol feed HOST-URL and FEED-URL."
+  "Get sub feed id the for fever protocol feed HOST-URL and FEED-URL."
   (let* ((id (catch 'found
                (let* ((proto-id (elfeed-protocol-fever-id host-url))
                       (feeds (gethash proto-id elfeed-protocol-fever-feeds))
