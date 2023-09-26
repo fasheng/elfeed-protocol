@@ -25,7 +25,9 @@
         (should (gethash proto-id elfeed-protocol-owncloud-categories))
         (should (string-equal
                  (elfeed-protocol-owncloud--get-category-name host-url 1)
-                 "Category 1"))))))
+                 "Category 1"))
+        ;; for invalid feed
+        (should (not (elfeed-protocol-owncloud--get-category-name host-url 12345)))))))
 
 (ert-deftest elfeed-protocol-owncloud-parse-feeds ()
   (with-elfeed-test

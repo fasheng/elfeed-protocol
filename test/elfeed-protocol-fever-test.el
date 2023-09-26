@@ -25,7 +25,9 @@
         (should (gethash proto-id elfeed-protocol-fever-categories))
         (should (string-equal
                  (elfeed-protocol-fever--get-category-name host-url 1)
-                 "Category 1"))))))
+                 "Category 1"))
+        ;; for invalid feed
+        (should (not (elfeed-protocol-fever--get-category-name host-url 12345)))))))
 
 (ert-deftest elfeed-protocol-fever-parse-feeds ()
   (with-elfeed-test

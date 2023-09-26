@@ -28,7 +28,9 @@
         (should (gethash proto-id elfeed-protocol-ttrss-categories))
         (should (string-equal
                  (elfeed-protocol-ttrss--get-category-name host-url 2)
-                 "Emacs"))))))
+                 "Emacs"))
+        ;; for invalid feed
+        (should (not (elfeed-protocol-ttrss--get-category-name host-url 12345)))))))
 
 (ert-deftest elfeed-protocol-ttrss-parse-feeds ()
   (with-elfeed-test
