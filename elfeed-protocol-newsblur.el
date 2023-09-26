@@ -29,6 +29,19 @@ then the starred state in NewsBlur will be synced, too."
   :group 'elfeed-protocol
   :type 'boolean)
 
+(defcustom elfeed-protocol-newsblur-fetch-category-as-tag t
+  "If true, tag the NewsBlur feed category to feed item."
+  :group 'elfeed-protocol
+  :type 'boolean)
+
+(defcustom elfeed-protocol-newsblur-sub-category-separator "."
+  "The separator for NewsBlur sub feed category name."
+  :group 'elfeed-protocol
+  :type 'string)
+
+(defvar elfeed-protocol-newsblur-categories (make-hash-table :test 'equal)
+  "Category list from NewsBlur, will be used to tag entries with their NewsBlur category.")
+
 (defvar elfeed-protocol-newsblur-feeds (make-hash-table :test 'equal)
   "Feed list from NewsBlur, will be filled before updating operation.")
 
@@ -122,6 +135,53 @@ after login."
       url "POST" data
       (when callback (funcall callback)))))
 
+(defun elfeed-protocol-newsblur--parse-categories (host-url content)
+  "Parse the feeds JSON buffer and cache the result.
+HOST-URL is the host name of NewsBlur server.  CONTENT is the result JSON content
+by http request.  Return cached `elfeed-protocol-newsblur-categories'."
+  (elfeed-log 'debug "elfeed-protocol-newsblur: parsing categories")
+  (let* ((proto-id (elfeed-protocol-newsblur-id host-url))
+         (categories (map-elt content 'folders)))
+    (puthash proto-id categories elfeed-protocol-newsblur-categories)
+    elfeed-protocol-newsblur-categories))
+
+(defun elfeed-protocol-newsblur--get-category-name (host-url feed-id)
+  "Return category name from HOST-URL for FEED-ID."
+  (let* ((proto-id (elfeed-protocol-newsblur-id host-url))
+         (categories (gethash proto-id elfeed-protocol-newsblur-categories))
+         (category (catch 'found
+                     (let* ((length (length categories)))
+                       (dotimes (i length)
+                         (let* ((item (elt categories i))
+                                (name (elfeed-protocol-newsblur--do-get-category-name item feed-id)))
+                           (when name
+                             (throw 'found name))))))))
+    category))
+
+(defun elfeed-protocol-newsblur--do-get-category-name (category feed-id &optional prefix)
+  "Return category name from HOST-URL for FEED-ID."
+  ;; ignore feed that do not have category
+  (when (listp category)
+    (let* ((name (symbol-name (caar category)))
+           (content (cdar category))
+           (category (catch 'found
+                       (dotimes (i (length content))
+                         (let* ((item (elt content i))
+                                (new-prefix (if prefix
+                                                (concat
+                                                 prefix elfeed-protocol-newsblur-sub-category-separator name)
+                                              name)))
+                           (if (listp item)
+                               ;; sub category
+                               (let* ((name (elfeed-protocol-newsblur--do-get-category-name
+                                             item feed-id new-prefix)))
+                                 (when name
+                                   (throw 'found name)))
+                             ;; query feed ids
+                             (when (eq item feed-id)
+                               (throw 'found new-prefix))))))))
+      category)))
+
 (defun elfeed-protocol-newsblur--update-feed-list (host-url &optional callback)
   "Update NewsBlur server feeds list.
 HOST-URL is the host name of NewsBlur server.  Will call CALLBACK at
@@ -130,12 +190,14 @@ end with argument NEED-LOGIN."
   (let* ((url (concat host-url elfeed-protocol-newsblur-api-reader-feeds))
          (data "include_favicons=false"))
     (elfeed-protocol-newsblur-with-fetch
-      url "GET" data
-      (let* ((authenticated (map-elt result 'authenticated))
-             (need-login (eq authenticated ':json-false)))
-        (unless need-login
-          (elfeed-protocol-newsblur--parse-feeds host-url result))
-        (when callback (funcall callback need-login))))))
+     url "GET" data
+     (let* ((authenticated (map-elt result 'authenticated))
+            (need-login (eq authenticated ':json-false)))
+       (unless need-login
+         (when elfeed-protocol-newsblur-fetch-category-as-tag
+         (elfeed-protocol-newsblur--parse-categories host-url result))
+         (elfeed-protocol-newsblur--parse-feeds host-url result))
+       (when callback (funcall callback need-login))))))
 
 (defun elfeed-protocol-newsblur--parse-feeds (host-url content)
   "Parse the feeds JSON buffer and fill results to db.
@@ -232,6 +294,9 @@ the result entries as argument.  Return parsed entries."
                                     (original (elfeed-db-get-entry full-id))
                                     (original-date (and original
                                                         (elfeed-entry-date original)))
+                                    (category-name (when elfeed-protocol-newsblur-fetch-category-as-tag
+                                                     (elfeed-protocol-newsblur--get-category-name
+                                                      host-url feed-id)))
                                     (autotags (elfeed-protocol-feed-autotags proto-id feed-url))
                                     (fixtags (elfeed-normalize-tags
                                               autotags elfeed-initial-tags))
@@ -240,6 +305,8 @@ the result entries as argument.  Return parsed entries."
                                               (setq fixtags (delete 'unread fixtags)))
                                             (when starred
                                               (push elfeed-protocol-newsblur-star-tag fixtags))
+                                            (when category-name
+                                              (push (intern category-name) fixtags))
                                             (when elfeed-protocol-newsblur-fetch-tags
                                               (dotimes (i (length newsblur-tags))
                                                 (let ((tag (elt newsblur-tags i)))

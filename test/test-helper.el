@@ -25,6 +25,8 @@
           (elfeed-initial-tags '(unread))
           (elfeed-protocol-fever-categories (make-hash-table :test 'equal))
           (elfeed-protocol-fever-feeds (make-hash-table :test 'equal))
+          (elfeed-protocol-newsblur-categories (make-hash-table :test 'equal))
+          (elfeed-protocol-newsblur-feeds (make-hash-table :test 'equal))
           (elfeed-protocol-owncloud-categories (make-hash-table :test 'equal))
           (elfeed-protocol-owncloud-feeds (make-hash-table :test 'equal))
           (elfeed-protocol-ttrss-categories (make-hash-table :test 'equal))

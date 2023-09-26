@@ -83,6 +83,7 @@ Example:
 ## newsblur (NewsBlur)
 1. Fetch articles from recent pages
 1. Fetch articles for special feed
+1. Fetch remote category as tag
 1. Fetch tags in remote
 1. Support sync unread, starred(saved) tags, the starred tag name
    defined in `elfeed-protocol-ttrss-star-tag` which default value is
@@ -94,6 +95,9 @@ Example:
 Example:
 ```emacs-lisp
 (setq elfeed-protocol-newsblur-maxpages 20)
+(setq elfeed-protocol-newsblur-fetch-tags t)
+(setq elfeed-protocol-newsblur-fetch-category-as-tag t)
+(setq elfeed-protocol-newsblur-sub-category-separator ".")
 (setq elfeed-curl-extra-arguments '("--cookie-jar" "/tmp/newsblur-cookie"
                                     "--cookie" "/tmp/newsblur-cookie"))
 (setq elfeed-protocol-feeds '(("newsblur+https://user@newsblur.com"
