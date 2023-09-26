@@ -4,8 +4,8 @@
 
 (defvar elfeed-protocol-fever-fixture-dir (concat (file-name-directory load-file-name) "fixtures/fever/"))
 
-(defvar elfeed-protocol-fever-fixture-groups
-  (concat elfeed-protocol-fever-fixture-dir "groups.json"))
+(defvar elfeed-protocol-fever-fixture-categories
+  (concat elfeed-protocol-fever-fixture-dir "categories.json"))
 
 (defvar elfeed-protocol-fever-fixture-feeds
   (concat elfeed-protocol-fever-fixture-dir "feeds.json"))
@@ -15,7 +15,7 @@
 
 (ert-deftest elfeed-protocol-fever-parse-categories ()
   (with-elfeed-test
-    (with-fixture elfeed-protocol-fever-fixture-groups
+    (with-fixture elfeed-protocol-fever-fixture-categories
       (let* ((proto-url "fever+https://user:pass@myhost.com")
              (host-url (elfeed-protocol-url proto-url))
              (proto-id (elfeed-protocol-fever-id host-url))
@@ -52,7 +52,7 @@
 
 (ert-deftest elfeed-protocol-fever-parse-entries ()
   (with-elfeed-test
-    (with-fixture elfeed-protocol-fever-fixture-groups
+    (with-fixture elfeed-protocol-fever-fixture-categories
       (let* ((proto-url "fever+https://user:pass@myhost.com")
              (host-url (elfeed-protocol-url proto-url))
              (proto-id (elfeed-protocol-fever-id host-url))
