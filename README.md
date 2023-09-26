@@ -97,7 +97,7 @@ Example:
 (setq elfeed-protocol-newsblur-maxpages 20)
 (setq elfeed-protocol-newsblur-fetch-tags t)
 (setq elfeed-protocol-newsblur-fetch-category-as-tag t)
-(setq elfeed-protocol-newsblur-sub-category-separator ".")
+(setq elfeed-protocol-newsblur-sub-category-separator "/")
 (setq elfeed-curl-extra-arguments '("--cookie-jar" "/tmp/newsblur-cookie"
                                     "--cookie" "/tmp/newsblur-cookie"))
 (setq elfeed-protocol-feeds '(("newsblur+https://user@newsblur.com"

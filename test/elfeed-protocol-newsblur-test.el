@@ -28,7 +28,7 @@
                  "Blogs"))
         (should (string-equal
                  (elfeed-protocol-newsblur--get-category-name host-url 50)
-                 "Blogs.Photoblogs"))
+                 "Blogs/Photoblogs"))
         ;; for feed without category
         (should (not (elfeed-protocol-newsblur--get-category-name host-url 8032018)))
         ;; for invalid feed

@@ -34,7 +34,7 @@ then the starred state in NewsBlur will be synced, too."
   :group 'elfeed-protocol
   :type 'boolean)
 
-(defcustom elfeed-protocol-newsblur-sub-category-separator "."
+(defcustom elfeed-protocol-newsblur-sub-category-separator "/"
   "The separator for NewsBlur sub feed category name."
   :group 'elfeed-protocol
   :type 'string)
