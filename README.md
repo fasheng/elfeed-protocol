@@ -1,3 +1,10 @@
+> [!IMPORTANT]
+> Since version `0.9.0` , elfeed-protocol use variable
+> `elfeed-protocol-feeds` instead of `elfeed-feeds` to fix conflict
+> issues to extensions that modify or require `elfeed-feeds`.  And
+> elfeed-protocol could work together with elfeed-org and
+> elfeed-autotag without any aditional setup now.
+
 elfeed-protocol
 ==============
 [![MELPA](http://melpa.org/packages/elfeed-protocol-badge.svg)](http://melpa.org/#/elfeed-protocol) [![MELPA Stable](https://stable.melpa.org/packages/elfeed-protocol-badge.svg)](https://stable.melpa.org/#/elfeed-protocol)
@@ -9,10 +16,6 @@ including
 [NewsBlur](https://newsblur.com/),
 [Nextcloud/ownCloud News](https://nextcloud.com/),
 [Tiny Tiny RSS](https://tt-rss.org/fox/tt-rss) and even more.
-
-**NOTE:** Since version `0.9.0` , elfeed-protocol use variable
-`elfeed-protocol-feeds` instead of `elfeed-feeds` to fix conflict
-issues to extensions that modify or require `elfeed-feeds`.
 
 # Installation through MELPA
 
