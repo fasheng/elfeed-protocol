@@ -194,6 +194,15 @@ Example:
                                :autotags (("example.com" comic)))))
 ```
 
+## Work with feeds and autotags that defined in original elfeed-feeds
+
+```emacs-lisp
+(setq elfeed-feeds '("http://foo/" ("http://baz/" comic)))
+(setq elfeed-protocol-feeds '(("owncloud+https://user@myhost.com"
+                               :password "my-password")))
+(setq elfeed-protocol-feeds (append elfeed-protocol-feeds elfeed-feeds))
+```
+
 ## Work with elfeed-org and elfeed-autotag
 
 Since version `0.9.0`, elfeed-protocol could work together with
