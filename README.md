@@ -194,10 +194,10 @@ Example:
                                :autotags (("example.com" comic)))))
 ```
 
-## Work with elfeed-org
+## Work with elfeed-org and elfeed-autotag
 
 Since version `0.9.0`, elfeed-protocol could work together with
-elfeed-org without any aditional setup.
+elfeed-org and elfeed-autotag without any aditional setup.
 
 ## Work with elfeed-summary
 
