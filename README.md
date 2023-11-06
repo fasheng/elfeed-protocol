@@ -160,7 +160,7 @@ Example:
 
 ```emacs-lisp
 (setq elfeed-protocol-feeds '(
-                              ;; same format with elfeed-fedds
+                              ;; same format with elfeed-feeds
                               "http://foo/"
                               ("http://baz/" comic)
 
