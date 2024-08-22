@@ -166,7 +166,7 @@ BODY expressions at end."
 (defun elfeed-protocol-fever--update-categories-list (host-url &optional callback)
   "Update Fever server categories list.
 HOST-URL is the host name of Fever server.  Will call CALLBACK at end."
-  (elfeed-log 'debug "elfeed-protocol-fever: update cagetory list")
+  (elfeed-log 'debug "elfeed-protocol-fever: update category list")
   (let* ((url (concat (elfeed-protocol-fever--get-api-url host-url)
                       elfeed-protocol-fever-api-groups))
          (data (elfeed-protocol-fever--build-data host-url)))

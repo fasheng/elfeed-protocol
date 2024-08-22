@@ -139,7 +139,7 @@ BODY expressions at end."
 (defun elfeed-protocol-owncloud--update-categories-list (host-url &optional callback)
   "Update ownCloud News server categories list.
 HOST-URL is the host name of ownCloud server.  Will call CALLBACK at end."
-  (elfeed-log 'debug "elfeed-protocol-owncloud: update cagetory list")
+  (elfeed-log 'debug "elfeed-protocol-owncloud: update category list")
   (elfeed-protocol-owncloud-with-fetch
     (concat host-url elfeed-protocol-owncloud-api-folders)
     nil (elfeed-protocol-owncloud--parse-categories host-url result)

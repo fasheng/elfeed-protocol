@@ -197,7 +197,7 @@ server url, and will call CALLBACK after login."
   "Update Tiny Tiny RSS server categories list.
 HOST-URL is the host name of Tiny Tiny RSS server.  Will call CALLBACK
 at end."
-  (elfeed-log 'debug "elfeed-protocol-ttrss: update cagetory list")
+  (elfeed-log 'debug "elfeed-protocol-ttrss: update category list")
   (let* ((data-list `(("op" . "getCategories")
                       ("sid" . ,elfeed-protocol-ttrss-sid)))
          (data (json-encode-alist data-list)))
