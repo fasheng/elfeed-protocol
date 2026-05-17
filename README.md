@@ -347,7 +347,7 @@ before reporting issues:
    And Fever limit 50 max size for per request, so update timer may help you:
 
    ```emacs-lisp
-   (run-at-time 300 300
+   (run-at-time nil (* 5 60)
                 (lambda () (when (= elfeed-curl-queue-active 0)
                              (elfeed-update))))
    ```
