@@ -398,8 +398,6 @@ nil, will call it with the result entries as argument."
          (url-init-starred (concat host-url elfeed-protocol-owncloud-api-init-starred))
          (mark-state t)
          url-opt)
-    (unless elfeed--inhibit-update-init-hooks
-      (run-hooks 'elfeed-update-init-hooks))
     (cond
      ;; initial sync, fetch unread entries
      ((eq action 'init)

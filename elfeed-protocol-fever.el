@@ -453,8 +453,6 @@ it with the result entries as argument."
          (url-unread (concat (elfeed-protocol-fever--get-api-url host-url)
                              elfeed-protocol-fever-api-unread-item-ids))
          (data (elfeed-protocol-fever--build-data host-url)))
-    (unless elfeed--inhibit-update-init-hooks
-      (run-hooks 'elfeed-update-init-hooks))
     (cond
      ;; initial sync, fetch starred and unread entries
      ((eq action 'init)

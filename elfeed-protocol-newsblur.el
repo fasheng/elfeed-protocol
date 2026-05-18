@@ -372,8 +372,6 @@ feed, the ARG is the feed id.  If CALLBACK is not nil, will call it
 with the result entries as argument."
   (elfeed-log 'debug "elfeed-protocol-newsblur: update entries with action %s, arg %s" action arg)
   (let* ((proto-id (elfeed-protocol-newsblur-id host-url)))
-    (unless elfeed--inhibit-update-init-hooks
-      (run-hooks 'elfeed-update-init-hooks))
     (cond
      ;; init
      ((eq action 'init)

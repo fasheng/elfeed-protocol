@@ -522,8 +522,6 @@ not nil, will call it with the result entries as argument."
                                       ,elfeed-protocol-ttrss-api-feed-id-all-articles)
                                      ("view_mode" .
                                       ,elfeed-protocol-ttrss-api-view-mode-unread)))))
-    (unless elfeed--inhibit-update-init-hooks
-      (run-hooks 'elfeed-update-init-hooks))
     (cond
      ;; initial sync, fetch starred, unread and latest entries
      ((eq action 'init)

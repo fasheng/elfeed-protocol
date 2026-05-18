@@ -136,22 +136,19 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
                    (apply pre-untag-func host-url proto-entries tags))))
              entry-groups)))
 
-(defun elfeed-protocol-advice-update-feed (orig-func url)
-  "Advice for `elfeed-update-feed` to update protocol feed correctly.
-ORIG-FUNC and URL are the needed arguments."
-  (interactive (list (completing-read "Feed: " (elfeed-feed-list))))
-  (if (elfeed-protocol-feed-p url)
-      (let* ((proto-type (elfeed-protocol-type url))
-             (update-func (elfeed-protocol-update-func proto-type)))
-        (if update-func
-            (progn
-              (unless elfeed--inhibit-update-init-hooks
-                (run-hooks 'elfeed-update-init-hooks))
-              (funcall update-func (elfeed-protocol-url url))
-              (run-hook-with-args 'elfeed-update-hooks url))
-          (elfeed-log 'error "elfeed-protocol: there is not updater for protocol %s"
-                      proto-type)))
-    (funcall orig-func url)))
+(defun elfeed-protocol-fetcher (url cb)
+  "New fetcher hook for `elfeed-fetch-functions` after `elfeed` 20260518.1004 to replace old advice for `elfeed-update-feed`."
+  (when (elfeed-protocol-feed-p url)
+    (let* ((proto-type (elfeed-protocol-type url))
+           (update-func (elfeed-protocol-update-func proto-type)))
+      (if update-func
+          (progn
+            (funcall update-func (elfeed-protocol-url url))
+            (funcall cb :success))
+        (elfeed-log 'error "elfeed-protocol: there is not updater for protocol %s"
+                    proto-type)
+        (funcall cb :error)))
+    t))
 
 (defun elfeed-protocol-advice-feed-list ()
   "Advice for `elfeed-feed-list' to avoid error checking on protocol feeds and use
@@ -167,7 +164,7 @@ ORIG-FUNC and URL are the needed arguments."
   "Enable hooks and advices for elfeed-protocol."
   (interactive)
   (advice-add 'elfeed-feed-list :override #'elfeed-protocol-advice-feed-list)
-  (advice-add 'elfeed-update-feed :around #'elfeed-protocol-advice-update-feed)
+  (add-hook 'elfeed-fetch-functions #'elfeed-protocol-fetcher)
   (add-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
   (add-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove)
   (dolist (protocol elfeed-protocol-enabled-protocols)
@@ -185,7 +182,7 @@ ORIG-FUNC and URL are the needed arguments."
   "Disable hooks and advices for elfeed-protocol."
   (interactive)
   (advice-remove 'elfeed-feed-list #'elfeed-protocol-advice-feed-list)
-  (advice-remove 'elfeed-update-feed #'elfeed-protocol-advice-update-feed)
+  (remove-hook 'elfeed-fetch-functions #'elfeed-protocol-fetcher)
   (remove-hook 'elfeed-tag-hooks 'elfeed-protocol-on-tag-add)
   (remove-hook 'elfeed-untag-hooks 'elfeed-protocol-on-tag-remove)
   (dolist (protocol elfeed-protocol-enabled-protocols)
