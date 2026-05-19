@@ -150,7 +150,7 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
         (funcall cb :error)))
     t))
 
-(defun elfeed-protocol-advice-feed-list ()
+(defun elfeed-protocol-advice-feed-list (&optional all)
   "Advice for `elfeed-feed-list' to avoid error checking on protocol feeds and use
 `elfeed-protocol-feeds' instead of `elfeed-feeds'."
   (when (eq (length elfeed-protocol-feeds) 0)
