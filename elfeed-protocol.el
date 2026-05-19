@@ -159,6 +159,10 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
       (setcar headline (elfeed-protocol-format-subfeed-id proto-id url))
       (setcdr headline (append '(:no-update t) (cdr headline))))))
 
+(defun elfeed-protocol-advice-elfeed-summary--feed-list ()
+  "Advice for `elfeed-summary--feed-list', use `elfeed-feed-list' instead."
+  (elfeed-feed-list))
+
 ;;;###autoload
 (defun elfeed-protocol-enable ()
   "Enable hooks and advices for elfeed-protocol."
@@ -182,6 +186,7 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
   (when elfeed-protocol-work-with-others
     (advice-add 'rmh-elfeed-org-process :around #'elfeed-protocol-advice-rmh-elfeed-org-process)
     (advice-add 'rmh-elfeed-org-export-feed :before #'elfeed-protocol-advice-rmh-elfeed-org-export-feed)
+    (advice-add 'elfeed-summary--feed-list :override #'elfeed-protocol-advice-elfeed-summary--feed-list)
     (setq elfeed-summary-skip-sync-tag ':no-update))
   (dolist (protocol elfeed-protocol-enabled-protocols)
     (let ((feature (intern (concat "elfeed-protocol-" (symbol-name protocol)))))
@@ -202,7 +207,8 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
   (remove-hook 'elfeed-untag-hooks #'elfeed-protocol-on-tag-remove)
   (when elfeed-protocol-work-with-others
     (advice-remove 'rmh-elfeed-org-process #'elfeed-protocol-advice-rmh-elfeed-org-process)
-    (advice-remove 'rmh-elfeed-org-export-feed #'elfeed-protocol-advice-rmh-elfeed-org-export-feed))
+    (advice-remove 'rmh-elfeed-org-export-feed #'elfeed-protocol-advice-rmh-elfeed-org-export-feed)
+    (advice-remove 'elfeed-summary--feed-list #'elfeed-protocol-advice-elfeed-summary--feed-list))
   (dolist (protocol elfeed-protocol-enabled-protocols)
     (elfeed-protocol-unregister (symbol-name protocol))))
 
