@@ -60,6 +60,16 @@ to add the symbol `xyz', and the package must have a call to:
   :group 'elfeed-protocol
   :type '(repeat symbol))
 
+(defcustom elfeed-protocol-work-with-others
+  t
+  "If non-nil, will add some hack code to work together with elfeed-org and elfeed-summary."
+  :group 'elfeed-protocol
+  :type 'boolean)
+
+(defvar elfeed-protocol-orig-feeds nil
+  "Store original content of `elfeed-feeds' before `elfeed-org' or
+other extensions modifying it.")
+
 (defun elfeed-protocol-update-func (proto-type)
   "Get update function for special PROTO-TYPE."
   (plist-get (cdr (assoc proto-type elfeed-protocol-list)) ':update))
@@ -131,6 +141,24 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
         (funcall cb :error)))
     t))
 
+(defun elfeed-protocol-advice-rmh-elfeed-org-process (orig-func files tree-id)
+  "Advice for `rmh-elfeed-org-process' to keep the original
+`elfeed-feeds' exists."
+  (unless elfeed-protocol-orig-feeds
+    (setq elfeed-protocol-orig-feeds elfeed-feeds))
+  (funcall orig-func files tree-id)
+  (when elfeed-protocol-orig-feeds
+    (setq elfeed-feeds (append elfeed-protocol-orig-feeds elfeed-feeds))))
+
+(defun elfeed-protocol-advice-rmh-elfeed-org-export-feed (headline)
+  "Advice for `rmh-elfeed-org-export-feed', add elfeed-protocol ID as suffix and add `:no-update' option to each feed."
+  (let* ((url (car headline))
+         (elfeed-feeds (if elfeed-protocol-orig-feeds elfeed-protocol-orig-feeds elfeed-feeds))
+         (proto-id (car (elfeed-protocol-feed-list))))
+    (when proto-id
+      (setcar headline (elfeed-protocol-format-subfeed-id proto-id url))
+      (setcdr headline (append '(:no-update t) (cdr headline))))))
+
 ;;;###autoload
 (defun elfeed-protocol-enable ()
   "Enable hooks and advices for elfeed-protocol."
@@ -151,6 +179,10 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
   (add-hook 'elfeed-fetch-functions #'elfeed-protocol-fetcher)
   (add-hook 'elfeed-tag-hooks #'elfeed-protocol-on-tag-add)
   (add-hook 'elfeed-untag-hooks #'elfeed-protocol-on-tag-remove)
+  (when elfeed-protocol-work-with-others
+    (advice-add 'rmh-elfeed-org-process :around #'elfeed-protocol-advice-rmh-elfeed-org-process)
+    (advice-add 'rmh-elfeed-org-export-feed :before #'elfeed-protocol-advice-rmh-elfeed-org-export-feed)
+    (setq elfeed-summary-skip-sync-tag ':no-update))
   (dolist (protocol elfeed-protocol-enabled-protocols)
     (let ((feature (intern (concat "elfeed-protocol-" (symbol-name protocol)))))
       (if (require feature nil t)
@@ -168,6 +200,9 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
   (remove-hook 'elfeed-fetch-functions #'elfeed-protocol-fetcher)
   (remove-hook 'elfeed-tag-hooks #'elfeed-protocol-on-tag-add)
   (remove-hook 'elfeed-untag-hooks #'elfeed-protocol-on-tag-remove)
+  (when elfeed-protocol-work-with-others
+    (advice-remove 'rmh-elfeed-org-process #'elfeed-protocol-advice-rmh-elfeed-org-process)
+    (advice-remove 'rmh-elfeed-org-export-feed #'elfeed-protocol-advice-rmh-elfeed-org-export-feed))
   (dolist (protocol elfeed-protocol-enabled-protocols)
     (elfeed-protocol-unregister (symbol-name protocol))))
 

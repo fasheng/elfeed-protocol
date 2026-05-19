@@ -1,10 +1,10 @@
 > [!IMPORTANT]
-> Since version `1.0.0`, elfeed-protocol use the variable
-> `elfeed-feeds` directly again. With the help of elfeed `4.0.0`, user
-> could enable option `:no-update` for other feeds to make
-> elfeed-protocol could work together with other extensions like
-> elfeed-org and elfeed-summary. More information to see the document
-> below.
+> Since version `1.0.0`, elfeed-protocol switch back to variable
+> `elfeed-feeds` again. With the help of elfeed `4.0.0`,
+> elfeed-potocol could execute some hack code to enable option
+> `:no-update` for other feeds so that it could work together with
+> other extensions like elfeed-org and elfeed-summary. More
+> information to see the document below.
 
 elfeed-protocol
 ==============
@@ -203,41 +203,15 @@ just ensure `elfeed-autotag-protocol-used` is not nil.
 
 ## Work together with elfeed-org and elfeed-summary
 
-To make `elfeed-org`'s tag rules work together with `elfeed-protocol`, just add some
-advice for `elfeed`:
+Since version `1.0.0`, elfeed-protocol could work together with
+[elfeed-org](https://github.com/remyhonig/elfeed-org) and
+[elfeed-summary](https://github.com/SqrtMinusOne/elfeed-summary)
+without any aditional setup. Just ensure
+`elfeed-protocol-work-with-others` is not nil and elfeed-protocol will
+do the rest:
 
 ```emacs-lisp
-(defvar elfeed-protocol-orig-feeds nil
-  "Store original content of `elfeed-feeds' before `elfeed-org' or
-other extensions modifying it.")
-
-(defun elfeed-protocol-advice-rmh-elfeed-org-process (orig-func files tree-id)
-  "Advice for `rmh-elfeed-org-process' to keep the original
-`elfeed-feeds' exists."
-  (unless elfeed-protocol-orig-feeds
-    (setq elfeed-protocol-orig-feeds elfeed-feeds))
-  (funcall orig-func files tree-id)
-  (when elfeed-protocol-orig-feeds
-    (setq elfeed-feeds (append elfeed-protocol-orig-feeds elfeed-feeds))))
-(advice-add 'rmh-elfeed-org-process :around #'elfeed-protocol-advice-rmh-elfeed-org-process)
-
-(defun elfeed-protocol-advice-rmh-elfeed-org-export-feed (headline)
-  "Advice for `rmh-elfeed-org-export-feed', add elfeed-protocol ID as suffix and add `:no-update' option to each feed."
-  (let* ((url (car headline))
-         (elfeed-feeds (if elfeed-protocol-orig-feeds elfeed-protocol-orig-feeds elfeed-feeds))
-         (proto-id (car (elfeed-protocol-feed-list))))
-    (when proto-id
-      (setcar headline (elfeed-protocol-format-subfeed-id proto-id url))
-      (setcdr headline (append '(:no-update t) (cdr headline))))))
-(advice-add 'rmh-elfeed-org-export-feed :before #'elfeed-protocol-advice-rmh-elfeed-org-export-feed)
-```
-
-And this will fix `0 / 0` zero count issue for `elfeed-summary',
-too. And set `elfeed-summary-skip-sync-tag` to `:no-update` will fix
-`elfeed-summary-update` issue:
-
-```emacs-lisp
-(setq elfeed-summary-skip-sync-tag ':no-update)
+(setq elfeed-protocol-work-with-others t)
 ```
 
 # Run Unit-Tests
