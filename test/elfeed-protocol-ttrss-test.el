@@ -38,7 +38,7 @@
       (let* ((proto-url "ttrss+https://user:pass@myhost.com:443")
              (host-url (elfeed-protocol-url proto-url))
              (proto-id (elfeed-protocol-ttrss-id host-url))
-             (elfeed-protocol-feeds (list proto-url))
+             (elfeed-feeds (list proto-url))
              (elfeed-protocol-ttrss-feeds (elfeed-protocol-ttrss--parse-result
                                             (elfeed-protocol-ttrss--parse-feeds
                                              host-url content)))
@@ -65,7 +65,7 @@
                                                 (elfeed-protocol-ttrss--parse-categories
                                                  host-url content))))
         (with-fixture elfeed-protocol-ttrss-fixture-feeds
-          (let* ((elfeed-protocol-feeds (list (list proto-url
+          (let* ((elfeed-feeds (list (list proto-url
                                            :autotags
                                            '(("http://tt-rss.org/forum/rss.php" tag1)))))
                  (elfeed-protocol-ttrss-feeds (elfeed-protocol-ttrss--parse-result
@@ -110,7 +110,7 @@
       (let* ((proto-url "ttrss+https://user:pass@myhost.com")
              (host-url (elfeed-protocol-url proto-url))
              (proto-id (elfeed-protocol-ttrss-id host-url))
-             (elfeed-protocol-feeds `((,proto-url
+             (elfeed-feeds `((,proto-url
                               :autotags
                               '(("http://tt-rss.org/forum/rss.php" tag1)))))
              (elfeed-protocol-ttrss-feeds (elfeed-protocol-ttrss--parse-result

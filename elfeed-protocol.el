@@ -20,7 +20,7 @@
 ;;   (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
 ;;
 ;;   ;; setup extra protocol feeds
-;;   (setq elfeed-protocol-feeds '(("owncloud+https://user@myhost.com"
+;;   (setq elfeed-feeds '(("owncloud+https://user@myhost.com"
 ;;                                  :password "my-password")))
 ;;
 ;;   ;; enable elfeed-protocol
@@ -35,25 +35,6 @@
 (defgroup elfeed-protocol ()
   "Provide extra protocol for elfeed."
   :group 'comm)
-
-(defcustom elfeed-protocol-feeds ()
-  "List of all feeds that elfeed-protocol should follow.
-Similar with `elfeed-feeds'. For example:
-
-  (setq elfeed-protocol-feeds '(\"http://foo/\"
-                                (\"http://baz/\" comic)
-                                \"fever+https://user:pass@myhost1.com\"
-                                (\"newsblur+https://user@myhost2.com\"
-                                 :password \"password\")
-                                (\"owncloud+https://user@myhost3.com\"
-                                 :password-file \"~/.password\")
-                                (\"ttrss+https://user@myhost4.com\"
-                                 :use-authinfo t)
-                                (\"fever+https://user@myhost5.com\"
-                                 :password (password-store-get \"fever/app-pass\"))))"
-  :group 'elfeed-protocol
-  :type '(repeat (choice string
-                         (cons string (repeat symbol)))))
 
 (defcustom elfeed-protocol-list ()
   "List of all registered extra protocols in Elfeed.
@@ -150,15 +131,6 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
         (funcall cb :error)))
     t))
 
-(defun elfeed-protocol-advice-feed-list (&optional all)
-  "Advice for `elfeed-feed-list' to avoid error checking on protocol feeds and use
-`elfeed-protocol-feeds' instead of `elfeed-feeds'."
-  (when (eq (length elfeed-protocol-feeds) 0)
-    (elfeed-log 'warn "elfeed-protocol: elfeed-protocol-feeds is empty, please setup it instead of elfeed-feeds since 0.9.0"))
-  (cl-loop for feed in elfeed-protocol-feeds
-           when (listp feed) collect (car feed)
-           else collect feed))
-
 ;;;###autoload
 (defun elfeed-protocol-enable ()
   "Enable hooks and advices for elfeed-protocol."
@@ -171,7 +143,6 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
         (elfeed-log 'info "elfeed-protocol: Migrate metadata for %s %s" proto-id old-metadata)
         (elfeed-protocol-set-db-feed-meta-all proto-id old-metadata))))
 
-  (advice-add 'elfeed-feed-list :override #'elfeed-protocol-advice-feed-list)
   (add-hook 'elfeed-fetch-functions #'elfeed-protocol-fetcher)
   (add-hook 'elfeed-tag-hooks #'elfeed-protocol-on-tag-add)
   (add-hook 'elfeed-untag-hooks #'elfeed-protocol-on-tag-remove)
@@ -189,7 +160,6 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
 (defun elfeed-protocol-disable ()
   "Disable hooks and advices for elfeed-protocol."
   (interactive)
-  (advice-remove 'elfeed-feed-list #'elfeed-protocol-advice-feed-list)
   (remove-hook 'elfeed-fetch-functions #'elfeed-protocol-fetcher)
   (remove-hook 'elfeed-tag-hooks #'elfeed-protocol-on-tag-add)
   (remove-hook 'elfeed-untag-hooks #'elfeed-protocol-on-tag-remove)

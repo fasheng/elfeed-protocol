@@ -40,7 +40,7 @@
       (let* ((proto-url "newsblur+https://user:pass@newsblur.com")
              (host-url (elfeed-protocol-url proto-url))
              (proto-id (elfeed-protocol-newsblur-id host-url))
-             (elfeed-protocol-feeds (list proto-url))
+             (elfeed-feeds (list proto-url))
              (elfeed-protocol-newsblur-feeds (elfeed-protocol-newsblur--parse-result
                                                (elfeed-protocol-newsblur--parse-feeds
                                                 host-url result)))
@@ -70,7 +70,7 @@
         (let* ((proto-url "newsblur+https://user:pass@myhost.com")
                (host-url (elfeed-protocol-url proto-url))
                (proto-id (elfeed-protocol-newsblur-id host-url))
-               (elfeed-protocol-feeds (list (list proto-url
+               (elfeed-feeds (list (list proto-url
                                          :autotags
                                          '(("http://anildash.com/" tag1)))))
                (elfeed-protocol-newsblur-feeds (elfeed-protocol-newsblur--parse-result

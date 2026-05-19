@@ -1,9 +1,10 @@
 > [!IMPORTANT]
-> Since version `0.9.0` , elfeed-protocol use variable
-> `elfeed-protocol-feeds` instead of `elfeed-feeds` to fix conflict
-> issues to extensions that modify or require `elfeed-feeds`.  And
-> elfeed-protocol could work together with elfeed-org and
-> elfeed-autotag without any aditional setup now.
+> Since version `1.0.0`, elfeed-protocol use the variable
+> `elfeed-feeds` directly again. With the help of elfeed `4.0.0`, user
+> could enable option `:no-update` for other feeds to make
+> elfeed-protocol could work together with other extensions like
+> elfeed-org and elfeed-summary. More information to see the document
+> below.
 
 elfeed-protocol
 ==============
@@ -35,7 +36,7 @@ Setup elfeed-protocol, then switch to search view and and press G to update entr
 (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
 
 ;; setup feeds
-(setq elfeed-protocol-feeds '(("owncloud+https://user@myhost.com"
+(setq elfeed-feeds '(("owncloud+https://user@myhost.com"
                                :password "my-password")))
 
 ;; enable elfeed-protocol
@@ -78,7 +79,7 @@ Example:
 ```emacs-lisp
 (setq elfeed-protocol-fever-update-unread-only nil)
 (setq elfeed-protocol-fever-fetch-category-as-tag t)
-(setq elfeed-protocol-feeds '(("fever+https://user@myhost.com"
+(setq elfeed-feeds '(("fever+https://user@myhost.com"
                                :api-url "https://myhost.com/plugins/fever/"
                                :password "my-password")))
 ```
@@ -105,7 +106,7 @@ Example:
 (setq elfeed-protocol-newsblur-sub-category-separator "/")
 (setq elfeed-curl-extra-arguments '("--cookie-jar" "/tmp/newsblur-cookie"
                                     "--cookie" "/tmp/newsblur-cookie"))
-(setq elfeed-protocol-feeds '(("newsblur+https://user@newsblur.com"
+(setq elfeed-feeds '(("newsblur+https://user@newsblur.com"
                                :password "my-password")))
 ```
 
@@ -127,7 +128,7 @@ Example:
 (setq elfeed-protocol-owncloud-maxsize 1000)
 (setq elfeed-protocol-owncloud-update-with-modified-time t)
 (setq elfeed-protocol-owncloud-fetch-category-as-tag t)
-(setq elfeed-protocol-feeds '(("owncloud+https://user@myhost.com"
+(setq elfeed-feeds '(("owncloud+https://user@myhost.com"
                                :password "my-password")))
 ```
 
@@ -152,83 +153,91 @@ Example:
 ```emacs-lisp
 (setq elfeed-protocol-ttrss-maxsize 200) ; bigger than 200 is invalid
 (setq elfeed-protocol-ttrss-fetch-category-as-tag t)
-(setq elfeed-protocol-feeds '(("ttrss+https://user@myhost.com"
+(setq elfeed-feeds '(("ttrss+https://user@myhost.com"
                                :password "my-password")))
 ```
 
 # Extra settings
 
-## All example formats for elfeed-protocol-feeds
+## All example formats for elfeed-feeds
 
 ```emacs-lisp
-(setq elfeed-protocol-feeds '(
-                              ;; same format with elfeed-feeds
-                              "http://foo/"
-                              ("http://baz/" comic)
+(setq elfeed-feeds '(
+                     ;; format 1
+                     "owncloud+https://user:pass@myhost.com"
 
-                              ;; format 1
-                              "owncloud+https://user:pass@myhost.com"
+                     ;; format 2, for username or password with special characters
+                     ("owncloud+https://user@domain.com@myhost.com"
+                      :password "password/with|special@characters:")
 
-                              ;; format 2, for username or password with special characters
-                              ("owncloud+https://user@domain.com@myhost.com"
-                               :password "password/with|special@characters:")
+                     ;; format 3, for password in file
+                     ("owncloud+https://user@myhost.com"
+                      :password-file "~/.password")
 
-                              ;; format 3, for password in file
-                              ("owncloud+https://user@myhost.com"
-                               :password-file "~/.password")
+                     ;; format 4, for password in .authinfo,
+                     ;; ensure (auth-source-search :host "myhost.com" :port "443" :user "user4") exists
+                     ("owncloud+https://user@myhost.com"
+                      :use-authinfo t)
 
-                              ;; format 4, for password in .authinfo,
-                              ;; ensure (auth-source-search :host "myhost.com" :port "443" :user "user4") exists
-                              ("owncloud+https://user@myhost.com"
-                               :use-authinfo t)
+                     ;; format 5, for password in gnome-keyring
+                     ("owncloud+https://user@myhost.com"
+                      :password (shell-command-to-string "echo -n `secret-tool lookup attribute value`"))
 
-                              ;; format 5, for password in gnome-keyring
-                              ("owncloud+https://user@myhost.com"
-                               :password (shell-command-to-string "echo -n `secret-tool lookup attribute value`"))
+                     ;; format 6, for password in pass(1), requires password-store.el
+                     ("owncloud+https://user@myhost.com"
+                      :password (password-store-get "owncloud/app-pass"))
 
-                              ;; format 6, for password in pass(1), using password-store.el
-                              ("owncloud+https://user@myhost.com"
-                               :password (password-store-get "owncloud/app-pass"))
-
-                              ;; use autotags
-                              ("owncloud+https://user@myhost.com"
-                               :password "password"
-                               :autotags (("example.com" comic)))))
+                     ;; use :autotags in meta property (if :autotags not defined,
+                     ;; elfeed-protocol will query autotags in elfeed-feeds)
+                     ("owncloud+https://user@myhost.com"
+                      :password "password"
+                      :autotags (("example.com" comic)))))
 ```
 
-## Work with feeds and autotags that defined in original elfeed-feeds
+## Work together with elfeed-autotag
+
+[elfeed-autotag](https://github.com/paulelms/elfeed-autotag/tree/main)
+is a fork of `elfeed-org` that only provide auto-tagging feature
+without modify `elfeed-feeds`. It support elfeed-protocol offical and
+just ensure `elfeed-autotag-protocol-used` is not nil.
+
+## Work together with elfeed-org and elfeed-summary
+
+To make `elfeed-org`'s tag rules work together with `elfeed-protocol`, just add some
+advice for `elfeed`:
 
 ```emacs-lisp
-(setq elfeed-feeds '("http://foo/" ("http://baz/" comic)))
-(setq elfeed-protocol-feeds '(("owncloud+https://user@myhost.com"
-                               :password "my-password")))
-(setq elfeed-protocol-feeds (append elfeed-protocol-feeds elfeed-feeds))
-```
+(defvar elfeed-protocol-orig-feeds nil
+  "Store original content of `elfeed-feeds' before `elfeed-org' or
+other extensions modifying it.")
 
-## Work with elfeed-org and elfeed-autotag
+(defun elfeed-protocol-advice-rmh-elfeed-org-process (orig-func files tree-id)
+  "Advice for `rmh-elfeed-org-process' to keep the original
+`elfeed-feeds' exists."
+  (unless elfeed-protocol-orig-feeds
+    (setq elfeed-protocol-orig-feeds elfeed-feeds))
+  (funcall orig-func files tree-id)
+  (when elfeed-protocol-orig-feeds
+    (setq elfeed-feeds (append elfeed-protocol-orig-feeds elfeed-feeds))))
+(advice-add 'rmh-elfeed-org-process :around #'elfeed-protocol-advice-rmh-elfeed-org-process)
 
-Since version `0.9.0`, elfeed-protocol could work together with
-elfeed-org and elfeed-autotag without any aditional setup.
-
-## Work with elfeed-summary
-
-To fix `0 / 0` zero count issue for all feeds, just active the
-following advice for `rmh-elfeed-org-export-feed`:
-
-```emacs-lisp
 (defun elfeed-protocol-advice-rmh-elfeed-org-export-feed (headline)
- "Advice for `rmh-elfeed-org-export-feed', add elfeed-protocol ID as suffix for each feed."
+  "Advice for `rmh-elfeed-org-export-feed', add elfeed-protocol ID as suffix and add `:no-update' option to each feed."
   (let* ((url (car headline))
+         (elfeed-feeds (if elfeed-protocol-orig-feeds elfeed-protocol-orig-feeds elfeed-feeds))
          (proto-id (car (elfeed-protocol-feed-list))))
     (when proto-id
-      (setcar headline (elfeed-protocol-format-subfeed-id proto-id url)))))
+      (setcar headline (elfeed-protocol-format-subfeed-id proto-id url))
+      (setcdr headline (append '(:no-update t) (cdr headline))))))
 (advice-add 'rmh-elfeed-org-export-feed :before #'elfeed-protocol-advice-rmh-elfeed-org-export-feed)
 ```
 
-Besides, don't use `elfeed-summary-update` to fetach articles,
-use `elfeed-update` instead, and press `r` to refresh UI manually:
+And this will fix `0 / 0` zero count issue for `elfeed-summary',
+too. And set `elfeed-summary-skip-sync-tag` to `:no-update` will fix
+`elfeed-summary-update` issue:
+
 ```emacs-lisp
-(define-key elfeed-summary-mode-map (kbd "R") #'elfeed-update)
+(setq elfeed-summary-skip-sync-tag ':no-update)
 ```
 
 # Run Unit-Tests
@@ -260,7 +269,7 @@ make package-lint
 3.  Setup `elfeed-protocol`
 
     ```emacs-lisp
-    (setq elfeed-protocol-feeds '("owncloud+http://<admin>:<password>@localhost"))
+    (setq elfeed-feeds '("owncloud+http://<admin>:<password>@localhost"))
     ```
 
 ## Tiny Tiny RSS
@@ -278,7 +287,7 @@ make package-lint
 3.  Setup `elfeed-protocol`
 
     ```emacs-lisp
-    (setq elfeed-protocol-feeds '("ttrss+http://admin:password@localhost"))
+    (setq elfeed-feeds '("ttrss+http://admin:password@localhost"))
     ```
 
 # Report Issues
@@ -300,7 +309,7 @@ before reporting issues:
 
 # Q&A
 
-1. When I run elfeed-update I get the error: `elfeed-protocol-feeds malformed, bad entry`
+1. When I run elfeed-update I get the error: `elfeed-feeds malformed, bad entry`
 
    Don't forget to enable elfeed-protocol at first:
    ```emacs-lisp

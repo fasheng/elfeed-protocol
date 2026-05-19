@@ -35,7 +35,7 @@
       (let* ((url "https://user:pass@myhost.com:443")
              (proto-url (concat "owncloud+" url))
              (proto-id (elfeed-protocol-owncloud-id url))
-             (elfeed-protocol-feeds (list proto-url))
+             (elfeed-feeds (list proto-url))
              (elfeed-protocol-owncloud-feeds (elfeed-protocol-owncloud--parse-result
                                                (elfeed-protocol-owncloud--parse-feeds url result)))
              (feed1-url (elfeed-protocol-owncloud--get-subfeed-url url 1))
@@ -76,7 +76,7 @@
         (let* ((url "https://user:pass@myhost.com:443")
                (proto-url (concat "owncloud+" url))
                (proto-id (elfeed-protocol-owncloud-id url))
-               (elfeed-protocol-feeds (list (list proto-url :autotags
+               (elfeed-feeds (list (list proto-url :autotags
                                          '(("http://www.example.com/feed/" tag1)
                                            ("http://www.example2.com/rss.jsp" tag2)))))
                (elfeed-protocol-owncloud-feeds (elfeed-protocol-owncloud--parse-result
