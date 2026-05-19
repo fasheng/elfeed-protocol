@@ -4,7 +4,7 @@
 ;; URL: https://github.com/fasheng/elfeed-protocol
 ;; Version: 0.3.2
 ;; Package-Version: 20170501.1349
-;; Package-Requires : ((emacs "24.4") (elfeed "2.1.1") (cl-lib "0.5"))
+;; Package-Requires : ((emacs "24.4") (elfeed "4.0.0") (cl-lib "0.5"))
 ;; Keywords: news
 
 ;;; Commentary:
