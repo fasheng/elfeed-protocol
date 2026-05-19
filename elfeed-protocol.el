@@ -135,6 +135,7 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
 (defun elfeed-protocol-enable ()
   "Enable hooks and advices for elfeed-protocol."
   (interactive)
+
   ;; Migrate metadata from elfeed-db :feeds field to :protocol-feeds
   (dolist (proto-id (elfeed-protocol-feed-list))
     (let* ((old-metadata (elfeed-meta--plist (elfeed-db-get-feed proto-id)))
@@ -142,6 +143,10 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
       (when (and old-metadata (not cur-metadata))
         (elfeed-log 'info "elfeed-protocol: Migrate metadata for %s %s" proto-id old-metadata)
         (elfeed-protocol-set-db-feed-meta-all proto-id old-metadata))))
+
+  ;; Notice user switch back to elfeed-feeds
+  (when (and (boundp 'elfeed-protocol-feeds) (> (length elfeed-protocol-feeds) 0))
+    (elfeed-log 'warn "elfeed-protocol: elfeed-protocol-feeds is not empty! Well, since 1.0.0, with the help of elfeed 4.0.0, elfeed-protocol switch back to elfeed-feeds again, please setup it instead of elfeed-protocol-feeds. And it will work together with extensions like elfeed-org and elfeed-summary without any aditional setup. More information to see the README"))
 
   (add-hook 'elfeed-fetch-functions #'elfeed-protocol-fetcher)
   (add-hook 'elfeed-tag-hooks #'elfeed-protocol-on-tag-add)
