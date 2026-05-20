@@ -207,15 +207,31 @@ protocol feed"
 (defun elfeed-protocol-get-feed-meta-data (proto-id key)
   "Get meta data in feed db.
 PROTO-ID is the target protocol feed id.  KEY is the key name."
-  (let* ((feed (elfeed-db-get-feed proto-id)))
-    (elfeed-meta feed key)))
+  (let* ((feeds (plist-get elfeed-db :protocol-feeds))
+         (feed (assoc-string proto-id feeds)))
+    (plist-get (cdr feed) key)))
 
 (defun elfeed-protocol-set-feed-meta-data (proto-id key value)
-  "Get meta data in feed db.
+  "Set meta data in feed db.
 PROTO-ID is the target protocol feed id.  KEY is the key name.  VALUE is the
 target value."
-  (let* ((feed (elfeed-db-get-feed proto-id)))
-    (setf (elfeed-meta feed key) value)))
+  (let* ((feeds (with-memoization (plist-get elfeed-db :protocol-feeds) (list (list proto-id))))
+         (feed (with-memoization (assoc-string proto-id feeds) (list proto-id))))
+    (setf (plist-get (cdr feed) key) value)))
+
+(defun elfeed-protocol-get-feed-meta-data-all (proto-id)
+  "Get all meta data in feed db.
+PROTO-ID is the target protocol feed id."
+  (let* ((feeds (plist-get elfeed-db :protocol-feeds))
+         (feed (assoc-string proto-id feeds)))
+    (cdr feed)))
+
+(defun elfeed-protocol-set-feed-meta-data-all (proto-id value)
+  "Set all meta data in feed db.
+PROTO-ID is the target protocol feed id.  VALUE is the target value."
+  (let* ((feeds (with-memoization (plist-get elfeed-db :protocol-feeds) (list (list proto-id))))
+         (feed (with-memoization (assoc-string proto-id feeds) (list proto-id))))
+    (setf (cdr feed) value)))
 
 (defun elfeed-protocol-get-last-modified (proto-id)
   "Get last entry modified time.
