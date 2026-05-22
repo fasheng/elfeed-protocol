@@ -92,6 +92,8 @@ Example:
    defined in `elfeed-protocol-ttrss-star-tag` which default value is
    `star`
 
+**NOTE**: NewsBlur limited the API as a premium feature now.
+
 **NOTE**: A file for storing session cookies has to be specified via
 `elfeed-curl-extra-arguments` like in the following example.
 
