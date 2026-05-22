@@ -211,14 +211,6 @@ PROTO-ID is the target protocol feed id.  KEY is the key name."
          (feed (assoc-string proto-id feeds)))
     (plist-get (cdr feed) key)))
 
-(defun elfeed-protocol-set-feed-meta-data (proto-id key value)
-  "Set meta data in feed db.
-PROTO-ID is the target protocol feed id.  KEY is the key name.  VALUE is the
-target value."
-  (let* ((feeds (with-memoization (plist-get elfeed-db :protocol-feeds) (list (list proto-id))))
-         (feed (with-memoization (assoc-string proto-id feeds) (list proto-id))))
-    (setf (plist-get (cdr feed) key) value)))
-
 (defun elfeed-protocol-get-feed-meta-data-all (proto-id)
   "Get all meta data in feed db.
 PROTO-ID is the target protocol feed id."
@@ -226,11 +218,27 @@ PROTO-ID is the target protocol feed id."
          (feed (assoc-string proto-id feeds)))
     (cdr feed)))
 
+(defun elfeed-protocol-ensure-feed-meta-data (proto-id)
+  "Ensure meta data in feed db exists.
+PROTO-ID is the target protocol feed id."
+  (with-memoization (plist-get elfeed-db :protocol-feeds) (list (list proto-id)))
+  (let* ((feeds (plist-get elfeed-db :protocol-feeds)))
+    (unless (assoc-string proto-id feeds)
+      (setf (plist-get elfeed-db :protocol-feeds) (append feeds (list (list proto-id)))))))
+
+(defun elfeed-protocol-set-feed-meta-data (proto-id key value)
+  "Set meta data in feed db.
+PROTO-ID is the target protocol feed id.  KEY is the key name.  VALUE is the
+target value."
+  (elfeed-protocol-ensure-feed-meta-data proto-id)
+  (let* ((feed (assoc-string proto-id (plist-get elfeed-db :protocol-feeds))))
+    (setf (plist-get (cdr feed) key) value)))
+
 (defun elfeed-protocol-set-feed-meta-data-all (proto-id value)
   "Set all meta data in feed db.
 PROTO-ID is the target protocol feed id.  VALUE is the target value."
-  (let* ((feeds (with-memoization (plist-get elfeed-db :protocol-feeds) (list (list proto-id))))
-         (feed (with-memoization (assoc-string proto-id feeds) (list proto-id))))
+  (elfeed-protocol-ensure-feed-meta-data proto-id)
+  (let* ((feed (assoc-string proto-id (plist-get elfeed-db :protocol-feeds))))
     (setf (cdr feed) value)))
 
 (defun elfeed-protocol-get-last-modified (proto-id)
