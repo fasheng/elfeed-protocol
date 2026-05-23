@@ -178,7 +178,7 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
 
   ;; Notice user switch back to elfeed-feeds
   (when (and (boundp 'elfeed-protocol-feeds) (> (length elfeed-protocol-feeds) 0))
-    (elfeed-log 'warn "elfeed-protocol: elfeed-protocol-feeds is not empty! Well, since 1.0.0, with the help of elfeed 4.0.0, elfeed-protocol switch back to elfeed-feeds again, please setup it instead of elfeed-protocol-feeds. And it will work together with extensions like elfeed-org and elfeed-summary without any aditional setup. More information to see the README"))
+    (elfeed-log 'warn "elfeed-protocol: elfeed-protocol-feeds is not empty! Well, since 1.0.0, with the help of elfeed 4.0.0, elfeed-protocol switch back to elfeed-feeds again, please setup it instead of elfeed-protocol-feeds. And it will work together with extensions like elfeed-org and elfeed-summary without any additional setup. More information to see the README"))
 
   (add-hook 'elfeed-fetch-functions #'elfeed-protocol-fetcher)
   (add-hook 'elfeed-tag-hooks #'elfeed-protocol-on-tag-add)
