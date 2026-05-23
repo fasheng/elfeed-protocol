@@ -75,7 +75,7 @@ t as a workaround."
   "Get fever server API url.
 HOST-URL is the host name of Fever server."
   (let* ((proto-id (elfeed-protocol-fever-id host-url))
-         (url (elfeed-protocol-meta-data proto-id :api-url)))
+         (url (elfeed-protocol-meta-prop proto-id :api-url)))
     url))
 
 (defun elfeed-protocol-fever--build-data (host-url &optional parameter)

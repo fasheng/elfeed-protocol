@@ -126,7 +126,7 @@ Which just concat PROTO-ID and FEED-URL, for example
                      (string feed))))
     feed-url))
 
-(defun elfeed-protocol-meta-data (proto-id prop)
+(defun elfeed-protocol-meta-prop (proto-id prop)
   "Get meta property data in `elfeed-protocol-feeds` for PROTO-ID.
 PROP could be :password, :autotags etc."
   (let* ((feed (elfeed-protocol-meta-feed proto-id))
@@ -150,7 +150,7 @@ Will try to get password from :password filed, url, passowrd file and .authinfo
 one by one."
   (let* ((proto-url (elfeed-protocol-meta-url proto-id))
          (urlobj (url-generic-parse-url (elfeed-protocol-url proto-url)))
-         (meta-pass (elfeed-protocol-meta-data proto-id :password)))
+         (meta-pass (elfeed-protocol-meta-prop proto-id :password)))
     (cond
      ((and meta-pass (stringp meta-pass))
       meta-pass)
@@ -163,11 +163,11 @@ one by one."
 
      ((url-password urlobj) (url-password urlobj))
 
-     ((elfeed-protocol-meta-data proto-id :password-file)
+     ((elfeed-protocol-meta-prop proto-id :password-file)
       (elfeed-protocol-get-string-from-file
-       (elfeed-protocol-meta-data proto-id :password-file)))
+       (elfeed-protocol-meta-prop proto-id :password-file)))
 
-     ((elfeed-protocol-meta-data proto-id :use-authinfo)
+     ((elfeed-protocol-meta-prop proto-id :use-authinfo)
       (require 'auth-source)
       (let* ((auth-info (auth-source-search :host (url-host urlobj)
                                             :port (url-port urlobj)
@@ -183,7 +183,7 @@ one by one."
 
 (defun elfeed-protocol-meta-autotags (proto-id)
   "Get :autotags property data in `elfeed-protocol-feeds` for PROTO-ID."
-  (let ((autotags (elfeed-protocol-meta-data proto-id :autotags)))
+  (let ((autotags (elfeed-protocol-meta-prop proto-id :autotags)))
     (if (eq (car autotags) 'quote)
         (eval autotags)
       autotags)))
