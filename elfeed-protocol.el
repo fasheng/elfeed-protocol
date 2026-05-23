@@ -166,10 +166,10 @@ Will split ENTRIES to groups and dispatched TAGS by different protocols."
   ;; Migrate metadata from elfeed-db :feeds field to :protocol-feeds
   (dolist (proto-id (elfeed-protocol-feed-list))
     (let* ((old-metadata (elfeed-meta--plist (elfeed-db-get-feed proto-id)))
-           (cur-metadata (elfeed-protocol-get-feed-meta-data-all proto-id)))
+           (cur-metadata (elfeed-protocol-get-db-feed-meta-all proto-id)))
       (when (and old-metadata (not cur-metadata))
         (elfeed-log 'info "elfeed-protocol: Migrate metadata for %s %s" proto-id old-metadata)
-        (elfeed-protocol-set-feed-meta-data-all proto-id old-metadata))))
+        (elfeed-protocol-set-db-feed-meta-all proto-id old-metadata))))
 
   (advice-add 'elfeed-feed-list :override #'elfeed-protocol-advice-feed-list)
   (add-hook 'elfeed-fetch-functions #'elfeed-protocol-fetcher)

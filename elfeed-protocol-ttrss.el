@@ -89,7 +89,7 @@ update-older or update-star.  If not initialized, just return -1."
                ((eq update-action 'update) :last-entry-id)
                ((eq update-action 'update-older) :first-entry-id)
                ((eq update-action 'update-star) :star-entry-skip)))
-         (mark (elfeed-protocol-get-feed-meta-data proto-id key)))
+         (mark (elfeed-protocol-get-db-feed-meta proto-id key)))
     (if mark mark -1)))
 
 (defun elfeed-protocol-ttrss-set-update-mark (proto-id update-action mark)
@@ -103,7 +103,7 @@ update-older or update-star.  MARK the target value."
                ((eq update-action 'update) :last-entry-id)
                ((eq update-action 'update-older) :first-entry-id)
                ((eq update-action 'update-star) :star-entry-skip))))
-    (elfeed-protocol-set-feed-meta-data proto-id key mark)))
+    (elfeed-protocol-set-db-feed-meta proto-id key mark)))
 
 (defmacro elfeed-protocol-ttrss-with-fetch (host-url method data &rest body)
   "Just like `elfeed-with-fetch' but special for ttrss HTTP request.

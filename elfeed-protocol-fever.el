@@ -98,7 +98,7 @@ update-older.  If not initialized, just return -1."
   (let* ((key (cond
                ((eq update-action 'update) :last-entry-id)
                ((eq update-action 'update-older) :first-entry-id)))
-         (mark (elfeed-protocol-get-feed-meta-data proto-id key)))
+         (mark (elfeed-protocol-get-db-feed-meta proto-id key)))
     (if mark mark -1)))
 
 (defun elfeed-protocol-fever-set-update-mark (proto-id update-action mark)
@@ -111,7 +111,7 @@ update-older.  MARK the target value."
   (let* ((key (cond
                ((eq update-action 'update) :last-entry-id)
                ((eq update-action 'update-older) :first-entry-id))))
-    (elfeed-protocol-set-feed-meta-data proto-id key mark)))
+    (elfeed-protocol-set-db-feed-meta proto-id key mark)))
 
 (defmacro elfeed-protocol-fever-with-fetch (url method data &rest body)
   "Just like `elfeed-with-fetch' but special for fever HTTP request.

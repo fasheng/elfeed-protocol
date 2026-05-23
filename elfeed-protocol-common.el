@@ -204,40 +204,40 @@ protocol feed"
         autotags-subfeed
       autotags-subfeed-id)))
 
-(defun elfeed-protocol-get-feed-meta-data (proto-id key)
-  "Get meta data in feed db.
+(defun elfeed-protocol-get-db-feed-meta (proto-id key)
+  "Get meta data in elfeed db.
 PROTO-ID is the target protocol feed id.  KEY is the key name."
   (let* ((feeds (plist-get elfeed-db :protocol-feeds))
          (feed (assoc-string proto-id feeds)))
     (plist-get (cdr feed) key)))
 
-(defun elfeed-protocol-get-feed-meta-data-all (proto-id)
-  "Get all meta data in feed db.
+(defun elfeed-protocol-get-db-feed-meta-all (proto-id)
+  "Get all meta data in elfeed db.
 PROTO-ID is the target protocol feed id."
   (let* ((feeds (plist-get elfeed-db :protocol-feeds))
          (feed (assoc-string proto-id feeds)))
     (cdr feed)))
 
-(defun elfeed-protocol-ensure-feed-meta-data (proto-id)
-  "Ensure meta data in feed db exists.
+(defun elfeed-protocol-ensure-db-feed-meta (proto-id)
+  "Ensure meta data in elfeed db exists.
 PROTO-ID is the target protocol feed id."
   (with-memoization (plist-get elfeed-db :protocol-feeds) (list (list proto-id)))
   (let* ((feeds (plist-get elfeed-db :protocol-feeds)))
     (unless (assoc-string proto-id feeds)
       (setf (plist-get elfeed-db :protocol-feeds) (append feeds (list (list proto-id)))))))
 
-(defun elfeed-protocol-set-feed-meta-data (proto-id key value)
-  "Set meta data in feed db.
+(defun elfeed-protocol-set-db-feed-meta (proto-id key value)
+  "Set meta data in elfeed db.
 PROTO-ID is the target protocol feed id.  KEY is the key name.  VALUE is the
 target value."
-  (elfeed-protocol-ensure-feed-meta-data proto-id)
+  (elfeed-protocol-ensure-db-feed-meta proto-id)
   (let* ((feed (assoc-string proto-id (plist-get elfeed-db :protocol-feeds))))
     (setf (plist-get (cdr feed) key) value)))
 
-(defun elfeed-protocol-set-feed-meta-data-all (proto-id value)
-  "Set all meta data in feed db.
+(defun elfeed-protocol-set-db-feed-meta-all (proto-id value)
+  "Set all meta data in elfeed db.
 PROTO-ID is the target protocol feed id.  VALUE is the target value."
-  (elfeed-protocol-ensure-feed-meta-data proto-id)
+  (elfeed-protocol-ensure-db-feed-meta proto-id)
   (let* ((feed (assoc-string proto-id (plist-get elfeed-db :protocol-feeds))))
     (setf (cdr feed) value)))
 
@@ -245,38 +245,38 @@ PROTO-ID is the target protocol feed id.  VALUE is the target value."
   "Get last entry modified time.
 PROTO-ID is the target protocol feed id.  If not initialized just return 0.  The
 last modified time was saved in elfeed db as a mock feed."
-  (let* ((last-modified (elfeed-protocol-get-feed-meta-data proto-id :last-modified)))
+  (let* ((last-modified (elfeed-protocol-get-db-feed-meta proto-id :last-modified)))
     (if last-modified
         last-modified
       0)))
 (defun elfeed-protocol-set-last-modified (proto-id last-modified)
   "Set last entry modified time.
 PROTO-ID is the target protocol feed id.  LAST-MODIFIED is the target value."
-  (elfeed-protocol-set-feed-meta-data proto-id :last-modified last-modified))
+  (elfeed-protocol-set-db-feed-meta proto-id :last-modified last-modified))
 
 (defun elfeed-protocol-get-first-entry-id (proto-id)
   "Get first entry id.
 PROTO-ID is the target protocol feed id.  If not initialized, just return -1."
-  (let* ((last-entry-id (elfeed-protocol-get-feed-meta-data proto-id :first-entry-id)))
+  (let* ((last-entry-id (elfeed-protocol-get-db-feed-meta proto-id :first-entry-id)))
     (if last-entry-id
         last-entry-id
       -1)))
 (defun elfeed-protocol-set-first-entry-id (proto-id first-entry-id)
   "Set first entry id to elfeed db.
 PROTO-ID is the target protocol feed id.  FIRST-ENTRY-ID is the target value."
-  (elfeed-protocol-set-feed-meta-data proto-id :first-entry-id first-entry-id))
+  (elfeed-protocol-set-db-feed-meta proto-id :first-entry-id first-entry-id))
 
 (defun elfeed-protocol-get-last-entry-id (proto-id)
   "Get last entry id.
 PROTO-ID is the target protocol feed id.  If not initialized, just return -1."
-  (let* ((last-entry-id (elfeed-protocol-get-feed-meta-data proto-id :last-entry-id)))
+  (let* ((last-entry-id (elfeed-protocol-get-db-feed-meta proto-id :last-entry-id)))
     (if last-entry-id
         last-entry-id
       -1)))
 (defun elfeed-protocol-set-last-entry-id (proto-id last-entry-id)
   "Set last entry id to elfeed db.
 PROTO-ID is the target protocol feed id.  LAST-ENTRY-ID is the target value."
-  (elfeed-protocol-set-feed-meta-data proto-id :last-entry-id last-entry-id))
+  (elfeed-protocol-set-db-feed-meta proto-id :last-entry-id last-entry-id))
 
 (defun elfeed-protocol-get-pending-ids (proto-id key)
   "Get read/unread/starred/unstarred pending ids that to synchronize later.
@@ -288,7 +288,7 @@ PROTO-ID is the target protocol feed id.  KEY could be :pending-read,
                               "Key name: "
                               '(:pending-read :pending-unread :pending-starred :pending-unstarred
                                               :pending-published :pending-unpublished)))))
-  (let* ((pending-ids (elfeed-protocol-get-feed-meta-data proto-id key)))
+  (let* ((pending-ids (elfeed-protocol-get-db-feed-meta proto-id key)))
     (if (> (length pending-ids) 0)
         pending-ids
       nil)))
@@ -302,7 +302,7 @@ PROTO-ID is the target protocol feed id.  KEY could be :pending-read,
                               "Key name: "
                               '(:pending-read :pending-unread :pending-starred :pending-unstarred
                                               :pending-published :pending-unpublished)))))
-  (elfeed-protocol-set-feed-meta-data proto-id key ids))
+  (elfeed-protocol-set-db-feed-meta proto-id key ids))
 
 (defun elfeed-protocol-append-pending-ids (proto-id key ids)
   "Append pending read/unread/starred/unstarred ids that to synchronize later.
